@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Leaf, Award, FileText } from "lucide-react";
+import { Gallery } from "@/components/sostenibilita/Gallery";
 
 const INITIATIVES = [
   {
@@ -138,6 +139,9 @@ export function Sostenibilita() {
           </div>
         </div>
       </section>
+
+      {/* Photo Gallery */}
+      <Gallery />
       </main>
       <Footer />
     </div>
