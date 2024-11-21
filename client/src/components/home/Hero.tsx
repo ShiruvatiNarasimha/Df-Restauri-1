@@ -6,11 +6,13 @@ export function Hero() {
     <div className="relative h-screen min-h-[600px] max-h-[900px] flex items-center overflow-hidden">
       <div className="absolute inset-0 transition-transform duration-1000 hover:scale-105">
         <img
-          src="/02249074-f62f-4668-8f61-700e9807b7d6.jpeg"
+          src="/02249074-f62f-4668-8f61-700e9807b7d6.jpg"
           alt="Construction site"
+          width={1920}
+          height={1080}
           className="w-full h-full object-cover object-center scale-105"
           loading="eager"
-          fetchpriority="high"
+          fetchPriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 backdrop-blur-[2px]" />
       </div>
