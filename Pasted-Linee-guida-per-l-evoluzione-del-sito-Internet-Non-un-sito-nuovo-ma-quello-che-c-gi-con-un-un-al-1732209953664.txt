@@ -1,0 +1,105 @@
+Linee guida per l’evoluzione del sito Internet. Non un sito nuovo ma quello che c’è già con un un’altra faccia.  
+
+
+
+STRUTTURA DEL SITO
+
+
+1. Home Page
+Hero image: Un'immagine di forte impatto visivo che rappresenta l'azienda e i suoi valori (es: un restauro completato, una squadra al lavoro).
+
+Headline: Un titolo chiaro e conciso che comunica immediatamente l'attività di DF Restauri per ogni business:
+Restauri: Mantieni viva la storia. Affidati a noi;
+Costruzioni: Costruiamo il futuro; il domani inizia oggi;
+Ristrutturazioni: La tua casa (oppure il tuo capannone) …il nostro pianeta…un binomio vincente!
+
+Sottotitolo: Una breve frase che sottolinea l'esperienza e la specializzazione dell'azienda (es: "Oltre 20 anni di esperienza nel restauro e nella ristrutturazione").
+Call to action: Un invito chiaro e diretto all'azione, come "Scopri i nostri servizi".
+Breve presentazione: Un paragrafo che riassume la storia dell'azienda e i suoi valori fondamentali.
+Highlights: Una sezione con icone e brevi descrizioni dei servizi principali offerti.
+
+
+
+
+Dalla Home Page poi si può accedere alle seguenti opzioni (con menù a tendina):
+
+
+2. Ci presentiamo
+Storia dell'azienda: (usa contenuto Chi siamo alla fine della pagina) Una narrazione dettagliata della fondazione e dell'evoluzione di DF Restauri, evidenziando i traguardi raggiunti e i valori che guidano l'azienda.
+Il nostro team: usa servizi alla fine della pagina + Presentazione dei membri del team, con foto e brevi biografie, sottolineando le competenze e le specializzazioni
+Valori aziendali: Definizione dei principi e dei valori che guidano l'operato dell'azienda (es: qualità, affidabilità, sostenibilità).
+Mission e vision: usa mission alla fine della pagina + Una chiara dichiarazione della missione e della visione futura dell'azienda.
+
+
+
+3. Opportunità
+Servizi principali: Descrizione dettagliata di ogni servizio offerto (restauro, ristrutturazione, manutenzione), con esempi di lavori realizzati, foto e spiegazioni tecniche.
+
+
+
+4. Certificazioni
+Elenco delle certificazioni: Presentazione delle certificazioni ottenute dall'azienda, come quelle relative alla qualità, alla sicurezza e alla sostenibilità.
+Documenti scaricabili: Metti a disposizione i documenti ufficiali delle certificazioni in formato PDF per consentire agli utenti di scaricarli e consultarli.
+
+
+
+
+5. Sostenibilità
+Impegno per l'ambiente: Descrizione delle iniziative adottate dall'azienda per ridurre l'impatto ambientale (es: utilizzo di materiali eco-compatibili, gestione dei rifiuti).
+Certificazioni ambientali: Presentazione delle eventuali certificazioni ambientali ottenute.
+Case history: Esempi concreti di progetti realizzati con un approccio sostenibile.
+
+
+
+6. Realizzazioni
+Gallery: Una vasta galleria di immagini che mostrano i lavori realizzati, suddivisa per tipologia di intervento (restauro, ristrutturazione, ecc.) o per cliente (residenziale, commerciale, pubblico).
+Case history: Descrizioni dettagliate di alcuni progetti particolarmente significativi, con foto prima/dopo e testimonianze dei clienti.
+
+
+
+7. Contatti
+Informazioni di contatto: Indirizzo, numero di telefono, email, form di contatto.
+Mappa: Una mappa interattiva che mostra la sede dell'azienda e le aree di intervento.
+Orari di apertura: Indicazione degli orari di apertura dell'ufficio.
+Modulo di richiesta preventivo: Un modulo facile da compilare per permettere ai potenziali clienti di richiedere un preventivo.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TESTI
+
+
+Chi siamo
+
+
+"Da oltre vent'anni, DF Restauri è sinonimo di eccellenza nel mondo del restauro, delle pitture e delle decorazioni. Rappresenta la prosecuzione dell’attività nata nel 1992 in capo a De Faveri Luca. L'azienda ha saputo coniugare la maestria artigianale con le più moderne tecniche, offrendo soluzioni personalizzate per ogni esigenza dalle delicate operazioni di costruzione, ristrutturazione e restauro.  DF è il partner ideale per chi desidera valorizzare i propri spazi con un tocco di esclusività. Grazie all'esperienza maturata nel corso degli anni, siamo in grado di garantire risultati impeccabili e duraturi, rispondendo alle richieste più esigenti del mercato dell'edilizia."
+
+Abbiamo saputo evolversi e adattarsi ai continui cambiamenti del mercato, mantenendo sempre al centro il cliente e la qualità dei lavori.
+
+
+
+Servizi
+
+"Hai un progetto edilizio? Affidati a noi! La nostra impresa ti offre un servizio completo e personalizzato, dalla progettazione alla realizzazione chiavi in mano. Grazie alla nostra esperienza e alla nostra passione per l'edilizia, siamo in grado di trasformare le tue idee in realtà. Che tu voglia costruire una nuova casa, ristrutturare un appartamento o recuperare un edificio storico, il nostro team ti seguirà passo dopo passo, garantendoti la massima qualità e trasparenza."
+
+La nostra forza risiede nel nostro team, composto da professionisti altamente qualificati e motivati. Grazie alla loro esperienza e alla loro passione per il loro lavoro, siamo in grado di offrire ai nostri clienti un servizio completo e personalizzato, dalla progettazione alla realizzazione. Lavoriamo a stretto contatto con i nostri clienti, ascoltando attentamente le loro esigenze e trovando soluzioni su misura per ogni progetto. La nostra priorità è la vostra soddisfazione."
+
+
+
+Mission
+
+
+Costruiamo il futuro, rispettando l'ambiente. Il nostro approccio all'edilizia è orientato alla sostenibilità e all'innovazione. Utilizziamo materiali eco-compatibili e tecnologie all'avanguardia per realizzare edifici efficienti dal punto di vista energetico e a basso impatto ambientale. Grazie ad una progettazione attenta e a una gestione efficiente delle risorse, siamo in grado di offrire soluzioni personalizzate e durature nel tempo.
