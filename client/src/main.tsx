@@ -7,12 +7,14 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { Home } from "./pages/Home";
 import { Sostenibilita } from "./pages/Sostenibilita";
+import Certificazioni from "./pages/Certificazioni";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/sostenibilita" component={Sostenibilita} />
+      <Route path="/certificazioni" component={Certificazioni} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );
