@@ -6,7 +6,7 @@ export function Hero() {
     <div className="relative h-screen min-h-[600px] flex items-center">
       <div className="absolute inset-0">
         <img
-          src={STOCK_PHOTOS.construction[0]}
+          src="/02249074-f62f-4668-8f61-700e9807b7d6.JPG"
           alt="Construction site"
           className="w-full h-full object-cover"
         />
