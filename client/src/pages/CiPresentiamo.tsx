@@ -88,6 +88,49 @@ export function CiPresentiamo() {
           </div>
         </div>
       </motion.section>
+
+      {/* Valori Aziendali Section */}
+      <motion.section
+        initial="initial"
+        animate="animate"
+        variants={staggerChildren}
+        className="py-20 bg-gray-50"
+      >
+        <div className="container mx-auto px-4">
+          <motion.div
+            variants={fadeInUp}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-bold mb-4">Valori Aziendali</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Definizione dei principi e dei valori che guidano l'operato dell'azienda (es: qualità, affidabilità, sostenibilità)
+            </p>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Mission e Vision Section */}
+      <motion.section
+        initial="initial"
+        animate="animate"
+        variants={staggerChildren}
+        className="py-20"
+      >
+        <div className="container mx-auto px-4">
+          <motion.div
+            variants={fadeInUp}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl font-bold mb-4">Mission e Vision</h2>
+            <motion.p
+              variants={fadeIn}
+              className="text-gray-600 max-w-3xl mx-auto leading-relaxed"
+            >
+              Costruiamo il futuro, rispettando l'ambiente. Il nostro approccio all'edilizia è orientato alla sostenibilità e all'innovazione. Utilizziamo materiali eco-compatibili e tecnologie all'avanguardia per realizzare edifici efficienti dal punto di vista energetico e a basso impatto ambientale. Grazie ad una progettazione attenta e a una gestione efficiente delle risorse, siamo in grado di offrire soluzioni personalizzate e durature nel tempo.
+            </motion.p>
+          </motion.div>
+        </div>
+      </motion.section>
     </main>
       <Footer />
     </div>
