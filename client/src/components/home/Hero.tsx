@@ -12,7 +12,7 @@ export function Hero() {
           height={1080}
           className="w-full h-full object-cover object-center transform scale-105 transition-transform duration-1000 will-change-transform"
           loading="eager"
-          fetchPriority="high"
+          fetchpriority="high"
           decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 backdrop-blur-[2px]" />
