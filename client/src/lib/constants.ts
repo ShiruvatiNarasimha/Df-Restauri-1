@@ -28,7 +28,7 @@ export const NAVIGATION_ITEMS = [
       { label: "Servizi", href: "/servizi" },
       { label: "Certificazioni", href: "#certificazioni" },
       { label: "Sostenibilita", href: "/sostenibilita" },
-      { label: "Realizzazioni", href: "#realizzazioni" }
+      { label: "Realizzazioni", href: "/realizzazioni" }
     ]
   }
 ];
