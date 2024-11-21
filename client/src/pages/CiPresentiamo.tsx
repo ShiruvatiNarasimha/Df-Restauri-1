@@ -126,7 +126,7 @@ export function CiPresentiamo() {
           initial="initial"
           animate="animate"
           variants={staggerChildren}
-          className="py-20"
+          className="py-20 bg-white"
         >
           <div className="container mx-auto px-4">
             {isLoading ? (
@@ -138,20 +138,57 @@ export function CiPresentiamo() {
                 Si è verificato un errore nel caricamento della mission e vision.
               </div>
             ) : aboutContent ? (
-              <motion.div
-                variants={fadeInUp}
-                className="text-center"
-              >
-                <h2 className="text-3xl font-bold mb-4">
-                  {aboutContent.mission.title}
-                </h2>
-                <motion.p
-                  variants={fadeIn}
-                  className="text-gray-600 max-w-3xl mx-auto leading-relaxed"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <motion.div
+                  variants={fadeInUp}
+                  className="bg-primary/5 p-8 rounded-lg"
                 >
-                  {aboutContent.mission.content}
-                </motion.p>
-              </motion.div>
+                  <h2 className="text-3xl font-bold mb-6 text-primary">Mission</h2>
+                  <motion.p
+                    variants={fadeIn}
+                    className="text-gray-700 leading-relaxed mb-6"
+                  >
+                    {aboutContent.mission.content}
+                  </motion.p>
+                  <ul className="space-y-3">
+                    {aboutContent.mission.points?.map((point, index) => (
+                      <motion.li
+                        key={index}
+                        variants={fadeInUp}
+                        className="flex items-start space-x-2"
+                      >
+                        <CheckCircle className="h-5 w-5 text-primary mt-1" />
+                        <span className="text-gray-600">{point}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </motion.div>
+
+                <motion.div
+                  variants={fadeInUp}
+                  className="bg-gray-50 p-8 rounded-lg"
+                >
+                  <h2 className="text-3xl font-bold mb-6 text-gray-900">Vision</h2>
+                  <motion.p
+                    variants={fadeIn}
+                    className="text-gray-700 leading-relaxed mb-6"
+                  >
+                    {aboutContent.vision.content}
+                  </motion.p>
+                  <ul className="space-y-3">
+                    {aboutContent.vision.points?.map((point, index) => (
+                      <motion.li
+                        key={index}
+                        variants={fadeInUp}
+                        className="flex items-start space-x-2"
+                      >
+                        <CheckCircle className="h-5 w-5 text-primary mt-1" />
+                        <span className="text-gray-600">{point}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </motion.div>
+              </div>
             ) : null}
           </div>
         </motion.section>
