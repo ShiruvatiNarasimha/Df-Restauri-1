@@ -2,6 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Building2, PaintBucket, Hammer, CheckCircle2, ArrowRight } from "lucide-react";
+import { ServiceGallery } from "@/components/gallery/ServiceGallery";
 import { motion } from "framer-motion";
 import { fadeInUp, staggerChildren, fadeIn } from "@/lib/animations";
 import { STOCK_PHOTOS } from "@/lib/constants";
@@ -112,10 +113,15 @@ export function Servizi() {
                   </Button>
                 </div>
                 <div className="w-full md:w-1/2">
-                  <img
-                    src={service.image}
-                    alt={service.title}
-                    className="rounded-lg shadow-xl w-full h-[400px] object-cover"
+                  <ServiceGallery
+                    images={
+                      service.id === "restauro"
+                        ? STOCK_PHOTOS.restoration
+                        : service.id === "costruzione"
+                        ? STOCK_PHOTOS.construction
+                        : STOCK_PHOTOS.renovation
+                    }
+                    category={service.title}
                   />
                 </div>
               </motion.div>
