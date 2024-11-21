@@ -95,17 +95,42 @@ export function CiPresentiamo() {
           className="py-20 bg-gray-50"
         >
           <div className="container mx-auto px-4">
-            <motion.div
-              variants={fadeInUp}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl font-bold mb-4">
-                {aboutContent?.valori.title || "Valori Aziendali"}
-              </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                {aboutContent?.valori.content || "Definizione dei principi e dei valori che guidano l'operato dell'azienda"}
-              </p>
-            </motion.div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : error ? (
+              <div className="text-red-500 text-center py-12">
+                Si è verificato un errore nel caricamento dei valori aziendali.
+              </div>
+            ) : aboutContent ? (
+              <motion.div
+                variants={fadeInUp}
+                className="text-center"
+              >
+                <h2 className="text-3xl font-bold mb-4">
+                  {aboutContent.valori.title}
+                </h2>
+                <p className="text-gray-600 max-w-2xl mx-auto mb-12">
+                  {aboutContent.valori.content}
+                </p>
+                <motion.div
+                  variants={staggerChildren}
+                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
+                >
+                  {aboutContent.valori.items?.map((value) => (
+                    <motion.div
+                      key={value}
+                      variants={fadeInUp}
+                      className="bg-white p-6 rounded-lg shadow-sm"
+                    >
+                      <CheckCircle className="text-primary mx-auto mb-4 h-8 w-8" />
+                      <p className="text-gray-800">{value}</p>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </motion.div>
+            ) : null}
           </div>
         </motion.section>
 
@@ -117,20 +142,30 @@ export function CiPresentiamo() {
           className="py-20"
         >
           <div className="container mx-auto px-4">
-            <motion.div
-              variants={fadeInUp}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl font-bold mb-4">
-                {aboutContent?.mission.title || "Mission e Vision"}
-              </h2>
-              <motion.p
-                variants={fadeIn}
-                className="text-gray-600 max-w-3xl mx-auto leading-relaxed"
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : error ? (
+              <div className="text-red-500 text-center py-12">
+                Si è verificato un errore nel caricamento della mission e vision.
+              </div>
+            ) : aboutContent ? (
+              <motion.div
+                variants={fadeInUp}
+                className="text-center"
               >
-                {aboutContent?.mission.content || "Costruiamo il futuro, rispettando l'ambiente. Il nostro approccio all'edilizia è orientato alla sostenibilità e all'innovazione."}
-              </motion.p>
-            </motion.div>
+                <h2 className="text-3xl font-bold mb-4">
+                  {aboutContent.mission.title}
+                </h2>
+                <motion.p
+                  variants={fadeIn}
+                  className="text-gray-600 max-w-3xl mx-auto leading-relaxed"
+                >
+                  {aboutContent.mission.content}
+                </motion.p>
+              </motion.div>
+            ) : null}
           </div>
         </motion.section>
       </main>
