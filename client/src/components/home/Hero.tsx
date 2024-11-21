@@ -6,8 +6,8 @@ export function Hero() {
     <div className="relative h-screen min-h-[600px] max-h-[900px] flex items-center overflow-hidden">
       <div className="absolute inset-0 transition-transform duration-1000">
         <img
-          src="/02249074-f62f-4668-8f61-700e9807b7d6.jpg"
-          alt="Construction site"
+          src={STOCK_PHOTOS.construction[0]}
+          alt="Cantiere di costruzione moderno con impalcature e lavori in corso"
           width={1920}
           height={1080}
           className="w-full h-full object-cover object-center"
