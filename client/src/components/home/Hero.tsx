@@ -4,7 +4,7 @@ import { STOCK_PHOTOS } from "@/lib/constants";
 export function Hero() {
   return (
     <div className="relative h-screen min-h-[600px] max-h-[900px] flex items-center overflow-hidden">
-      <div className="absolute inset-0 transition-transform duration-1000 hover:scale-105">
+      <div className="absolute inset-0 transition-transform duration-1000">
         <img
           src="/02249074-f62f-4668-8f61-700e9807b7d6.jpg"
           alt="Construction site"
@@ -13,7 +13,10 @@ export function Hero() {
           className="w-full h-full object-cover object-center"
           loading="eager"
           fetchPriority="high"
-          style={{ transform: 'scale(1.05)' }}
+          style={{
+            transform: 'scale(1.05)',
+            transition: 'transform 1s ease-in-out'
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 backdrop-blur-[2px]" />
       </div>
