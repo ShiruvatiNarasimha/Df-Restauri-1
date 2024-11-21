@@ -25,7 +25,7 @@ export const NAVIGATION_ITEMS = [
     href: "#",
     items: [
       { label: "Ci Presentiamo", href: "/ci-presentiamo" },
-      { label: "Servizi", href: "#servizi" },
+      { label: "Servizi", href: "/servizi" },
       { label: "Certificazioni", href: "#certificazioni" },
       { label: "Sostenibilita", href: "/sostenibilita" },
       { label: "Realizzazioni", href: "#realizzazioni" }
