@@ -27,7 +27,7 @@ export const NAVIGATION_ITEMS = [
       { label: "Chi Siamo", href: "#chi-siamo" },
       { label: "Servizi", href: "#servizi" },
       { label: "Certificazioni", href: "#certificazioni" },
-      { label: "Sostenibilita", href: "#sostenibilita" },
+      { label: "Sostenibilita", href: "/sostenibilita" },
       { label: "Realizzazioni", href: "#realizzazioni" }
     ]
   }
