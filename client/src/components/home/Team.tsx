@@ -3,9 +3,9 @@ import { TEAM_MEMBERS } from "@/lib/constants";
 
 export function Team() {
   return (
-    <section className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+    <section className="section-padding bg-gray-50">
+      <div className="container section-spacing">
+        <div className="text-center heading-spacing">
           <h2 className="text-3xl font-bold mb-4">Il Nostro Team</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Professionisti qualificati con anni di esperienza nel settore delle costruzioni e del restauro.

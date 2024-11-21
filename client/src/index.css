@@ -11,3 +11,25 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+@layer components {
+  .container {
+    @apply px-6 md:px-8 lg:px-12 mx-auto max-w-7xl;
+  }
+
+  .section-padding {
+    @apply py-16 md:py-20 lg:py-24;
+  }
+
+  .section-spacing {
+    @apply space-y-12 md:space-y-16;
+  }
+
+  .content-spacing {
+    @apply space-y-6 md:space-y-8;
+  }
+
+  .heading-spacing {
+    @apply mb-8 md:mb-12;
+  }
+}

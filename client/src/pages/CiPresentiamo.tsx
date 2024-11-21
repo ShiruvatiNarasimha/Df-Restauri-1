@@ -22,7 +22,7 @@ export function CiPresentiamo() {
           initial="initial"
           animate="animate"
           variants={staggerChildren}
-          className="py-20"
+          className="section-padding"
         >
           <div className="container mx-auto px-4">
             <motion.div 
@@ -90,9 +90,9 @@ export function CiPresentiamo() {
           initial="initial"
           animate="animate"
           variants={staggerChildren}
-          className="py-20 bg-gray-50"
+          className="section-padding bg-gray-50"
         >
-          <div className="container mx-auto px-4">
+          <div className="container section-spacing">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -137,9 +137,9 @@ export function CiPresentiamo() {
           initial="initial"
           animate="animate"
           variants={staggerChildren}
-          className="py-20 bg-white"
+          className="section-padding bg-white"
         >
-          <div className="container mx-auto px-4">
+          <div className="container section-spacing">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />

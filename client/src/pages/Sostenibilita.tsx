@@ -47,8 +47,8 @@ export function Sostenibilita() {
       <Header />
       <main className="pt-20">
       {/* Hero Section */}
-      <section className="relative py-20 bg-primary/10">
-        <div className="container mx-auto px-4">
+      <section className="relative section-padding bg-primary/10">
+        <div className="container section-spacing">
           <h1 className="text-4xl font-bold mb-4">Sostenibilità</h1>
           <p className="text-xl text-muted-foreground max-w-2xl">
             Il nostro impegno per un futuro sostenibile attraverso pratiche edilizie innovative e rispettose dell'ambiente.
@@ -57,8 +57,8 @@ export function Sostenibilita() {
       </section>
 
       {/* Environmental Initiatives */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
+      <section className="section-padding">
+        <div className="container section-spacing">
           <h2 className="text-3xl font-bold mb-8 text-center">Iniziative Ambientali</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {INITIATIVES.map((initiative) => (
@@ -77,8 +77,8 @@ export function Sostenibilita() {
       </section>
 
       {/* Certifications */}
-      <section className="py-16 bg-muted/50">
-        <div className="container mx-auto px-4">
+      <section className="section-padding bg-muted/50">
+        <div className="container section-spacing">
           <h2 className="text-3xl font-bold mb-8 text-center">Certificazioni</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {CERTIFICATIONS.map((cert) => (

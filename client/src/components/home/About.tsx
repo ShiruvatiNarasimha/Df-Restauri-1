@@ -10,8 +10,8 @@ const VALUES = [
 
 export function About() {
   return (
-    <section id="chi-siamo" className="py-20">
-      <div className="container mx-auto px-4">
+    <section id="chi-siamo" className="section-padding">
+      <div className="container section-spacing">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl font-bold mb-6">Chi Siamo</h2>
