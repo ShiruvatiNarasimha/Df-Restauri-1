@@ -10,7 +10,7 @@ export function HistoryGallery() {
       initial="initial"
       animate="animate"
       variants={staggerChildren}
-      className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12"
     >
       {images.map((image, index) => (
         <motion.div
