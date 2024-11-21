@@ -7,7 +7,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { Home } from "./pages/Home";
 import { Sostenibilita } from "./pages/Sostenibilita";
-import Certificazioni from "./pages/Certificazioni";
+import { default as Certificazioni } from "./pages/Certificazioni";
 
 function Router() {
   return (
