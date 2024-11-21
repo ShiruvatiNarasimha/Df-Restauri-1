@@ -16,10 +16,13 @@ export const STOCK_PHOTOS = {
 };
 
 export const NAVIGATION_ITEMS = [
-  { label: "Home", href: "/" },
+  { 
+    label: "Home",
+    href: "/" 
+  },
   {
-    label: "Servizi",
-    href: "#servizi",
+    label: "Menu",
+    href: "#",
     items: [
       { label: "Chi Siamo", href: "#chi-siamo" },
       { label: "Servizi", href: "#servizi" },
