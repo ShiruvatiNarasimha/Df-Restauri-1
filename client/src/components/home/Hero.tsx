@@ -3,20 +3,16 @@ import { STOCK_PHOTOS } from "@/lib/constants";
 
 export function Hero() {
   return (
-    <div className="relative h-screen min-h-[600px] max-h-[900px] flex items-center overflow-hidden">
-      <div className="absolute inset-0 transition-transform duration-1000">
+    <div className="relative h-[calc(100vh-5rem)] min-h-[600px] max-h-[900px] flex items-center overflow-hidden">
+      <div className="absolute inset-0 transition-transform duration-1000 hover:scale-105">
         <img
           src={STOCK_PHOTOS.construction[0]}
           alt="Cantiere di costruzione moderno con impalcature e lavori in corso"
           width={1920}
           height={1080}
-          className="w-full h-full object-cover object-center"
+          className="w-full h-full object-cover object-center transform scale-105 transition-transform duration-1000"
           loading="eager"
           fetchPriority="high"
-          style={{
-            transform: 'scale(1.05)',
-            transition: 'transform 1s ease-in-out'
-          }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 backdrop-blur-[2px]" />
       </div>
