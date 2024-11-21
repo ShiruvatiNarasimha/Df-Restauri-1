@@ -18,7 +18,7 @@ export const STOCK_PHOTOS = {
 export const NAVIGATION_ITEMS = [
   { label: "Home", href: "/" },
   {
-    label: "I Nostri Servizi",
+    label: "Servizi",
     href: "#servizi",
     items: [
       { label: "Chi Siamo", href: "#chi-siamo" },
@@ -27,8 +27,7 @@ export const NAVIGATION_ITEMS = [
       { label: "Sostenibilita", href: "#sostenibilita" },
       { label: "Realizzazioni", href: "#realizzazioni" }
     ]
-  },
-  { label: "Contatti", href: "#contatti" }
+  }
 ];
 
 export const TEAM_MEMBERS = [
