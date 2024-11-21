@@ -6,7 +6,7 @@ export function Hero() {
     <div className="relative h-[calc(100vh-5rem)] min-h-[600px] max-h-[900px] flex items-center overflow-hidden">
       <div className="absolute inset-0 transition-transform duration-1000 hover:scale-105">
         <img
-          src={STOCK_PHOTOS.construction[0]}
+          src={STOCK_PHOTOS.construction[1]}
           alt="Cantiere di costruzione moderno con impalcature e lavori in corso"
           width={1920}
           height={1080}
