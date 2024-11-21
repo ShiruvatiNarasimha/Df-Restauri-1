@@ -184,9 +184,9 @@ export function CiPresentiamo() {
                 {aboutContent.vision && (
                   <motion.div
                     variants={fadeInUp}
-                    className="bg-gray-50 p-8 rounded-lg"
+                    className="bg-primary/5 p-8 rounded-lg"
                   >
-                    <h2 className="text-3xl font-bold mb-6 text-gray-900">Vision</h2>
+                    <h2 className="text-3xl font-bold mb-6 text-primary">Vision</h2>
                     <motion.p
                       variants={fadeIn}
                       className="text-gray-700 leading-relaxed mb-6"
