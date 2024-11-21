@@ -49,21 +49,6 @@ export function CiPresentiamo() {
                     <h2 className="text-3xl font-bold mb-6">{aboutContent.storia.title}</h2>
                     <p className="text-gray-600 mb-8">{aboutContent.storia.content}</p>
                     <HistoryGallery />
-                    <motion.div 
-                      variants={staggerChildren}
-                      className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12"
-                    >
-                      {aboutContent.valori.items?.map((value) => (
-                        <motion.div
-                          key={value}
-                          variants={fadeInUp}
-                          className="flex items-center gap-2"
-                        >
-                          <CheckCircle className="text-primary" />
-                          <span>{value}</span>
-                        </motion.div>
-                      ))}
-                    </motion.div>
                   </>
                 ) : null}
               </motion.div>
