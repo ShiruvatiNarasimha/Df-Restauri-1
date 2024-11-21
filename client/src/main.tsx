@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Home } from "./pages/Home";
 import { Sostenibilita } from "./pages/Sostenibilita";
 import { default as Certificazioni } from "./pages/Certificazioni";
+import { CiPresentiamo } from "./pages/CiPresentiamo";
 
 function Router() {
   return (
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/sostenibilita" component={Sostenibilita} />
       <Route path="/certificazioni" component={Certificazioni} />
+      <Route path="/ci-presentiamo" component={CiPresentiamo} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );
