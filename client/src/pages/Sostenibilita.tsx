@@ -54,9 +54,14 @@ const CASE_STUDIES = [
   },
 ];
 
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+
 export function Sostenibilita() {
   return (
     <div className="min-h-screen bg-background">
+      <Header />
+      <main className="pt-20">
       {/* Hero Section */}
       <section className="relative py-20 bg-primary/10">
         <div className="container mx-auto px-4">
@@ -133,6 +138,8 @@ export function Sostenibilita() {
           </div>
         </div>
       </section>
+      </main>
+      <Footer />
     </div>
   );
 }
