@@ -1,5 +1,5 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Leaf, Award, FileText } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Leaf, Award } from "lucide-react";
 import { Gallery } from "@/components/sostenibilita/Gallery";
 
 const INITIATIVES = [
@@ -35,23 +35,6 @@ const CERTIFICATIONS = [
     title: "EMAS",
     description: "Eco-Management and Audit Scheme dell'Unione Europea.",
     icon: Award,
-  },
-];
-
-const CASE_STUDIES = [
-  {
-    title: "Edificio Zero Emissioni",
-    description: "Progetto residenziale con impatto ambientale zero.",
-    location: "Milano",
-    year: "2023",
-    icon: FileText,
-  },
-  {
-    title: "Restauro Eco-sostenibile",
-    description: "Recupero di edificio storico con materiali sostenibili.",
-    location: "Roma",
-    year: "2022",
-    icon: FileText,
   },
 ];
 
@@ -107,33 +90,6 @@ export function Sostenibilita() {
                   <CardTitle>{cert.title}</CardTitle>
                   <CardDescription>{cert.description}</CardDescription>
                 </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Case Studies */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8 text-center">Case Studies</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {CASE_STUDIES.map((study) => (
-              <Card key={study.title}>
-                <CardHeader>
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <study.icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <CardTitle>{study.title}</CardTitle>
-                  <CardDescription>{study.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-4 text-sm text-muted-foreground">
-                    <span>{study.location}</span>
-                    <span>•</span>
-                    <span>{study.year}</span>
-                  </div>
-                </CardContent>
               </Card>
             ))}
           </div>
