@@ -10,9 +10,10 @@ export function Hero() {
           alt="Construction site"
           width={1920}
           height={1080}
-          className="w-full h-full object-cover object-center scale-105"
+          className="w-full h-full object-cover object-center"
           loading="eager"
           fetchPriority="high"
+          style={{ transform: 'scale(1.05)' }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 backdrop-blur-[2px]" />
       </div>
