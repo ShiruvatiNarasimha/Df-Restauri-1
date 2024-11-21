@@ -35,43 +35,87 @@ export function CiPresentiamo() {
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-              <motion.div variants={slideIn}>
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : error ? (
-                  <div className="text-red-500 text-center py-12">
-                    Si è verificato un errore nel caricamento del contenuto.
-                  </div>
-                ) : aboutContent ? (
-                  <>
-                    <h2 className="text-3xl font-bold mb-6">{aboutContent.storia.title}</h2>
-                    <p className="text-gray-600 mb-8">{aboutContent.storia.content}</p>
-                    <HistoryGallery />
-                  </>
-                ) : null}
-              </motion.div>
+            <div className="space-y-16">
+            {/* History Content */}
+            <motion.div variants={slideIn} className="text-center max-w-3xl mx-auto">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : error ? (
+                <div className="text-red-500 text-center py-12">
+                  Si è verificato un errore nel caricamento del contenuto.
+                </div>
+              ) : aboutContent ? (
+                <>
+                  <h2 className="text-3xl font-bold mb-6">{aboutContent.storia.title}</h2>
+                  <p className="text-gray-600 mb-8">{aboutContent.storia.content}</p>
+                </>
+              ) : null}
+            </motion.div>
 
-              <motion.div
-                variants={fadeIn}
-                className="relative"
-              >
-                <img
-                  src={STOCK_PHOTOS.restoration[0]}
-                  alt="Il nostro lavoro di restauro"
-                  className="rounded-lg shadow-xl"
-                />
+            {/* Numbers Showcase */}
+            <motion.div variants={staggerChildren} className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              {[
+                { number: "20+", label: "Anni di esperienza" },
+                { number: "500+", label: "Progetti completati" },
+                { number: "50+", label: "Clienti soddisfatti" },
+                { number: "100%", label: "Progetti certificati" }
+              ].map((stat, index) => (
                 <motion.div
-                  variants={slideIn}
-                  className="absolute -bottom-6 -left-6 bg-primary text-white p-6 rounded-lg"
+                  key={index}
+                  variants={fadeInUp}
+                  className="bg-primary/5 p-8 rounded-lg text-center hover:bg-primary/10 transition-colors"
                 >
-                  <div className="text-4xl font-bold mb-2">20+</div>
-                  <div className="text-sm">Anni di esperienza</div>
+                  <div className="text-4xl font-bold text-primary mb-2">{stat.number}</div>
+                  <div className="text-sm text-gray-600">{stat.label}</div>
                 </motion.div>
-              </motion.div>
-            </div>
+              ))}
+            </motion.div>
+
+            {/* History Gallery */}
+            <motion.div variants={fadeIn}>
+              <HistoryGallery />
+            </motion.div>
+
+            {/* Testimonials */}
+            <motion.div variants={staggerChildren} className="bg-gray-50 py-16 rounded-2xl">
+              <div className="container">
+                <h3 className="text-2xl font-bold text-center mb-12">Cosa Dicono i Nostri Clienti</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {[
+                    {
+                      quote: "Professionalità e attenzione ai dettagli incomparabili. Hanno restaurato il nostro edificio storico mantenendone l'autenticità.",
+                      author: "Marco Rossi",
+                      role: "Proprietario Villa Storica"
+                    },
+                    {
+                      quote: "Un team altamente qualificato che ha saputo interpretare al meglio le nostre esigenze di restauro conservativo.",
+                      author: "Laura Bianchi",
+                      role: "Amministratore Condominio"
+                    },
+                    {
+                      quote: "Competenza tecnica e rispetto dei tempi. Il risultato ha superato le nostre aspettative.",
+                      author: "Giuseppe Verdi",
+                      role: "Direttore Museo"
+                    }
+                  ].map((testimonial, index) => (
+                    <motion.div
+                      key={index}
+                      variants={fadeInUp}
+                      className="bg-white p-6 rounded-lg shadow-sm"
+                    >
+                      <p className="text-gray-600 italic mb-4">"{testimonial.quote}"</p>
+                      <div className="text-sm">
+                        <p className="font-semibold">{testimonial.author}</p>
+                        <p className="text-gray-500">{testimonial.role}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </div>
           </div>
         </motion.section>
 
