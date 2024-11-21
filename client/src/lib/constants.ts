@@ -17,11 +17,34 @@ export const STOCK_PHOTOS = {
 
 export const NAVIGATION_ITEMS = [
   { label: "Home", href: "/" },
-  { label: "Chi Siamo", href: "#chi-siamo" },
-  { label: "Servizi", href: "#servizi" },
+  {
+    label: "Chi Siamo",
+    href: "#chi-siamo",
+    items: [
+      { label: "La Nostra Storia", href: "#chi-siamo" },
+      { label: "Il Team", href: "#team" },
+      { label: "Mission & Vision", href: "#mission" }
+    ]
+  },
+  {
+    label: "Servizi",
+    href: "#servizi",
+    items: [
+      { label: "Restauro", href: "#restauro" },
+      { label: "Costruzione", href: "#costruzione" },
+      { label: "Ristrutturazione", href: "#ristrutturazione" }
+    ]
+  },
   { label: "Certificazioni", href: "#certificazioni" },
   { label: "Sostenibilità", href: "#sostenibilita" },
-  { label: "Realizzazioni", href: "#realizzazioni" },
+  {
+    label: "Realizzazioni",
+    href: "#realizzazioni",
+    items: [
+      { label: "Portfolio", href: "#portfolio" },
+      { label: "Case Studies", href: "#case-studies" }
+    ]
+  },
   { label: "Contatti", href: "#contatti" }
 ];
 
