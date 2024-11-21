@@ -10,6 +10,7 @@ import { Sostenibilita } from "./pages/Sostenibilita";
 import { default as Certificazioni } from "./pages/Certificazioni";
 import { CiPresentiamo } from "./pages/CiPresentiamo";
 import { Servizi } from "./pages/Servizi";
+import { Realizzazioni } from "./pages/Realizzazioni";
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/certificazioni" component={Certificazioni} />
       <Route path="/ci-presentiamo" component={CiPresentiamo} />
       <Route path="/servizi" component={Servizi} />
+      <Route path="/realizzazioni" component={Realizzazioni} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );
