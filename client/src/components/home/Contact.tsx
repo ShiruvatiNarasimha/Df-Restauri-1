@@ -48,16 +48,22 @@ export function Contact() {
 
             <div className="space-y-6">
               <div>
+                <h3 className="font-semibold mb-2">Azienda</h3>
+                <p className="text-gray-600">DF Restauri S.R.L.</p>
+                <p className="text-gray-600 text-sm">P. IVA: 03016900304</p>
+              </div>
+              <div>
                 <h3 className="font-semibold mb-2">Indirizzo</h3>
-                <p className="text-gray-600">Via Giuseppe Mazzini 12, 20123 Milano MI</p>
+                <p className="text-gray-600">via Cussignacco 79, 33040 - Pradamano (UD)</p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Telefono</h3>
-                <p className="text-gray-600">+39 02 8390 4561</p>
+                <p className="text-gray-600">0432 1485703</p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Email</h3>
-                <p className="text-gray-600">info@costruzionimoderne.it</p>
+                <p className="text-gray-600">segreteria@dfrestauri.it</p>
+                <p className="text-gray-600">PEC: dfrestaurisrl@pec.it</p>
               </div>
             </div>
           </div>
