@@ -59,9 +59,13 @@ export function CiPresentiamo() {
                 className="relative"
               >
                 <img
-                  src={STOCK_PHOTOS.restoration[0]}
-                  alt="Il nostro lavoro di restauro"
-                  className="rounded-lg shadow-xl"
+                  src={STOCK_PHOTOS.about}
+                  alt="La nostra storia - DF Restauri"
+                  className="rounded-lg shadow-xl w-full h-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                  width={800}
+                  height={600}
                 />
                 <motion.div
                   variants={slideIn}

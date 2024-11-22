@@ -40,9 +40,13 @@ export function About() {
 
           <div className="relative">
             <img
-              src={STOCK_PHOTOS.restoration[0]}
-              alt="Restoration work"
-              className="rounded-lg shadow-xl"
+              src={STOCK_PHOTOS.about}
+              alt="Chi Siamo - DF Restauri"
+              className="rounded-lg shadow-xl w-full h-full object-cover"
+              loading="eager"
+              decoding="async"
+              width={800}
+              height={600}
             />
             <div className="absolute -bottom-6 -left-6 bg-primary text-white p-6 rounded-lg">
               <div className="text-4xl font-bold mb-2">20+</div>
