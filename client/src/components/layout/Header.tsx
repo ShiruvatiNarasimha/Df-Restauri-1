@@ -103,8 +103,8 @@ export function Header() {
             <img 
               src="/logorestauri.png"
               alt="DF Restauri"
-              className="h-12 md:h-16 w-auto object-contain transition-transform hover:scale-105"
-              style={{ maxWidth: '200px' }}
+              className="h-8 md:h-12 w-auto object-contain transition-transform hover:scale-105"
+              style={{ maxWidth: '150px' }}
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = '/fallback-logo.png';
