@@ -37,8 +37,7 @@ export function Hero() {
             </Button>
             <Button 
               size="lg" 
-              variant="outline" 
-              className="text-white border-white hover:bg-white/20 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+              className="bg-yellow-600 text-white hover:bg-yellow-500 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md border-2 border-yellow-500 hover:border-yellow-400"
             >
               Contattaci
             </Button>
