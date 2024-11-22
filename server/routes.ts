@@ -1,4 +1,22 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
+import path from "path";
+import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
+
+// Middleware to handle WebP conversion
+async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (!req.path.startsWith('/images') || !isImagePath(req.path)) {
+    return next();
+  }
+
+  try {
+    const imagePath = path.join(process.cwd(), 'public', req.path);
+    const webpPath = await convertToWebP(imagePath);
+    res.redirect(webpPath);
+  } catch (error) {
+    console.error('WebP conversion error:', error);
+    next();
+  }
+}
 
 const DYNAMIC_CONTENT = {
   about: {
@@ -41,7 +59,12 @@ const DYNAMIC_CONTENT = {
   ]
 };
 
-export function registerRoutes(app: Express) {
+export async function registerRoutes(app: Express) {
+  // Ensure cache directory exists
+  await ensureCacheDirectory();
+  
+  // Add WebP middleware
+  app.use(webpMiddleware);
   app.post("/api/contact", (req, res) => {
     const { name, email, phone, message } = req.body;
     console.log("Contact form submission:", { name, email, phone, message });
