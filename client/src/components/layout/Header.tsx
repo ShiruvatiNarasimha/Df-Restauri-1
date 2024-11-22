@@ -103,7 +103,8 @@ export function Header() {
             <img 
               src="/logorestauri.png"
               alt="DF Restauri"
-              className="h-12"
+              className="h-12 w-auto object-contain transition-transform hover:scale-105"
+              style={{ maxWidth: '200px' }}
             />
           </Link>
 
