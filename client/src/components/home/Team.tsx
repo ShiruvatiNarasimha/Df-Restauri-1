@@ -1,10 +1,12 @@
 import { Facebook, Twitter, Instagram } from "lucide-react";
 import { TEAM_MEMBERS } from "@/lib/constants";
+import { SectionSeparator } from "@/components/ui/section-separator";
 
 export function Team() {
   return (
     <section className="section-padding bg-gray-50">
       <div className="container section-spacing">
+        <SectionSeparator className="mb-12" />
         <div className="text-center heading-spacing">
           <h2 className="text-3xl font-bold mb-4">Il Nostro Team</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">

@@ -1,5 +1,6 @@
 import { CheckCircle } from "lucide-react";
 import { STOCK_PHOTOS } from "@/lib/constants";
+import { SectionSeparator } from "@/components/ui/section-separator";
 
 const VALUES = [
   "Qualità senza compromessi",
@@ -12,6 +13,7 @@ export function About() {
   return (
     <section id="chi-siamo" className="section-padding">
       <div className="container section-spacing">
+        <SectionSeparator className="mb-12" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl font-bold mb-6">Chi Siamo</h2>
