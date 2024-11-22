@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import * as React from "react";
-import { STOCK_PHOTOS, getImagePath } from "@/lib/constants";
+import { STOCK_PHOTOS } from "@/lib/constants";
 
 export function Hero() {
   const [scrollY, setScrollY] = React.useState(0);
@@ -24,7 +24,7 @@ export function Hero() {
         }}
       >
         <img
-          src={getImagePath("/images/hero/hero-background-new.jpeg")}
+          src="/images/hero-background-new.jpeg"
           alt="Vista moderna di un cantiere di costruzione"
           width={1920}
           height={1080}
