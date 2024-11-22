@@ -19,7 +19,7 @@ export function Hero() {
       <div 
         className="absolute inset-0 transition-transform duration-1000 hover:scale-105"
         style={{
-          transform: `translate3d(0, ${scrollY * 0.5}px, 0)`,
+          transform: `translate3d(0, ${scrollY * 0.3}px, 0)`,
           willChange: 'transform'
         }}
       >
@@ -32,7 +32,7 @@ export function Hero() {
           loading="eager"
           decoding="async"
           style={{
-            transform: `translate3d(0, -${scrollY * 0.2}px, 0)`,
+            transform: `translate3d(0, -${scrollY * 0.1}px, 0)`,
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 backdrop-blur-[2px]" />
