@@ -15,11 +15,9 @@ export const STOCK_PHOTOS = {
     "https://pixabay.com/get/g3e39273f1c5e6778993f68a6ce37142a2d68eeaa35082c5f9806b27eccaad3c92f8a5b5b7be16e42dd55b68b92a023facdbbf1a22e2595f9c3f3b718c6487cc7_1280.jpg"
   ],
   restoration: [
-    "/images/restauro/IMG_2608.JPG",
-    "/images/restauro/IMG_2609.JPG",
-    "/images/restauro/restoration-3.jpg",
-    "/images/restauro/restoration-4.jpg",
-    "/images/chi-siamo/about-company.jpeg"
+    "/images/chi-siamo/about-company.jpeg",
+    "https://pixabay.com/get/g8927a4d229ca62e7b5a2970ad16bdfd5e94cc299537f980b5d5f5db3b2f9dec18000c0894b0e6614bc91a1b11dd9c66ab416aa7b9956222d2f8b3bee17ed19e3_1280.jpg",
+    "https://pixabay.com/get/gb6f2845de6e8e9bb531cf4c4e3f2020259e195d0147d1a7f96902c20b38cf92080028b77a12c0b623320a3fe0eaf3ccf5e3c475c38ac00721f99a145426ee038_1280.jpg"
   ],
   renovation: [
     "https://pixabay.com/get/gddfc05b7a6e6c54d294a7ed171feeab98999d536e1daac9a298492fe716c3277fe60dfdb23b0b1b59f46a3a72f04ec74babf2273c1a9f1bbf09feba99dd4005f_1280.jpg",
