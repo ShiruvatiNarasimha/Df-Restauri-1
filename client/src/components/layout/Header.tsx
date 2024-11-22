@@ -73,7 +73,7 @@ export function Header() {
               ? isDropdownOpen
                 ? "block pl-4"
                 : "hidden"
-              : "absolute left-0 top-full hidden group-hover:block min-w-[200px] bg-white shadow-lg rounded-md py-2"
+              : "absolute left-0 top-full hidden group-hover:block min-w-[250px] bg-white shadow-lg rounded-md py-2"
           }`}
         >
           {'items' in item && item.items?.map((subItem) => (
@@ -83,7 +83,7 @@ export function Header() {
               className={`${
                 mobile
                   ? "block py-2 text-gray-600 hover:text-primary transition-colors"
-                  : "block px-4 py-2 text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
+                  : "block px-5 py-2.5 text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
               }`}
               onClick={() => mobile && setIsOpen(false)}
             >
