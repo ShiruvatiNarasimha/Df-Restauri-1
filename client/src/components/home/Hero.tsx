@@ -6,14 +6,13 @@ export function Hero() {
     <div className="relative h-[calc(100vh-5rem)] min-h-[600px] max-h-[900px] flex items-center overflow-hidden">
       <div className="absolute inset-0 transition-transform duration-1000 hover:scale-105">
         <img
-          src="/images/hero-background.jpeg"
+          src="/images/hero-background-new.jpeg"
           alt="Vista moderna di un cantiere di costruzione"
           width={1920}
           height={1080}
           className="w-full h-full object-cover object-center transform scale-105 transition-transform duration-1000 will-change-transform"
           loading="eager"
           decoding="async"
-          priority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 backdrop-blur-[2px]" />
       </div>
