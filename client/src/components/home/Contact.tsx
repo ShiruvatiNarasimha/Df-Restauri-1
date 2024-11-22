@@ -49,15 +49,15 @@ export function Contact() {
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold mb-2">Indirizzo</h3>
-                <p className="text-gray-600">Via Roma 123, Milano</p>
+                <p className="text-gray-600">Via Giuseppe Mazzini 12, 20123 Milano MI</p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Telefono</h3>
-                <p className="text-gray-600">+39 000 9630</p>
+                <p className="text-gray-600">+39 02 8390 4561</p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Email</h3>
-                <p className="text-gray-600">info@dfrestauri.it</p>
+                <p className="text-gray-600">info@costruzionimoderne.it</p>
               </div>
             </div>
           </div>
