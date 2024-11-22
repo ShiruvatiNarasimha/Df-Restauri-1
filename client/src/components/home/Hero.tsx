@@ -6,8 +6,8 @@ export function Hero() {
     <div className="relative h-[calc(100vh-5rem)] min-h-[600px] max-h-[900px] flex items-center overflow-hidden">
       <div className="absolute inset-0 transition-transform duration-1000 hover:scale-105">
         <img
-          src={STOCK_PHOTOS.restoration[0]}
-          alt="Edificio storico in fase di restauro"
+          src="/106811484-1608045351058-gettyimages-1126750618-dsc_1540.jpeg"
+          alt="Vista moderna di un cantiere di costruzione"
           width={1920}
           height={1080}
           className="w-full h-full object-cover object-center transform scale-105 transition-transform duration-1000 will-change-transform"
