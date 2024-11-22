@@ -1,10 +1,28 @@
 import { Button } from "@/components/ui/button";
+import * as React from "react";
 import { STOCK_PHOTOS } from "@/lib/constants";
 
 export function Hero() {
+  const [scrollY, setScrollY] = React.useState(0);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="relative h-[calc(100vh-5rem)] min-h-[600px] max-h-[900px] flex items-center overflow-hidden">
-      <div className="absolute inset-0 transition-transform duration-1000 hover:scale-105">
+      <div 
+        className="absolute inset-0 transition-transform duration-1000 hover:scale-105"
+        style={{
+          transform: `translate3d(0, ${scrollY * 0.5}px, 0)`,
+          willChange: 'transform'
+        }}
+      >
         <img
           src="/images/hero-background-new.jpeg"
           alt="Vista moderna di un cantiere di costruzione"
@@ -13,6 +31,9 @@ export function Hero() {
           className="w-full h-full object-cover object-center transform scale-105 transition-transform duration-1000 will-change-transform"
           loading="eager"
           decoding="async"
+          style={{
+            transform: `translate3d(0, -${scrollY * 0.2}px, 0)`,
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 backdrop-blur-[2px]" />
       </div>
