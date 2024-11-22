@@ -37,17 +37,17 @@ export function Footer() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contatti</h3>
             <div className="flex flex-col gap-4">
-              <a href="tel:+390009630" className="flex items-center gap-2 text-gray-400 hover:text-white">
+              <a href="tel:04321485703" className="flex items-center gap-2 text-gray-400 hover:text-white">
                 <Phone size={20} />
-                +39 000 9630
+                0432 1485703
               </a>
-              <a href="mailto:info@dfrestauri.it" className="flex items-center gap-2 text-gray-400 hover:text-white">
+              <a href="mailto:segreteria@dfrestauri.it" className="flex items-center gap-2 text-gray-400 hover:text-white">
                 <Mail size={20} />
-                info@dfrestauri.it
+                segreteria@dfrestauri.it
               </a>
               <div className="flex items-center gap-2 text-gray-400">
                 <MapPin size={20} />
-                Via Roma 123, Milano
+                via Cussignacco 79, 33040 - Pradamano (UD)
               </div>
             </div>
           </div>
