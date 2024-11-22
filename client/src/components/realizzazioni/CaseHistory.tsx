@@ -8,22 +8,25 @@ import { STOCK_PHOTOS } from "@/lib/constants";
 // Sample data - in a real app, this would come from an API
 const CASE_HISTORIES: CaseHistoryType[] = [
   {
-    id: "1",
-    title: "Restauro Palazzo Storico Veneziano",
-    description: "Restauro completo di un palazzo storico del XVI secolo nel cuore di Venezia",
+    id: "2",
+    title: "Restauro Complesso Residenziale",
+    description: "Intervento di restauro e riqualificazione di un complesso residenziale moderno",
     category: "restauro",
     image: STOCK_PHOTOS.restoration[0],
-    year: 2023,
-    location: "Venezia",
-    challenge: "Il palazzo presentava gravi problemi strutturali e necessitava di un restauro conservativo che preservasse gli elementi storici originali.",
-    solution: "Abbiamo implementato tecniche innovative di consolidamento strutturale combinate con metodi tradizionali di restauro, utilizzando materiali compatibili con quelli originali.",
+    year: 2024,
+    location: "Udine",
+    challenge: "Il complesso residenziale necessitava di un intervento di restauro completo delle facciate e delle aree comuni, con particolare attenzione all'efficienza energetica.",
+    solution: "Abbiamo realizzato un intervento di restauro conservativo utilizzando materiali e tecniche innovative, preservando l'estetica originale dell'edificio e migliorando le prestazioni energetiche.",
     results: [
-      "Completo recupero strutturale dell'edificio",
-      "Preservazione del 95% degli elementi decorativi originali",
-      "Miglioramento della classe energetica",
-      "Riconoscimento per l'eccellenza nel restauro conservativo"
+      "Riqualificazione completa delle facciate",
+      "Miglioramento dell'isolamento termico",
+      "Ripristino delle aree comuni",
+      "Ottimizzazione energetica dell'intero complesso"
     ],
-    gallery: STOCK_PHOTOS.restoration
+    gallery: [
+      STOCK_PHOTOS.restoration[0], // Prima
+      STOCK_PHOTOS.restoration[1]  // Dopo
+    ]
   }
 ];
 
