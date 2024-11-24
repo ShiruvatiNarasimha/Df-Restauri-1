@@ -21,18 +21,29 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
   }
   res.status(403).json({ error: "Accesso non autorizzato" });
 }
-// Middleware to handle WebP conversion
-async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
+// Middleware to handle image optimization
+async function imageOptimizationMiddleware(req: Request, res: Response, next: NextFunction) {
   if (!req.path.startsWith('/images') || !isImagePath(req.path)) {
     return next();
   }
 
   try {
     const imagePath = path.join(process.cwd(), 'public', req.path);
+    const size = req.query.size as string;
+    
+    if (size && ['sm', 'md', 'lg', 'xl'].includes(size)) {
+      // If size is specified, return optimized version
+      const optimized = await optimizeImage(imagePath);
+      if (optimized.sizes[size]) {
+        return res.redirect(optimized.sizes[size]);
+      }
+    }
+    
+    // Default to WebP conversion if no size specified
     const webpPath = await convertToWebP(imagePath);
     res.redirect(webpPath);
   } catch (error) {
-    console.error('WebP conversion error:', error);
+    console.error('Image optimization error:', error);
     next();
   }
 }
@@ -149,8 +160,41 @@ export async function registerRoutes(app: Express) {
   // Setup authentication
   setupAuth(app);
   
-  // Add WebP middleware
-  app.use(webpMiddleware);
+  // Add image optimization middleware
+  app.use(imageOptimizationMiddleware);
+  
+  // Endpoint for bulk image optimization
+  app.post('/api/optimize-images', requireAdmin, async (req, res) => {
+    try {
+      const { paths } = req.body;
+      if (!Array.isArray(paths)) {
+        return res.status(400).json({ error: 'Invalid input. Expected array of image paths.' });
+      }
+
+      const results = await Promise.all(
+        paths.map(async (imagePath) => {
+          const fullPath = path.join(process.cwd(), 'public', imagePath);
+          try {
+            const optimized = await optimizeImage(fullPath);
+            return {
+              original: imagePath,
+              optimized
+            };
+          } catch (error) {
+            console.error(`Error optimizing ${imagePath}:`, error);
+            return {
+              original: imagePath,
+              error: error instanceof Error ? error.message : 'Unknown error'
+            };
+          }
+        })
+      );
+
+      res.json({ results });
+    } catch (error) {
+      res.status(500).json({ error: 'Error processing images' });
+    }
+  });
 
   // Admin routes for managing Realizzazioni
   app.get("/api/admin/projects", isAdmin, async (_req, res) => {
