@@ -1,6 +1,10 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import path from "path";
 import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
+import { db } from "../db";
+import { projects, caseHistories } from "../db/schema";
+import { setupAuth } from "./auth";
+import { eq } from "drizzle-orm";
 
 // Middleware to handle WebP conversion
 async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -16,6 +20,14 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
     console.error('WebP conversion error:', error);
     next();
   }
+}
+
+// Admin middleware
+function isAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated() && req.user.isAdmin) {
+    return next();
+  }
+  res.status(401).send("Non autorizzato");
 }
 
 const DYNAMIC_CONTENT = {
@@ -59,13 +71,145 @@ const DYNAMIC_CONTENT = {
   ]
 };
 
+import multer from 'multer';
+import fs from 'fs/promises';
+
+const storage = multer.diskStorage({
+  destination: async function (req, file, cb) {
+    const dir = path.join('public/images', path.dirname(file.originalname));
+    await fs.mkdir(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, path.basename(file.originalname));
+  }
+});
+
+const upload = multer({ storage });
 export async function registerRoutes(app: Express) {
   // Ensure cache directory exists
   await ensureCacheDirectory();
+
+  // Admin project management endpoints
+  app.get("/api/admin/projects", isAdmin, async (_req, res) => {
+    try {
+      const projectsList = await db.select().from(projects);
+      res.json(projectsList);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nel recupero dei progetti" });
+    }
+  });
+
+  app.get("/api/admin/case-histories", isAdmin, async (_req, res) => {
+    try {
+      const historiesList = await db.select().from(caseHistories);
+      res.json(historiesList);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nel recupero delle case histories" });
+    }
+  });
+
+  app.put("/api/admin/projects/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [updated] = await db
+        .update(projects)
+        .set({
+          ...req.body,
+          updatedAt: new Date()
+        })
+        .where(eq(projects.id, id))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ error: "Progetto non trovato" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nell'aggiornamento del progetto" });
+    }
+  });
+  
+  // Setup authentication
+  setupAuth(app);
   
   // Add WebP middleware
   app.use(webpMiddleware);
+
+  // Admin routes for managing Realizzazioni
+  app.get("/api/admin/projects", isAdmin, async (_req, res) => {
+    try {
+      const allProjects = await db.select().from(projects);
+      res.json(allProjects);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nel recupero dei progetti" });
+    }
+  });
+
+  app.post("/api/admin/projects", isAdmin, async (req, res) => {
+    try {
+      const [project] = await db.insert(projects).values(req.body).returning();
+      res.json(project);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nella creazione del progetto" });
+    }
+  });
+
+  app.put("/api/admin/projects/:id", isAdmin, async (req, res) => {
+    try {
+      const [updated] = await db
+        .update(projects)
+        .set(req.body)
+        .where(eq(projects.id, parseInt(req.params.id)))
+        .returning();
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nell'aggiornamento del progetto" });
+    }
+  });
+
+  app.get("/api/admin/case-histories", isAdmin, async (_req, res) => {
+    try {
+      const allHistories = await db.select().from(caseHistories);
+      res.json(allHistories);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nel recupero delle case histories" });
+    }
+  });
+
+  app.post("/api/admin/case-histories", isAdmin, async (req, res) => {
+    try {
+      const [history] = await db.insert(caseHistories).values(req.body).returning();
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nella creazione della case history" });
+    }
+  });
+
+  app.put("/api/admin/case-histories/:id", isAdmin, async (req, res) => {
+    try {
+      const [updated] = await db
+        .update(caseHistories)
+        .set(req.body)
+        .where(eq(caseHistories.id, parseInt(req.params.id)))
+        .returning();
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nell'aggiornamento della case history" });
+    }
+  });
   app.post("/api/contact", (req, res) => {
+  // Image upload endpoint
+  app.post('/api/upload-image', upload.single('image'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    res.json({ 
+      success: true, 
+      path: req.file.path.replace('public/', '/') 
+    });
+  });
     const { name, email, phone, message } = req.body;
     console.log("Contact form submission:", { name, email, phone, message });
     res.json({ success: true });
