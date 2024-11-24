@@ -264,7 +264,8 @@ export async function registerRoutes(app: Express) {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ 
         success: false,
-        error: 'No files uploaded'
+        error: 'No files uploaded',
+        code: 'NO_FILES'
       });
     }
 
@@ -283,32 +284,60 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({
           success: false,
           error: 'Invalid files detected',
+          code: 'INVALID_FILES',
           details: invalidFiles.map(file => ({
             name: file.originalname,
-            reason: !allowedTypes.includes(file.mimetype) ? 'Invalid file type' : 'File too large'
+            reason: !allowedTypes.includes(file.mimetype) ? 'Invalid file type' : 'File too large',
+            type: file.mimetype,
+            size: file.size
           }))
         });
       }
 
       // Process and optimize images
       const results = await Promise.all(files.map(async file => {
-        const relativePath = file.path.replace('public/', '/');
-        const optimized = await optimizeImage(file.path);
-        return {
-          originalPath: relativePath,
-          ...optimized
-        };
+        try {
+          const relativePath = file.path.replace('public/', '/');
+          const optimized = await optimizeImage(file.path);
+          
+          return {
+            name: file.originalname,
+            originalPath: relativePath,
+            optimizedPath: optimized.original,
+            responsiveSizes: optimized.sizes,
+            metadata: {
+              width: optimized.metadata.width,
+              height: optimized.metadata.height,
+              format: optimized.metadata.format,
+              size: file.size
+            }
+          };
+        } catch (err) {
+          return {
+            name: file.originalname,
+            error: err instanceof Error ? err.message : 'Failed to process image',
+            failed: true
+          };
+        }
       }));
-      
+
+      const failedUploads = results.filter(result => 'failed' in result);
+      const successfulUploads = results.filter(result => !('failed' in result));
+
       res.json({ 
-        success: true,
-        files: results
+        success: failedUploads.length === 0,
+        totalFiles: files.length,
+        successfulFiles: successfulUploads.length,
+        failedFiles: failedUploads.length,
+        files: successfulUploads,
+        errors: failedUploads.length > 0 ? failedUploads : undefined
       });
     } catch (error) {
       console.error('Upload error:', error);
       res.status(500).json({ 
         success: false,
         error: 'Error processing uploads',
+        code: 'PROCESSING_ERROR',
         message: error instanceof Error ? error.message : 'Unknown error occurred'
       });
     }

@@ -46,7 +46,7 @@ async function generateCacheKey(imagePath: string, size?: ImageSize, format: str
 export async function optimizeImage(
   imagePath: string,
   options: OptimizationOptions = DEFAULT_OPTIONS
-): Promise<{ original: string; sizes: Record<string, string> }> {
+): Promise<{ original: string; sizes: Record<string, string>; metadata: sharp.Metadata }> {
   const { quality = 80, sizes = DEFAULT_SIZES } = options;
   const results: Record<string, string> = {};
 
@@ -55,6 +55,12 @@ export async function optimizeImage(
     await fs.access(imagePath);
   } catch {
     throw new Error(`Input file is missing: ${imagePath}`);
+  }
+
+  // Get original image metadata
+  const imageMetadata = await sharp(imagePath).metadata();
+  if (!imageMetadata.width || !imageMetadata.height) {
+    throw new Error('Unable to read image dimensions');
   }
 
   // Process each size
@@ -66,20 +72,31 @@ export async function optimizeImage(
       // Check if optimized version exists
       await fs.access(outputPath);
     } catch {
+      // Calculate dimensions maintaining aspect ratio
+      const aspectRatio = imageMetadata.width / imageMetadata.height;
+      const resizeOptions = {
+        width: size.width,
+        height: size.height || Math.round(size.width / aspectRatio),
+        fit: 'inside' as const,
+        withoutEnlargement: true
+      };
+
       // Generate optimized version
       await sharp(imagePath)
-        .resize(size.width, size.height, {
-          fit: 'inside',
-          withoutEnlargement: true
+        .resize(resizeOptions)
+        .webp({ 
+          quality,
+          effort: 6, // Higher compression effort
+          lossless: false,
+          nearLossless: false
         })
-        .webp({ quality })
         .toFile(outputPath);
     }
 
     results[size.suffix] = `/cache/${cacheKey}`;
   }
 
-  // Generate original size WebP version
+  // Generate original size WebP version with optimization
   const originalCacheKey = await generateCacheKey(imagePath);
   const originalOutputPath = path.join(CACHE_DIR, originalCacheKey);
 
@@ -87,13 +104,19 @@ export async function optimizeImage(
     await fs.access(originalOutputPath);
   } catch {
     await sharp(imagePath)
-      .webp({ quality })
+      .webp({ 
+        quality,
+        effort: 6,
+        lossless: false,
+        nearLossless: false
+      })
       .toFile(originalOutputPath);
   }
 
   return {
     original: `/cache/${originalCacheKey}`,
-    sizes: results
+    sizes: results,
+    metadata: imageMetadata
   };
 }
 

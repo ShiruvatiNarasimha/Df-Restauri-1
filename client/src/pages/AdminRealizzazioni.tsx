@@ -44,42 +44,81 @@ export function AdminRealizzazioni() {
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
-              resolve(JSON.parse(xhr.responseText));
+              const response = JSON.parse(xhr.responseText);
+              resolve(response);
             } catch (error) {
-              reject(new Error('Invalid response format'));
+              reject(new Error('Formato risposta non valido'));
             }
           } else {
             try {
               const errorData = JSON.parse(xhr.responseText);
-              reject(new Error(errorData.error || 'Upload failed'));
+              if (errorData.code === 'INVALID_FILES') {
+                const details = errorData.details.map((detail: any) => 
+                  `${detail.name}: ${detail.reason}`
+                ).join('\n');
+                reject(new Error(`File non validi:\n${details}`));
+              } else {
+                reject(new Error(errorData.error || 'Caricamento fallito'));
+              }
             } catch {
-              reject(new Error(`Upload failed with status ${xhr.status}`));
+              reject(new Error(`Caricamento fallito con stato ${xhr.status}`));
             }
           }
         };
         
-        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.onerror = () => reject(new Error('Errore di rete'));
+        xhr.ontimeout = () => reject(new Error('Timeout della richiesta'));
         
         xhr.open('POST', '/api/upload-images');
         xhr.setRequestHeader('Accept', 'application/json');
         xhr.withCredentials = true;
+        xhr.timeout = 30000; // 30 seconds timeout
         xhr.send(formData);
       });
 
-      const data = response as { success: boolean; files: Array<{ originalPath: string; original: string; sizes: Record<string, string> }> };
-      
+      const data = response as { 
+        success: boolean; 
+        totalFiles: number;
+        successfulFiles: number;
+        failedFiles: number;
+        files: Array<{
+          name: string;
+          originalPath: string;
+          optimizedPath: string;
+          responsiveSizes: Record<string, string>;
+          metadata: {
+            width: number;
+            height: number;
+            format: string;
+            size: number;
+          };
+        }>;
+        errors?: Array<{
+          name: string;
+          error: string;
+        }>;
+      };
+
       if (!data.success) {
-        throw new Error('Upload failed');
+        throw new Error(
+          data.errors ? 
+            `Alcuni file non sono stati caricati:\n${data.errors.map(e => `${e.name}: ${e.error}`).join('\n')}` :
+            'Caricamento fallito'
+        );
       }
 
-      // Add all paths to the project gallery and update previews
+      // Add optimized paths to the project gallery
       setNewProject(prev => ({
         ...prev,
-        gallery: [...(prev.gallery || []), ...data.files.map(f => f.originalPath)],
+        gallery: [...(prev.gallery || []), ...data.files.map(f => f.optimizedPath)],
       }));
 
-      // Generate previews for all files
-      files.forEach(file => {
+      // Generate previews for successful uploads
+      const successfulFiles = files.filter(file => 
+        data.files.some(f => f.name === file.name)
+      );
+
+      successfulFiles.forEach(file => {
         const reader = new FileReader();
         reader.onloadend = () => {
           setImagePreviews(prev => [...prev, reader.result as string]);
@@ -87,9 +126,12 @@ export function AdminRealizzazioni() {
         reader.readAsDataURL(file);
       });
 
+      // Show success message with details
       toast({
         title: "Successo",
-        description: `${files.length} immagini caricate con successo`,
+        description: data.failedFiles > 0 
+          ? `${data.successfulFiles} su ${data.totalFiles} immagini caricate con successo`
+          : `${data.successfulFiles} immagini caricate con successo`,
       });
 
     } catch (error) {
@@ -103,6 +145,7 @@ export function AdminRealizzazioni() {
         variant: "destructive",
       });
       
+    } finally {
       setUploadProgress(0);
     }
   };
