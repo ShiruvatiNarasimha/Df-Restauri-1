@@ -333,18 +333,64 @@ export function AdminRealizzazioni() {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
+                
+                // Validate required fields
+                const requiredFields = ['title', 'description', 'category', 'location', 'year'] as const;
+                const missingFields = requiredFields.filter(field => !newProject[field]);
+                
+                if (missingFields.length > 0) {
+                  toast({
+                    title: "Errore di validazione",
+                    description: `Campi obbligatori mancanti: ${missingFields.join(', ')}`,
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                // Validate year
+                const currentYear = new Date().getFullYear();
+                if (newProject.year < 1900 || newProject.year > currentYear) {
+                  toast({
+                    title: "Errore di validazione",
+                    description: `L'anno deve essere compreso tra 1900 e ${currentYear}`,
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                // Validate gallery images
+                if (!newProject.gallery || newProject.gallery.length === 0) {
+                  toast({
+                    title: "Errore di validazione",
+                    description: "È necessario caricare almeno un'immagine",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
                 setIsSaving(true);
                 try {
                   const response = await fetch("/api/admin/projects", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
-                    body: JSON.stringify(newProject),
+                    body: JSON.stringify({
+                      ...newProject,
+                      // Set first gallery image as main image if not set
+                      image: newProject.image || newProject.gallery[0],
+                      // Ensure gallery is an array
+                      gallery: Array.isArray(newProject.gallery) ? newProject.gallery : [],
+                      status: 'published'
+                    }),
                   });
 
                   if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || "Errore nella creazione del progetto");
+                    const errorData = await response.json().catch(() => null);
+                    throw new Error(
+                      errorData?.error || 
+                      errorData?.message || 
+                      "Errore nella creazione del progetto"
+                    );
                   }
 
                   queryClient.invalidateQueries({ queryKey: ["admin-projects"] });
@@ -365,9 +411,12 @@ export function AdminRealizzazioni() {
                     description: "Progetto creato con successo",
                   });
                 } catch (error) {
+                  console.error('Project creation error:', error);
                   toast({
                     title: "Errore",
-                    description: error instanceof Error ? error.message : "Errore nella creazione del progetto",
+                    description: error instanceof Error 
+                      ? error.message 
+                      : "Errore nella creazione del progetto",
                     variant: "destructive",
                   });
                 } finally {
