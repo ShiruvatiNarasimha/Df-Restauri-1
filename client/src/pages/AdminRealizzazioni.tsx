@@ -394,7 +394,7 @@ export function AdminRealizzazioni() {
                 }
 
                 // Validate gallery images
-                if (!newProject.gallery || newProject.gallery.length === 0) {
+                if (!newProject.gallery?.length) {
                   toast({
                     title: "Errore di validazione",
                     description: "È necessario caricare almeno un'immagine",
@@ -421,7 +421,7 @@ export function AdminRealizzazioni() {
                   // Ensure image field is set before saving
                   const projectData = {
                     ...newProject,
-                    image: imageFromGallery,
+                    image: newProject.gallery[0] || "", // Set image to the first gallery image
                     gallery: Array.isArray(newProject.gallery) ? newProject.gallery : [],
                     status: 'published'
                   };
