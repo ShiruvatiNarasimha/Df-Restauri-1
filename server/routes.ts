@@ -9,54 +9,52 @@ import { eq } from "drizzle-orm";
 // Authentication middleware
 function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    // Check if session exists and is valid
+    // 1. Check if session exists and is valid
     if (!req.session || !req.session.id) {
       console.error('Session not found or invalid');
       return res.status(401).json({ 
-        error: "Sessione non valida",
-        code: "SESSION_INVALID"
+        error: "Sessione non valida. Per favore, effettua nuovamente il login.",
+        code: "SESSION_INVALID",
+        requiresLogin: true
       });
     }
 
-    // Verify session expiration
+    // 2. Verify session expiration
     if (req.session.cookie.expires && new Date() > req.session.cookie.expires) {
       console.error('Session expired');
       return res.status(401).json({ 
-        error: "Sessione scaduta",
-        code: "SESSION_EXPIRED"
+        error: "La tua sessione è scaduta. Per favore, effettua nuovamente il login.",
+        code: "SESSION_EXPIRED",
+        requiresLogin: true
       });
     }
 
-    // Check authentication
+    // 3. Check authentication
     if (!req.isAuthenticated()) {
       console.error('User not authenticated');
       return res.status(401).json({ 
-        error: "Non autenticato",
-        code: "NOT_AUTHENTICATED"
+        error: "Non sei autenticato. Per favore, effettua il login.",
+        code: "NOT_AUTHENTICATED",
+        requiresLogin: true
       });
     }
 
-    // Verify admin status
-    if (!req.user?.isAdmin) {
-      console.error('User not admin');
-      return res.status(403).json({ 
-        error: "Accesso non autorizzato",
-        code: "NOT_AUTHORIZED"
-      });
-    }
-
-    // Extend session if it's close to expiring
-    if (req.session.cookie.maxAge && req.session.cookie.maxAge < 24 * 60 * 60 * 1000) { // Less than 1 day left
-      req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // Extend to 7 days
+    // 4. Session renewal
+    const SESSION_RENEWAL_THRESHOLD = 24 * 60 * 60 * 1000; // 24 hours
+    if (req.session.cookie.maxAge && req.session.cookie.maxAge < SESSION_RENEWAL_THRESHOLD) {
+      const NEW_SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+      req.session.cookie.maxAge = NEW_SESSION_DURATION;
+      console.log('Session renewed for 7 days');
     }
 
     return next();
   } catch (error) {
     console.error('Authentication error:', error);
     return res.status(500).json({ 
-      error: "Errore di autenticazione",
+      error: "Si è verificato un errore durante l'autenticazione. Per favore, riprova più tardi.",
       code: "AUTH_ERROR",
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Errore sconosciuto',
+      requiresLogin: true
     });
   }
 }
@@ -253,7 +251,7 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/projects", requireAdmin, async (req, res) => {
+  app.post("/api/admin/projects", requireAuth, async (req, res) => {
     try {
       const { title, description, category, location, year, gallery = [], status = 'draft' } = req.body;
 
@@ -306,9 +304,8 @@ export async function registerRoutes(app: Express) {
         category,
         location,
         year,
-        gallery,
-        status,
-        image: gallery[0] || '', // Use first gallery image as main image if available
+        gallery: gallery || [],
+        status: status || 'draft',
         createdAt: new Date(),
         updatedAt: new Date()
       }).returning();
@@ -369,6 +366,105 @@ export async function registerRoutes(app: Express) {
   });
   app.post("/api/contact", (req, res) => {
     const { name, email, phone, message } = req.body;
+  // Team management endpoints
+  app.get("/api/admin/team-members", requireAuth, async (_req, res) => {
+    try {
+      const members = await db.select().from(teamMembers);
+      res.json(members);
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+      res.status(500).json({ 
+        error: "Errore nel recupero dei membri del team",
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.post("/api/admin/team-members", requireAuth, async (req, res) => {
+    try {
+      const { name, role, avatar, facebookUrl, twitterUrl, instagramUrl } = req.body;
+
+      // Validate required fields
+      if (!name || !role || !avatar) {
+        return res.status(400).json({
+          error: "Campi obbligatori mancanti",
+          code: "MISSING_FIELDS",
+          details: {
+            name: !name,
+            role: !role,
+            avatar: !avatar
+          }
+        });
+      }
+
+      const [member] = await db.insert(teamMembers).values({
+        name,
+        role,
+        avatar,
+        facebookUrl,
+        twitterUrl,
+        instagramUrl,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+
+      res.json(member);
+    } catch (error) {
+      console.error('Team member creation error:', error);
+      res.status(500).json({
+        error: "Errore nella creazione del membro del team",
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.put("/api/admin/team-members/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [updated] = await db
+        .update(teamMembers)
+        .set({
+          ...req.body,
+          updatedAt: new Date()
+        })
+        .where(eq(teamMembers.id, id))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ error: "Membro del team non trovato" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error('Team member update error:', error);
+      res.status(500).json({ 
+        error: "Errore nell'aggiornamento del membro del team",
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  app.delete("/api/admin/team-members/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const [deleted] = await db
+        .delete(teamMembers)
+        .where(eq(teamMembers.id, id))
+        .returning();
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Membro del team non trovato" });
+      }
+      
+      res.json({ success: true, message: "Membro del team eliminato con successo" });
+    } catch (error) {
+      console.error('Team member deletion error:', error);
+      res.status(500).json({ 
+        error: "Errore nell'eliminazione del membro del team",
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
     console.log("Contact form submission:", { name, email, phone, message });
     res.json({ success: true });
   });

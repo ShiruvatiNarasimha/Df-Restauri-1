@@ -13,6 +13,32 @@ import type { Project } from "@/types/project";
 export function AdminRealizzazioni() {
   const { logout } = useUser();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
+
+  // Handle authentication errors
+  const handleAuthError = (error: any) => {
+    console.error('Authentication error:', error);
+    if (error?.requiresLogin || 
+        error?.code === 'SESSION_INVALID' || 
+        error?.code === 'SESSION_EXPIRED' || 
+        error?.code === 'NOT_AUTHENTICATED') {
+      setIsSessionExpired(true);
+      toast({
+        title: "Errore di autenticazione",
+        description: error.error || "La sessione è scaduta. Effettua nuovamente il login.",
+        variant: "destructive",
+      });
+      navigate('/login');
+    }
+  };
+
+  // Check for expired session on component mount
+  useEffect(() => {
+    if (projectsError) {
+      handleAuthError(projectsError);
+    }
+  }, [projectsError]);
   const queryClient = useQueryClient();
   const [showNewProjectForm, setShowNewProjectForm] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -218,7 +244,7 @@ export function AdminRealizzazioni() {
     gallery: [], // Added gallery initialization
   });
 
-  const { data: projects } = useQuery<Project[]>({
+  const { data: projects, error: projectsError } = useQuery<Project[]>({
     queryKey: ["admin-projects"],
     queryFn: async () => {
       try {
@@ -386,6 +412,10 @@ export function AdminRealizzazioni() {
 
                   if (!response.ok) {
                     const errorData = await response.json().catch(() => null);
+                    if (response.status === 401 || response.status === 403) {
+                      handleAuthError(errorData);
+                      return;
+                    }
                     throw new Error(
                       errorData?.error || 
                       errorData?.message || 
