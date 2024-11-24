@@ -1,7 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import bcrypt from "bcrypt";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
+import { db } from "../db";
+import { users } from "../db/schema";
 import { createServer } from "http";
 
 function log(message: string) {
@@ -19,6 +24,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Session middleware must be before passport
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
@@ -29,6 +35,46 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
+
+// Configure passport
+passport.use(new LocalStrategy(async (username, password, done) => {
+  try {
+    const user = await db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.username, username)
+    });
+
+    if (!user) {
+      return done(null, false);
+    }
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      return done(null, false);
+    }
+
+    return done(null, user);
+  } catch (error) {
+    return done(error);
+  }
+}));
+
+passport.serializeUser((user: any, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id: number, done) => {
+  try {
+    const user = await db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.id, id)
+    });
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
+});
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use((req, res, next) => {
   const start = Date.now();
