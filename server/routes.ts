@@ -438,4 +438,61 @@ export async function registerRoutes(app: Express) {
   app.get("/api/case-studies", (_req, res) => {
     res.json(DYNAMIC_CONTENT.case_studies);
   });
+
+  // Team management routes
+  app.get("/api/team-members", async (_req, res) => {
+    try {
+      const members = await db.select().from(teamMembers);
+      res.json(members);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nel recupero dei membri del team" });
+    }
+  });
+
+  app.post("/api/admin/team-members", requireAdmin, async (req, res) => {
+    try {
+      const [member] = await db.insert(teamMembers).values(req.body).returning();
+      res.json(member);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nella creazione del membro del team" });
+    }
+  });
+
+  app.put("/api/admin/team-members/:id", requireAdmin, async (req, res) => {
+    try {
+      const [updated] = await db
+        .update(teamMembers)
+        .set({
+          ...req.body,
+          updatedAt: new Date()
+        })
+        .where(eq(teamMembers.id, parseInt(req.params.id)))
+        .returning();
+      
+      if (!updated) {
+        return res.status(404).json({ error: "Membro del team non trovato" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Errore nell'aggiornamento del membro del team" });
+    }
+  });
+
+  app.delete("/api/admin/team-members/:id", requireAdmin, async (req, res) => {
+    try {
+      const [deleted] = await db
+        .delete(teamMembers)
+        .where(eq(teamMembers.id, parseInt(req.params.id)))
+        .returning();
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Membro del team non trovato" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Errore nell'eliminazione del membro del team" });
+    }
+  });
 }

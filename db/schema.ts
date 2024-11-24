@@ -49,3 +49,21 @@ export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = z.infer<typeof selectProjectSchema>;
 export type InsertCaseHistory = z.infer<typeof insertCaseHistorySchema>;
 export type CaseHistory = z.infer<typeof selectCaseHistorySchema>;
+
+export const teamMembers = pgTable("team_members", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: text("name").notNull(),
+  role: text("role").notNull(),
+  avatar: text("avatar").notNull(),
+  facebookUrl: text("facebook_url"),
+  twitterUrl: text("twitter_url"),
+  instagramUrl: text("instagram_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertTeamMemberSchema = createInsertSchema(teamMembers);
+export const selectTeamMemberSchema = createSelectSchema(teamMembers);
+
+export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type TeamMember = z.infer<typeof selectTeamMemberSchema>;
