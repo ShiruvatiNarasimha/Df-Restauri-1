@@ -9,25 +9,55 @@ import { eq } from "drizzle-orm";
 // Authentication middleware
 function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    if (!req.session) {
-      console.error('Session not found');
-      return res.status(401).json({ error: "Sessione non valida" });
+    // Check if session exists and is valid
+    if (!req.session || !req.session.id) {
+      console.error('Session not found or invalid');
+      return res.status(401).json({ 
+        error: "Sessione non valida",
+        code: "SESSION_INVALID"
+      });
     }
 
+    // Verify session expiration
+    if (req.session.cookie.expires && new Date() > req.session.cookie.expires) {
+      console.error('Session expired');
+      return res.status(401).json({ 
+        error: "Sessione scaduta",
+        code: "SESSION_EXPIRED"
+      });
+    }
+
+    // Check authentication
     if (!req.isAuthenticated()) {
       console.error('User not authenticated');
-      return res.status(401).json({ error: "Non autenticato" });
+      return res.status(401).json({ 
+        error: "Non autenticato",
+        code: "NOT_AUTHENTICATED"
+      });
     }
 
+    // Verify admin status
     if (!req.user?.isAdmin) {
       console.error('User not admin');
-      return res.status(403).json({ error: "Accesso non autorizzato" });
+      return res.status(403).json({ 
+        error: "Accesso non autorizzato",
+        code: "NOT_AUTHORIZED"
+      });
+    }
+
+    // Extend session if it's close to expiring
+    if (req.session.cookie.maxAge && req.session.cookie.maxAge < 24 * 60 * 60 * 1000) { // Less than 1 day left
+      req.session.cookie.maxAge = 7 * 24 * 60 * 60 * 1000; // Extend to 7 days
     }
 
     return next();
   } catch (error) {
     console.error('Authentication error:', error);
-    return res.status(500).json({ error: "Errore di autenticazione" });
+    return res.status(500).json({ 
+      error: "Errore di autenticazione",
+      code: "AUTH_ERROR",
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }
 

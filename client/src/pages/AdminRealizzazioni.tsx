@@ -221,14 +221,40 @@ export function AdminRealizzazioni() {
   const { data: projects } = useQuery<Project[]>({
     queryKey: ["admin-projects"],
     queryFn: async () => {
-      const response = await fetch("/api/admin/projects", {
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch projects");
+      try {
+        const response = await fetch("/api/admin/projects", {
+          credentials: "include",
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          const error = await response.json();
+          throw new Error(error.error || 'Authentication error');
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch projects");
+        }
+
+        return response.json();
+      } catch (error) {
+        if (error instanceof Error && (error.message.includes('Authentication') || error.message.includes('authorized'))) {
+          // Handle authentication errors
+          window.location.href = '/'; // Redirect to home on auth error
+        }
+        throw error;
       }
-      return response.json();
     },
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors
+      if (error instanceof Error && (error.message.includes('Authentication') || error.message.includes('authorized'))) {
+        return false;
+      }
+      return failureCount < 3;
+    }
   });
 
   const updateProject = useMutation({
