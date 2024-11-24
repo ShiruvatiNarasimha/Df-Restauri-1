@@ -261,11 +261,17 @@ export async function registerRoutes(app: Express) {
   app.post("/api/contact", (req, res) => {
   // Bulk image upload endpoint
   app.post('/api/upload-images', upload.array('images', 10), async (req, res) => {
+    // Set proper content type header
+    res.setHeader('Content-Type', 'application/json');
+
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ 
         success: false,
-        error: 'No files uploaded',
-        code: 'NO_FILES'
+        totalFiles: 0,
+        successfulFiles: 0,
+        failedFiles: 0,
+        files: [],
+        errors: [{ name: 'upload', error: 'No files uploaded' }]
       });
     }
 
@@ -348,9 +354,14 @@ export async function registerRoutes(app: Express) {
       console.error('Upload error:', error);
       res.status(500).json({ 
         success: false,
-        error: 'Error processing uploads',
-        code: 'PROCESSING_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
+        totalFiles: files?.length || 0,
+        successfulFiles: 0,
+        failedFiles: files?.length || 0,
+        files: [],
+        errors: [{
+          name: 'system',
+          error: error instanceof Error ? error.message : 'Unknown error occurred during processing'
+        }]
       });
     }
   });
