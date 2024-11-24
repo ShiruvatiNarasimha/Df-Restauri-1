@@ -8,10 +8,27 @@ import { eq } from "drizzle-orm";
 
 // Authentication middleware
 function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated()) {
+  try {
+    if (!req.session) {
+      console.error('Session not found');
+      return res.status(401).json({ error: "Sessione non valida" });
+    }
+
+    if (!req.isAuthenticated()) {
+      console.error('User not authenticated');
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    if (!req.user?.isAdmin) {
+      console.error('User not admin');
+      return res.status(403).json({ error: "Accesso non autorizzato" });
+    }
+
     return next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return res.status(500).json({ error: "Errore di autenticazione" });
   }
-  res.status(401).json({ error: "Non autenticato" });
 }
 
 // Admin middleware

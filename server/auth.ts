@@ -39,12 +39,14 @@ export function setupAuth(app: Express) {
   const MemoryStore = createMemoryStore(session);
   const sessionSettings: session.SessionOptions = {
     secret: process.env.REPL_ID || "df-restauri-secret",
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
       secure: app.get("env") === "production",
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      path: '/'
     },
     store: new MemoryStore({
       checkPeriod: 86400000, // prune expired entries every 24h
@@ -104,9 +106,15 @@ export function setupAuth(app: Express) {
       if (!user) {
         return done(new Error('User not found'));
       }
+
+      // Validate user session
+      if (!user.isAdmin) {
+        return done(new Error('User not authorized'));
+      }
       
       done(null, user);
     } catch (err) {
+      console.error('Session deserialization error:', err);
       done(err);
     }
   });
