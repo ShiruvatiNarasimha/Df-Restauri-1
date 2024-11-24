@@ -306,13 +306,14 @@ export async function registerRoutes(app: Express) {
             optimizedPath: optimized.original,
             responsiveSizes: optimized.sizes,
             metadata: {
-              width: optimized.metadata.width,
-              height: optimized.metadata.height,
-              format: optimized.metadata.format,
+              width: optimized.metadata.width || 0,
+              height: optimized.metadata.height || 0,
+              format: optimized.metadata.format || 'unknown',
               size: file.size
             }
           };
         } catch (err) {
+          console.error(`Error processing ${file.originalname}:`, err);
           return {
             name: file.originalname,
             error: err instanceof Error ? err.message : 'Failed to process image',
@@ -324,14 +325,25 @@ export async function registerRoutes(app: Express) {
       const failedUploads = results.filter(result => 'failed' in result);
       const successfulUploads = results.filter(result => !('failed' in result));
 
-      res.json({ 
+      const response = {
         success: failedUploads.length === 0,
+        files: successfulUploads.map(file => ({
+          name: file.name,
+          originalPath: file.originalPath,
+          optimizedPath: file.optimizedPath,
+          responsiveSizes: file.responsiveSizes,
+          metadata: file.metadata
+        })),
         totalFiles: files.length,
         successfulFiles: successfulUploads.length,
         failedFiles: failedUploads.length,
-        files: successfulUploads,
-        errors: failedUploads.length > 0 ? failedUploads : undefined
-      });
+        errors: failedUploads.length > 0 ? failedUploads.map(file => ({
+          name: file.name,
+          error: file.error
+        })) : undefined
+      };
+
+      res.json(response);
     } catch (error) {
       console.error('Upload error:', error);
       res.status(500).json({ 

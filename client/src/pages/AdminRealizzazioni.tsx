@@ -20,10 +20,34 @@ export function AdminRealizzazioni() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
+  interface UploadResponse {
+    success: boolean;
+    files: Array<{
+      name: string;
+      originalPath: string;
+      optimizedPath: string;
+      responsiveSizes: Record<string, string>;
+      metadata: {
+        width: number;
+        height: number;
+        format: string;
+        size: number;
+      };
+    }>;
+    totalFiles: number;
+    successfulFiles: number;
+    failedFiles: number;
+    errors?: Array<{
+      name: string;
+      error: string;
+    }>;
+  }
+
   const handleImageUpload = async (files: File[]) => {
     if (files.length === 0) return;
 
     setUploadProgress(0);
+    setImagePreviews([]);
     
     try {
       const formData = new FormData();
@@ -44,8 +68,15 @@ export function AdminRealizzazioni() {
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
-              const response = JSON.parse(xhr.responseText);
-              resolve(response);
+              try {
+                const response = JSON.parse(xhr.responseText) as UploadResponse;
+                if (!('success' in response) || !('files' in response)) {
+                  throw new Error('Formato risposta non valido: mancano campi obbligatori');
+                }
+                resolve(response);
+              } catch (parseError) {
+                reject(new Error('Formato risposta non valido: JSON malformato'));
+              }
             } catch (error) {
               reject(new Error('Formato risposta non valido'));
             }
