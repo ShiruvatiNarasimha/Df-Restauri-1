@@ -239,7 +239,7 @@ export function AdminRealizzazioni() {
     gallery: [], // Added gallery initialization
   });
 
-  const { data: projects } = useQuery<Project[]>(['admin-projects'], {
+  const { data: projects } = useQuery<Project[]>({
     queryKey: ["admin-projects"],
     onError: (error: any) => {
       if (error?.response?.status === 401 || error?.response?.status === 403) {
@@ -280,16 +280,16 @@ export function AdminRealizzazioni() {
         throw error;
       }
     },
-    retry: (failureCount, error) => {
+    retry: (failureCount: number, error: Error) => {
       // Don't retry on authentication errors
-      if (error instanceof Error && (error.message.includes('Authentication') || error.message.includes('authorized'))) {
+      if (error.message.includes('Authentication') || error.message.includes('authorized')) {
         return false;
       }
       return failureCount < 3;
     }
   });
 
-  const updateProject = useMutation({
+  const updateProject = useMutation<Project, Error, Project>({
     mutationFn: async (project: Project) => {
       const response = await fetch(`/api/admin/projects/${project.id}`, {
         method: "PUT",

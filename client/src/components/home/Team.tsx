@@ -5,14 +5,14 @@ import type { TeamMember } from "@/types/team";
 import { useToast } from "@/hooks/use-toast";
 
 export function Team() {
-  const { data: members, isLoading, error } = useQuery<TeamMember[]>({
+  const { data: members, isLoading, error } = useQuery({
     queryKey: ["team-members"],
     queryFn: async () => {
       const response = await fetch("/api/team-members");
       if (!response.ok) {
         throw new Error("Failed to fetch team members");
       }
-      return response.json();
+      return response.json() as Promise<TeamMember[]>;
     },
   });
 
