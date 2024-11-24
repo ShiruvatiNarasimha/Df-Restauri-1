@@ -4,6 +4,22 @@ import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageP
 import { db } from "../db";
 import { projects, caseHistories } from "../db/schema";
 import { setupAuth } from "./auth";
+// Authentication middleware
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ error: "Non autenticato" });
+}
+
+// Admin middleware
+function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated() && req.user.isAdmin) {
+    return next();
+  }
+  res.status(403).json({ error: "Accesso non autorizzato" });
+}
+import { type Request, type Response, type NextFunction } from "express";
 import { eq } from "drizzle-orm";
 
 // Middleware to handle WebP conversion
@@ -147,7 +163,7 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/projects", isAdmin, async (req, res) => {
+  app.post("/api/admin/projects", requireAdmin, async (req, res) => {
     try {
       const [project] = await db.insert(projects).values(req.body).returning();
       res.json(project);
@@ -178,7 +194,7 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/admin/case-histories", isAdmin, async (req, res) => {
+  app.post("/api/admin/case-histories", requireAdmin, async (req, res) => {
     try {
       const [history] = await db.insert(caseHistories).values(req.body).returning();
       res.json(history);
@@ -187,7 +203,7 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  app.put("/api/admin/case-histories/:id", isAdmin, async (req, res) => {
+  app.put("/api/admin/case-histories/:id", requireAdmin, async (req, res) => {
     try {
       const [updated] = await db
         .update(caseHistories)

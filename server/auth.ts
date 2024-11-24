@@ -151,6 +151,64 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // Admin registration endpoint
+  app.post("/api/register/admin", async (req, res, next) => {
+    try {
+      const { token, ...userData } = req.body;
+      
+      if (!token || token !== process.env.ADMIN_REGISTRATION_TOKEN) {
+        return res.status(403).json({ error: "Token di amministrazione non valido" });
+      }
+
+      const result = insertUserSchema.safeParse(userData);
+      if (!result.success) {
+        return res.status(400).json({
+          error: "Input non valido",
+          details: result.error.issues.map(i => i.message)
+        });
+      }
+
+      const { username, password } = result.data;
+
+      // Check if user already exists
+      const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.username, username))
+        .limit(1);
+
+      if (existingUser) {
+        return res.status(400).json({ error: "Username già esistente" });
+      }
+
+      // Hash the password
+      const hashedPassword = await crypto.hash(password);
+
+      // Create the new admin user
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          username,
+          password: hashedPassword,
+          isAdmin: true, // Set admin flag
+        })
+        .returning();
+
+      // Log the user in after registration
+      req.login(newUser, (err) => {
+        if (err) {
+          return next(err);
+        }
+        return res.json({
+          message: "Registrazione admin completata con successo",
+          user: { id: newUser.id, username: newUser.username, isAdmin: true },
+        });
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post("/api/login", (req, res, next) => {
     const result = insertUserSchema.safeParse(req.body);
     if (!result.success) {
