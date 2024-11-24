@@ -405,11 +405,8 @@ export function AdminRealizzazioni() {
 
                 setIsSaving(true);
                 try {
-                  const imageFromGallery = newProject.gallery && newProject.gallery.length > 0 
-                    ? newProject.gallery[0] 
-                    : null;
-
-                  if (!imageFromGallery) {
+                  // Before making the API call, ensure we have an image
+                  if (!newProject.gallery?.length) {
                     toast({
                       title: "Errore di validazione",
                       description: "È necessario caricare almeno un'immagine",
@@ -418,11 +415,11 @@ export function AdminRealizzazioni() {
                     return;
                   }
 
-                  // Ensure image field is set before saving
+                  const imageFromGallery = newProject.gallery[0];
                   const projectData = {
                     ...newProject,
-                    image: newProject.gallery[0] || "", // Set image to the first gallery image
-                    gallery: Array.isArray(newProject.gallery) ? newProject.gallery : [],
+                    image: imageFromGallery, // Set image field explicitly
+                    gallery: newProject.gallery,
                     status: 'published'
                   };
 
