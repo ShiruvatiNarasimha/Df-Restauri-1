@@ -229,17 +229,18 @@ export function AdminRealizzazioni() {
     }
   };
   
-  const [newProject, setNewProject] = useState<Omit<Project, "id">>({
+  const [newProject, setNewProject] = useState<Omit<Project, "id" | "createdAt" | "updatedAt">>({
     title: "",
     description: "",
     category: "restauro",
     location: "",
     year: new Date().getFullYear(),
     image: "",
-    gallery: [], // Added gallery initialization
+    gallery: [],
+    status: "draft"
   });
 
-  const { data: projects } = useQuery<Project[]>({
+  const { data: projects } = useQuery({
     queryKey: ["admin-projects"],
     onError: (error: any) => {
       if (error?.response?.status === 401 || error?.response?.status === 403) {
@@ -402,18 +403,32 @@ export function AdminRealizzazioni() {
 
                 setIsSaving(true);
                 try {
+                  const imageFromGallery = newProject.gallery && newProject.gallery.length > 0 
+                    ? newProject.gallery[0] 
+                    : null;
+
+                  if (!imageFromGallery) {
+                    toast({
+                      title: "Errore di validazione",
+                      description: "È necessario caricare almeno un'immagine",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  // Ensure image field is set before saving
+                  const projectData = {
+                    ...newProject,
+                    image: imageFromGallery,
+                    gallery: Array.isArray(newProject.gallery) ? newProject.gallery : [],
+                    status: 'published'
+                  };
+
                   const response = await fetch("/api/admin/projects", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
-                    body: JSON.stringify({
-                      ...newProject,
-                      // Set first gallery image as main image if not set
-                      image: newProject.image || newProject.gallery[0],
-                      // Ensure gallery is an array
-                      gallery: Array.isArray(newProject.gallery) ? newProject.gallery : [],
-                      status: 'published'
-                    }),
+                    body: JSON.stringify(projectData),
                   });
 
                   if (!response.ok) {
