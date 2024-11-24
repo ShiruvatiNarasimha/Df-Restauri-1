@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { LogOut, Loader2, X } from "lucide-react";
 import { Dropzone } from "@/components/ui/dropzone";
@@ -33,12 +34,6 @@ export function AdminRealizzazioni() {
     }
   };
 
-  // Check for expired session on component mount
-  useEffect(() => {
-    if (projectsError) {
-      handleAuthError(projectsError);
-    }
-  }, [projectsError]);
   const queryClient = useQueryClient();
   const [showNewProjectForm, setShowNewProjectForm] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -244,8 +239,19 @@ export function AdminRealizzazioni() {
     gallery: [], // Added gallery initialization
   });
 
-  const { data: projects, error: projectsError } = useQuery<Project[]>({
+  const { data: projects } = useQuery<Project[]>(['admin-projects'], {
     queryKey: ["admin-projects"],
+    onError: (error: any) => {
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        handleAuthError(error);
+      } else {
+        toast({
+          title: "Errore",
+          description: "Errore nel caricamento dei progetti",
+          variant: "destructive",
+        });
+      }
+    },
     queryFn: async () => {
       try {
         const response = await fetch("/api/admin/projects", {

@@ -2,6 +2,7 @@ import { Facebook, Twitter, Instagram } from "lucide-react";
 import { SectionSeparator } from "@/components/ui/section-separator";
 import { useQuery } from "@tanstack/react-query";
 import type { TeamMember } from "@/types/team";
+import { useToast } from "@/hooks/use-toast";
 
 export function Team() {
   const { data: members, isLoading, error } = useQuery<TeamMember[]>({
