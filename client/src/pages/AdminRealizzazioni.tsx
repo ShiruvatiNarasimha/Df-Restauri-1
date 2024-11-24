@@ -44,47 +44,56 @@ export function AdminRealizzazioni() {
     if (validFiles.length === 0) return;
 
     setUploadProgress(0);
-    const totalFiles = validFiles.length;
-    const uploadedPaths: string[] = [];
-    let completedFiles = 0;
+    
+    try {
+      const formData = new FormData();
+      validFiles.forEach(file => {
+        formData.append('images', file);
+      });
 
-    for (const file of validFiles) {
-      try {
-        const formData = new FormData();
-        formData.append('image', file);
+      const response = await fetch('/api/upload-images', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
 
-        const response = await fetch('/api/upload-image', {
-          method: 'POST',
-          credentials: 'include',
-          body: formData,
-        });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Errore nel caricamento');
+      }
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || 'Errore nel caricamento');
-        }
+      const data = await response.json();
+      
+      // Add all paths to the project gallery
+      setNewProject(prev => ({
+        ...prev,
+        gallery: [...(prev.gallery || []), ...data.paths],
+      }));
 
-        const data = await response.json();
-        uploadedPaths.push(data.path);
-        completedFiles++;
-        setUploadProgress((completedFiles / totalFiles) * 100);
-
-        // Add preview
+      // Generate previews for all files
+      validFiles.forEach(file => {
         const reader = new FileReader();
         reader.onloadend = () => {
           setImagePreviews(prev => [...prev, reader.result as string]);
         };
         reader.readAsDataURL(file);
+      });
 
-      } catch (error) {
-        console.error('Upload error:', error);
-        toast({
-          title: "Errore",
-          description: error instanceof Error ? error.message : 'Errore nel caricamento',
-          variant: "destructive",
-        });
-        setUploadProgress(0);
-      }
+      setUploadProgress(100);
+      
+      toast({
+        title: "Successo",
+        description: `${validFiles.length} immagini caricate con successo`,
+      });
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Errore",
+        description: error instanceof Error ? error.message : 'Errore nel caricamento',
+        variant: "destructive",
+      });
+      setUploadProgress(0);
     }
 
     if (uploadedPaths.length > 0) {
