@@ -34,7 +34,7 @@ function Router() {
       <Route path="/ci-presentiamo" component={CiPresentiamo} />
       <Route path="/servizi" component={Servizi} />
       <Route path="/realizzazioni" component={Realizzazioni} />
-      <Route path="/admin/realizzazioni" component={AdminRealizzazioni} />
+      <Route path="/admin-realizzazioni" component={AdminRealizzazioni} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );
