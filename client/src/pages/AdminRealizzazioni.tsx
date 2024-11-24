@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { LogOut, Loader2 } from "lucide-react";
+import { LogOut, Loader2, X } from "lucide-react";
+import { Dropzone } from "@/components/ui/dropzone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Project } from "@/types/project";
 
@@ -16,7 +17,7 @@ export function AdminRealizzazioni() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [newProject, setNewProject] = useState<Omit<Project, "id">>({
     title: "",
     description: "",
@@ -221,71 +222,87 @@ export function AdminRealizzazioni() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Immagine</label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
+                <label className="block text-sm font-medium mb-1">Immagini</label>
+                <Dropzone
+                  onDrop={async (files) => {
+                    const totalFiles = files.length;
+                    const uploadedPaths: string[] = [];
+                    let completedFiles = 0;
 
-                    // Preview
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      setImagePreview(reader.result as string);
-                    };
-                    reader.readAsDataURL(file);
+                    for (const file of files) {
+                      try {
+                        const formData = new FormData();
+                        formData.append("image", file);
 
-                    // Upload
-                    const formData = new FormData();
-                    formData.append("image", file);
+                        const response = await fetch("/api/upload-image", {
+                          method: "POST",
+                          body: formData,
+                        });
 
-                    try {
-                      setUploadProgress(0);
-                      const response = await fetch("/api/upload-image", {
-                        method: "POST",
-                        body: formData,
-                      });
+                        if (!response.ok) {
+                          throw new Error(`Upload failed for ${file.name}`);
+                        }
 
-                      if (!response.ok) {
-                        throw new Error("Upload failed");
+                        const { path } = await response.json();
+                        uploadedPaths.push(path);
+                        completedFiles++;
+                        setUploadProgress((completedFiles / totalFiles) * 100);
+
+                        // Preview
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setImagePreviews(prev => [...prev, reader.result as string]);
+                        };
+                        reader.readAsDataURL(file);
+
+                      } catch (error) {
+                        toast({
+                          title: "Errore",
+                          description: `Errore nel caricamento di ${file.name}`,
+                          variant: "destructive",
+                        });
                       }
+                    }
 
-                      const { path } = await response.json();
-                      setNewProject({ ...newProject, image: path });
-                      setUploadProgress(100);
-
+                    if (uploadedPaths.length > 0) {
+                      setNewProject(prev => ({
+                        ...prev,
+                        gallery: [...uploadedPaths],
+                      }));
                       toast({
                         title: "Successo",
-                        description: "Immagine caricata con successo",
+                        description: `${uploadedPaths.length} immagini caricate con successo`,
                       });
-                    } catch (error) {
-                      toast({
-                        title: "Errore",
-                        description: "Errore nel caricamento dell'immagine",
-                        variant: "destructive",
-                      });
-                      setUploadProgress(0);
                     }
+                    setUploadProgress(0);
                   }}
+                  isUploading={uploadProgress > 0}
+                  progress={uploadProgress}
+                  className="mb-4"
                 />
-                {uploadProgress > 0 && uploadProgress < 100 && (
-                  <div className="mt-2">
-                    <div className="h-2 bg-muted rounded-full">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-                {imagePreview && (
-                  <div className="mt-4">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="max-w-xs rounded-lg"
-                    />
+                {imagePreviews.length > 0 && (
+                  <div className="mt-4 grid grid-cols-3 gap-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() => {
+                            setImagePreviews(prev => prev.filter((_, i) => i !== index));
+                            setNewProject(prev => ({
+                              ...prev,
+                              gallery: prev.gallery.filter((_, i) => i !== index),
+                            }));
+                          }}
+                          className="absolute top-2 right-2 p-1 bg-destructive rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-4 w-4 text-white" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
