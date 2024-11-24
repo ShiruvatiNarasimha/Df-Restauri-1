@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Project } from "@/types/project";
 
@@ -21,68 +21,60 @@ export function AdminRealizzazioni() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const handleImageUpload = async (files: File[]) => {
-    const totalFiles = files.length;
-    const uploadedPaths: string[] = [];
-    let completedFiles = 0;
+  setUploadProgress(0);
+  const totalFiles = files.length;
+  const uploadedPaths: string[] = [];
+  let completedFiles = 0;
 
-    for (const file of files) {
-      try {
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          throw new Error("Il file deve essere un'immagine");
-        }
+  for (const file of files) {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
 
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error("L'immagine deve essere inferiore a 5MB");
-        }
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
 
-        const formData = new FormData();
-        formData.append('image', file);
-
-        const response = await fetch('/api/upload-image', {
-          method: 'POST',
-          credentials: 'include',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error(await response.text() || `Caricamento fallito per ${file.name}`);
-        }
-
-        const { path } = await response.json();
-        if (!path || typeof path !== 'string') {
-          throw new Error('Percorso immagine non valido');
-        }
-
-        uploadedPaths.push(path);
-        completedFiles++;
-        setUploadProgress((completedFiles / totalFiles) * 100);
-
-        // Add preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreviews(prev => [...prev, reader.result as string]);
-        };
-        reader.readAsDataURL(file);
-
-      } catch (error) {
-        toast({
-          title: "Errore",
-          description: error instanceof Error ? error.message : 'Errore nel caricamento',
-          variant: "destructive",
-        });
+      if (!response.ok) {
+        throw new Error(await response.text());
       }
-    }
 
-    if (uploadedPaths.length > 0) {
-      setNewProject(prev => ({
-        ...prev,
-        gallery: [...(prev.gallery || []), ...uploadedPaths],
-      }));
+      const data = await response.json();
+      if (!data.path) {
+        throw new Error('Invalid server response');
+      }
+
+      uploadedPaths.push(data.path);
+      completedFiles++;
+      setUploadProgress((completedFiles / totalFiles) * 100);
+
+      // Add preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews(prev => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Errore",
+        description: error instanceof Error ? error.message : 'Errore nel caricamento',
+        variant: "destructive",
+      });
     }
-    setUploadProgress(0);
-  };
+  }
+
+  if (uploadedPaths.length > 0) {
+    setNewProject(prev => ({
+      ...prev,
+      gallery: [...(prev.gallery || []), ...uploadedPaths],
+    }));
+  }
+  setUploadProgress(0);
+};
   const [newProject, setNewProject] = useState<Omit<Project, "id">>({
     title: "",
     description: "",
@@ -214,8 +206,9 @@ export function AdminRealizzazioni() {
                     location: "",
                     year: new Date().getFullYear(),
                     image: "",
+                    gallery: [],
                   });
-                  setImagePreview(null);
+                  setImagePreviews([]);
                   
                   toast({
                     title: "Successo",
