@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Project } from "@/types/project";
 
@@ -236,61 +236,57 @@ export function AdminRealizzazioni() {
                 <label className="block text-sm font-medium mb-1">Immagini</label>
                 <Dropzone
                   onDrop={async (files) => {
-                    const totalFiles = files.length;
-                    const uploadedPaths: string[] = [];
-                    let completedFiles = 0;
+                    const handleImageUpload = async (files: File[]) => {
+                      const totalFiles = files.length;
+                      const uploadedPaths: string[] = [];
+                      let completedFiles = 0;
 
-                    for (const file of files) {
-                      try {
-                        const formData = new FormData();
-                        formData.append("image", file);
+                      for (const file of files) {
+                        try {
+                          const formData = new FormData();
+                          formData.append('image', file);
 
-                        const response = await fetch("/api/upload-image", {
-                          method: "POST",
-                          body: formData,
-                          credentials: "include",
-                        });
+                          const response = await fetch('/api/upload-image', {
+                            method: 'POST',
+                            credentials: 'include',
+                            body: formData,
+                          });
 
-                        if (!response.ok) {
-                          if (response.status === 401) {
-                            throw new Error("Non sei autorizzato a caricare immagini");
+                          if (!response.ok) {
+                            throw new Error(await response.text() || `Upload failed for ${file.name}`);
                           }
-                          const errorText = await response.text();
-                          throw new Error(errorText || `Caricamento fallito per ${file.name}`);
+
+                          const { path } = await response.json();
+                          uploadedPaths.push(path);
+                          completedFiles++;
+                          setUploadProgress((completedFiles / totalFiles) * 100);
+
+                          // Add preview
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setImagePreviews(prev => [...prev, reader.result as string]);
+                          };
+                          reader.readAsDataURL(file);
+
+                        } catch (error) {
+                          toast({
+                            title: "Errore",
+                            description: error instanceof Error ? error.message : 'Errore nel caricamento',
+                            variant: "destructive",
+                          });
                         }
-
-                        const { path } = await response.json();
-                        uploadedPaths.push(path);
-                        completedFiles++;
-                        setUploadProgress((completedFiles / totalFiles) * 100);
-
-                        // Preview
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setImagePreviews(prev => [...prev, reader.result as string]);
-                        };
-                        reader.readAsDataURL(file);
-
-                      } catch (error) {
-                        toast({
-                          title: "Errore",
-                          description: `Errore nel caricamento di ${file.name}`,
-                          variant: "destructive",
-                        });
                       }
-                    }
 
-                    if (uploadedPaths.length > 0) {
-                      setNewProject(prev => ({
-                        ...prev,
-                        gallery: [...uploadedPaths],
-                      }));
-                      toast({
-                        title: "Successo",
-                        description: `${uploadedPaths.length} immagini caricate con successo`,
-                      });
-                    }
-                    setUploadProgress(0);
+                      if (uploadedPaths.length > 0) {
+                        setNewProject(prev => ({
+                          ...prev,
+                          gallery: [...(prev.gallery || []), ...uploadedPaths],
+                        }));
+                      }
+                      setUploadProgress(0);
+                    };
+
+                    await handleImageUpload(files);
                   }}
                   isUploading={uploadProgress > 0}
                   progress={uploadProgress}
