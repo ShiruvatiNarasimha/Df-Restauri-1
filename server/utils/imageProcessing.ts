@@ -72,6 +72,20 @@ export async function optimizeImage(
     throw new Error('Unable to read image dimensions');
   }
 
+  // Validate metadata fields
+  if (!imageMetadata.format) {
+    throw new Error('Unable to determine image format');
+  }
+
+  // Ensure all required metadata fields are present
+  const validatedMetadata = {
+    width: imageMetadata.width,
+    height: imageMetadata.height,
+    format: imageMetadata.format,
+    size: originalSize,
+    orientation: imageMetadata.orientation || 1
+  };
+
   // Auto-orient based on EXIF data and strip metadata
   const baseImage = sharp(imagePath)
     .rotate() // Auto-orient based on EXIF
@@ -109,7 +123,7 @@ export async function optimizeImage(
           lossless: false,
           nearLossless: false,
           smartSubsample: true,
-          reductionEffort: 6
+          effort: 6 // Using effort instead of reductionEffort as per Sharp's WebP options
         })
         .toFile(outputPath);
     }

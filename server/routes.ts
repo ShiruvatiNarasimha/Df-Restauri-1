@@ -311,18 +311,22 @@ export async function registerRoutes(app: Express) {
           const relativePath = file.path.replace('public/', '/');
           const optimized = await optimizeImage(file.path);
           
+          // Validate metadata fields
+          if (!optimized.metadata.width || !optimized.metadata.height || !optimized.metadata.format) {
+            throw new Error(`Invalid metadata for ${file.originalname}: missing required fields`);
+          }
+
+          // Format response according to expected structure
           return {
             name: file.originalname,
             originalPath: relativePath,
             optimizedPath: optimized.original,
             responsiveSizes: optimized.sizes,
             metadata: {
-              width: optimized.metadata.width || 0,
-              height: optimized.metadata.height || 0,
-              format: optimized.metadata.format || 'unknown',
-              originalSize: optimized.originalSize,
-              optimizedSize: optimized.optimizedSize,
-              compressionRatio: ((optimized.originalSize - optimized.optimizedSize) / optimized.originalSize * 100).toFixed(2) + '%'
+              width: optimized.metadata.width,
+              height: optimized.metadata.height,
+              format: optimized.metadata.format,
+              size: optimized.originalSize
             }
           };
         } catch (err) {
