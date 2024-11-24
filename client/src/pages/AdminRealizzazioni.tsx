@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Project } from "@/types/project";
 
@@ -27,6 +27,16 @@ export function AdminRealizzazioni() {
 
     for (const file of files) {
       try {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          throw new Error("Il file deve essere un'immagine");
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error("L'immagine deve essere inferiore a 5MB");
+        }
+
         const formData = new FormData();
         formData.append('image', file);
 
@@ -37,10 +47,14 @@ export function AdminRealizzazioni() {
         });
 
         if (!response.ok) {
-          throw new Error(await response.text() || `Upload failed for ${file.name}`);
+          throw new Error(await response.text() || `Caricamento fallito per ${file.name}`);
         }
 
         const { path } = await response.json();
+        if (!path || typeof path !== 'string') {
+          throw new Error('Percorso immagine non valido');
+        }
+
         uploadedPaths.push(path);
         completedFiles++;
         setUploadProgress((completedFiles / totalFiles) * 100);
@@ -305,7 +319,7 @@ export function AdminRealizzazioni() {
                             setImagePreviews(prev => prev.filter((_, i) => i !== index));
                             setNewProject(prev => ({
                               ...prev,
-                              gallery: prev.gallery.filter((_, i) => i !== index),
+                              gallery: prev.gallery ? prev.gallery.filter((_, i) => i !== index) : [],
                             }));
                           }}
                           className="absolute top-2 right-2 p-1 bg-destructive rounded-full opacity-0 group-hover:opacity-100 transition-opacity"

@@ -4,6 +4,7 @@ export interface Project {
   description: string;
   category: 'restauro' | 'costruzione' | 'ristrutturazione';
   image: string;
+  gallery?: string[];
   year: number;
   location: string;
 }
