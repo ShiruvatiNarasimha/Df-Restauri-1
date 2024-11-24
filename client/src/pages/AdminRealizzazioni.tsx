@@ -96,13 +96,8 @@ export function AdminRealizzazioni() {
       setUploadProgress(0);
     }
 
-    setUploadProgress(100);
-      
-    toast({
-      title: "Successo",
-      description: `${validFiles.length} immagini caricate con successo`,
-    });
-  };
+    };
+  
   const [newProject, setNewProject] = useState<Omit<Project, "id">>({
     title: "",
     description: "",
