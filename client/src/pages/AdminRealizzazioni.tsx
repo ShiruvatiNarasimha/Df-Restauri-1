@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Project } from "@/types/project";
 
@@ -21,12 +21,35 @@ export function AdminRealizzazioni() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const handleImageUpload = async (files: File[]) => {
+  // Validate file types and sizes first
+  const validFiles = files.filter(file => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Errore",
+        description: `${file.name} non è un'immagine valida`,
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        title: "Errore",
+        description: `${file.name} supera il limite di 5MB`,
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  });
+
+  if (validFiles.length === 0) return;
+
   setUploadProgress(0);
-  const totalFiles = files.length;
+  const totalFiles = validFiles.length;
   const uploadedPaths: string[] = [];
   let completedFiles = 0;
 
-  for (const file of files) {
+  for (const file of validFiles) {
     try {
       const formData = new FormData();
       formData.append('image', file);
@@ -43,7 +66,7 @@ export function AdminRealizzazioni() {
 
       const data = await response.json();
       if (!data.path) {
-        throw new Error('Invalid server response');
+        throw new Error('Risposta del server non valida');
       }
 
       uploadedPaths.push(data.path);
@@ -64,7 +87,6 @@ export function AdminRealizzazioni() {
         description: error instanceof Error ? error.message : 'Errore nel caricamento',
         variant: "destructive",
       });
-      setUploadProgress(0); // Reset progress on error
     }
   }
 
