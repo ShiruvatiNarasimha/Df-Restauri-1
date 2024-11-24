@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/hooks/use-user";
 import { Button } from "@/components/ui/button";
@@ -8,13 +7,57 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import type { Project, CaseHistory } from "@/types/project";
-import { Loader2 } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
 
 export function AdminRealizzazioni() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useUser();
+  const { user, login, logout } = useUser();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [loginForm, setLoginForm] = useState({
+    username: "",
+    password: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const result = await login(loginForm);
+      if (!result.ok) {
+        toast({
+          title: "Errore di accesso",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'accesso",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logout effettuato",
+        description: "Sei stato disconnesso con successo",
+      });
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante il logout",
+        variant: "destructive",
+      });
+    }
+  };
 
   const { data: projects, isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ["admin-projects"],
@@ -67,9 +110,44 @@ export function AdminRealizzazioni() {
 
   if (!user?.isAdmin) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-4">Accesso Negato</h1>
-        <p>Non hai i permessi per accedere a questa pagina.</p>
+      <div className="container mx-auto px-4 py-8 max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle>Accesso Admin</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Username</label>
+                <Input
+                  type="text"
+                  value={loginForm.username}
+                  onChange={(e) =>
+                    setLoginForm({ ...loginForm, username: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Password</label>
+                <Input
+                  type="password"
+                  value={loginForm.password}
+                  onChange={(e) =>
+                    setLoginForm({ ...loginForm, password: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Accedi
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -85,7 +163,13 @@ export function AdminRealizzazioni() {
   return (
     <div className="container mx-auto px-4 py-8">
       
-      <h1 className="text-2xl font-bold mb-8">Gestione Realizzazioni</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold">Gestione Realizzazioni</h1>
+        <Button variant="outline" onClick={handleLogout}>
+          <LogOut className="h-4 w-4 mr-2" />
+          Logout
+        </Button>
+      </div>
       
       <div className="grid md:grid-cols-2 gap-8">
         {/* Projects List */}
