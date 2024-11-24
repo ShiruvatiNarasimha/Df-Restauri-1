@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import path from "path";
 import { convertToWebP, ensureCacheDirectory, isImagePath, optimizeImage } from "./utils/imageProcessing";
 import { db } from "../db";
-import { projects, caseHistories } from "../db/schema";
+import { projects, caseHistories, teamMembers } from "../db/schema";
 import { setupAuth } from "./auth";
 import { eq } from "drizzle-orm";
 
