@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Project } from "@/types/project";
 
@@ -64,6 +64,7 @@ export function AdminRealizzazioni() {
         description: error instanceof Error ? error.message : 'Errore nel caricamento',
         variant: "destructive",
       });
+      setUploadProgress(0); // Reset progress on error
     }
   }
 
@@ -330,7 +331,7 @@ export function AdminRealizzazioni() {
                   variant="outline"
                   onClick={() => {
                     setShowNewProjectForm(false);
-                    setImagePreview(null);
+                    setImagePreviews([]);
                     setUploadProgress(0);
                   }}
                 >
