@@ -21,57 +21,65 @@ export function AdminRealizzazioni() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const handleImageUpload = async (files: File[]) => {
-    const validFiles = files.filter(file => {
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Errore",
-          description: `${file.name} non è un'immagine valida`,
-          variant: "destructive",
-        });
-        return false;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "Errore",
-          description: `${file.name} supera il limite di 5MB`,
-          variant: "destructive",
-        });
-        return false;
-      }
-      return true;
-    });
-
-    if (validFiles.length === 0) return;
+    if (files.length === 0) return;
 
     setUploadProgress(0);
     
     try {
       const formData = new FormData();
-      validFiles.forEach(file => {
+      files.forEach(file => {
         formData.append('images', file);
       });
 
-      const response = await fetch('/api/upload-images', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded * 100) / event.total);
+          setUploadProgress(progress);
+        }
+      };
+
+      const response = await new Promise((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              resolve(JSON.parse(xhr.responseText));
+            } catch (error) {
+              reject(new Error('Invalid response format'));
+            }
+          } else {
+            try {
+              const errorData = JSON.parse(xhr.responseText);
+              reject(new Error(errorData.error || 'Upload failed'));
+            } catch {
+              reject(new Error(`Upload failed with status ${xhr.status}`));
+            }
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error('Network error'));
+        
+        xhr.open('POST', '/api/upload-images');
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.withCredentials = true;
+        xhr.send(formData);
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Errore nel caricamento');
+      const data = response as { success: boolean; files: Array<{ originalPath: string; original: string; sizes: Record<string, string> }> };
+      
+      if (!data.success) {
+        throw new Error('Upload failed');
       }
 
-      const data = await response.json();
-      
-      // Add all paths to the project gallery
+      // Add all paths to the project gallery and update previews
       setNewProject(prev => ({
         ...prev,
-        gallery: [...(prev.gallery || []), ...data.paths],
+        gallery: [...(prev.gallery || []), ...data.files.map(f => f.originalPath)],
       }));
 
       // Generate previews for all files
-      validFiles.forEach(file => {
+      files.forEach(file => {
         const reader = new FileReader();
         reader.onloadend = () => {
           setImagePreviews(prev => [...prev, reader.result as string]);
@@ -79,24 +87,25 @@ export function AdminRealizzazioni() {
         reader.readAsDataURL(file);
       });
 
-      setUploadProgress(100);
-      
       toast({
         title: "Successo",
-        description: `${validFiles.length} immagini caricate con successo`,
+        description: `${files.length} immagini caricate con successo`,
       });
 
     } catch (error) {
       console.error('Upload error:', error);
+      
       toast({
-        title: "Errore",
-        description: error instanceof Error ? error.message : 'Errore nel caricamento',
+        title: "Errore nel caricamento",
+        description: error instanceof Error 
+          ? error.message 
+          : 'Si è verificato un errore durante il caricamento delle immagini',
         variant: "destructive",
       });
+      
       setUploadProgress(0);
     }
-
-    };
+  };
   
   const [newProject, setNewProject] = useState<Omit<Project, "id">>({
     title: "",

@@ -1,6 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import path from "path";
-import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
+import { convertToWebP, ensureCacheDirectory, isImagePath, optimizeImage } from "./utils/imageProcessing";
 import { db } from "../db";
 import { projects, caseHistories } from "../db/schema";
 import { setupAuth } from "./auth";
@@ -262,20 +262,55 @@ export async function registerRoutes(app: Express) {
   // Bulk image upload endpoint
   app.post('/api/upload-images', upload.array('images', 10), async (req, res) => {
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: 'No files uploaded' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'No files uploaded'
+      });
     }
 
     try {
       const files = req.files as Express.Multer.File[];
-      const paths = files.map(file => file.path.replace('public/', '/'));
+      
+      // Validate file types and sizes
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      
+      const invalidFiles = files.filter(file => 
+        !allowedTypes.includes(file.mimetype) || file.size > maxSize
+      );
+      
+      if (invalidFiles.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid files detected',
+          details: invalidFiles.map(file => ({
+            name: file.originalname,
+            reason: !allowedTypes.includes(file.mimetype) ? 'Invalid file type' : 'File too large'
+          }))
+        });
+      }
+
+      // Process and optimize images
+      const results = await Promise.all(files.map(async file => {
+        const relativePath = file.path.replace('public/', '/');
+        const optimized = await optimizeImage(file.path);
+        return {
+          originalPath: relativePath,
+          ...optimized
+        };
+      }));
       
       res.json({ 
-        success: true, 
-        paths: paths
+        success: true,
+        files: results
       });
     } catch (error) {
       console.error('Upload error:', error);
-      res.status(500).json({ error: 'Error uploading files' });
+      res.status(500).json({ 
+        success: false,
+        error: 'Error processing uploads',
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
     }
   });
     const { name, email, phone, message } = req.body;
