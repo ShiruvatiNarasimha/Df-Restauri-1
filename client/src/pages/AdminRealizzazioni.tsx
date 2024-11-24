@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { LogOut, Loader2, X } from "lucide-react";
 import { Dropzone } from "@/components/ui/dropzone";
@@ -14,7 +14,7 @@ import type { Project } from "@/types/project";
 export function AdminRealizzazioni() {
   const { logout } = useUser();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const [isSessionExpired, setIsSessionExpired] = useState(false);
 
   // Handle authentication errors
@@ -30,7 +30,7 @@ export function AdminRealizzazioni() {
         description: error.error || "La sessione è scaduta. Effettua nuovamente il login.",
         variant: "destructive",
       });
-      navigate('/login');
+      setLocation('/login');
     }
   };
 
@@ -275,7 +275,7 @@ export function AdminRealizzazioni() {
       } catch (error) {
         if (error instanceof Error && (error.message.includes('Authentication') || error.message.includes('authorized'))) {
           // Handle authentication errors
-          window.location.href = '/'; // Redirect to home on auth error
+          setLocation('/'); // Redirect to home on auth error
         }
         throw error;
       }
