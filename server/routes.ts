@@ -21,8 +21,6 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
   }
   res.status(403).json({ error: "Accesso non autorizzato" });
 }
-import { eq } from "drizzle-orm";
-
 // Middleware to handle WebP conversion
 async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
   if (!req.path.startsWith('/images') || !isImagePath(req.path)) {
@@ -217,15 +215,24 @@ export async function registerRoutes(app: Express) {
     }
   });
   app.post("/api/contact", (req, res) => {
-  // Image upload endpoint
-  app.post('/api/upload-image', upload.single('image'), (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+  // Bulk image upload endpoint
+  app.post('/api/upload-images', upload.array('images', 10), async (req, res) => {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'No files uploaded' });
     }
-    res.json({ 
-      success: true, 
-      path: req.file.path.replace('public/', '/') 
-    });
+
+    try {
+      const files = req.files as Express.Multer.File[];
+      const paths = files.map(file => file.path.replace('public/', '/'));
+      
+      res.json({ 
+        success: true, 
+        paths: paths
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({ error: 'Error uploading files' });
+    }
   });
     const { name, email, phone, message } = req.body;
     console.log("Contact form submission:", { name, email, phone, message });

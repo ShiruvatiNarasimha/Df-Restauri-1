@@ -4,10 +4,11 @@ import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { Loader2, Upload } from "lucide-react";
 
-interface DropzoneProps extends React.HTMLAttributes<HTMLDivElement> {
+interface DropzoneProps {
   onDrop: (acceptedFiles: File[]) => void;
   isUploading?: boolean;
   progress?: number;
+  className?: string;
 }
 
 export function Dropzone({
