@@ -20,14 +20,16 @@ export function AdminRealizzazioni() {
   // Handle authentication errors
   const handleAuthError = (error: any) => {
     console.error('Authentication error:', error);
-    if (error?.requiresLogin || 
+    if (error?.response?.status === 401 || 
+        error?.response?.status === 403 || 
+        error?.requiresLogin || 
         error?.code === 'SESSION_INVALID' || 
         error?.code === 'SESSION_EXPIRED' || 
         error?.code === 'NOT_AUTHENTICATED') {
       setIsSessionExpired(true);
       toast({
         title: "Errore di autenticazione",
-        description: error.error || "La sessione è scaduta. Effettua nuovamente il login.",
+        description: "Non sei autenticato. Per favore, effettua il login.",
         variant: "destructive",
       });
       setLocation('/login');
@@ -426,7 +428,10 @@ export function AdminRealizzazioni() {
 
                   const response = await fetch("/api/admin/projects", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                      "Content-Type": "application/json",
+                      "Accept": "application/json"
+                    },
                     credentials: "include",
                     body: JSON.stringify(projectData),
                   });
@@ -434,14 +439,13 @@ export function AdminRealizzazioni() {
                   if (!response.ok) {
                     const errorData = await response.json().catch(() => null);
                     if (response.status === 401 || response.status === 403) {
-                      handleAuthError(errorData);
+                      handleAuthError({
+                        response: { status: response.status },
+                        ...errorData
+                      });
                       return;
                     }
-                    throw new Error(
-                      errorData?.error || 
-                      errorData?.message || 
-                      "Errore nella creazione del progetto"
-                    );
+                    throw new Error(errorData?.error || "Errore nella creazione del progetto");
                   }
 
                   queryClient.invalidateQueries({ queryKey: ["admin-projects"] });
