@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Project } from "@/types/project";
 
@@ -19,6 +19,56 @@ export function AdminRealizzazioni() {
   const [isSaving, setIsSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+  const handleImageUpload = async (files: File[]) => {
+    const totalFiles = files.length;
+    const uploadedPaths: string[] = [];
+    let completedFiles = 0;
+
+    for (const file of files) {
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch('/api/upload-image', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text() || `Upload failed for ${file.name}`);
+        }
+
+        const { path } = await response.json();
+        uploadedPaths.push(path);
+        completedFiles++;
+        setUploadProgress((completedFiles / totalFiles) * 100);
+
+        // Add preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews(prev => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+
+      } catch (error) {
+        toast({
+          title: "Errore",
+          description: error instanceof Error ? error.message : 'Errore nel caricamento',
+          variant: "destructive",
+        });
+      }
+    }
+
+    if (uploadedPaths.length > 0) {
+      setNewProject(prev => ({
+        ...prev,
+        gallery: [...(prev.gallery || []), ...uploadedPaths],
+      }));
+    }
+    setUploadProgress(0);
+  };
   const [newProject, setNewProject] = useState<Omit<Project, "id">>({
     title: "",
     description: "",
@@ -26,6 +76,7 @@ export function AdminRealizzazioni() {
     location: "",
     year: new Date().getFullYear(),
     image: "",
+    gallery: [], // Added gallery initialization
   });
 
   const { data: projects } = useQuery<Project[]>({
@@ -235,59 +286,7 @@ export function AdminRealizzazioni() {
               <div>
                 <label className="block text-sm font-medium mb-1">Immagini</label>
                 <Dropzone
-                  onDrop={async (files) => {
-                    const handleImageUpload = async (files: File[]) => {
-                      const totalFiles = files.length;
-                      const uploadedPaths: string[] = [];
-                      let completedFiles = 0;
-
-                      for (const file of files) {
-                        try {
-                          const formData = new FormData();
-                          formData.append('image', file);
-
-                          const response = await fetch('/api/upload-image', {
-                            method: 'POST',
-                            credentials: 'include',
-                            body: formData,
-                          });
-
-                          if (!response.ok) {
-                            throw new Error(await response.text() || `Upload failed for ${file.name}`);
-                          }
-
-                          const { path } = await response.json();
-                          uploadedPaths.push(path);
-                          completedFiles++;
-                          setUploadProgress((completedFiles / totalFiles) * 100);
-
-                          // Add preview
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setImagePreviews(prev => [...prev, reader.result as string]);
-                          };
-                          reader.readAsDataURL(file);
-
-                        } catch (error) {
-                          toast({
-                            title: "Errore",
-                            description: error instanceof Error ? error.message : 'Errore nel caricamento',
-                            variant: "destructive",
-                          });
-                        }
-                      }
-
-                      if (uploadedPaths.length > 0) {
-                        setNewProject(prev => ({
-                          ...prev,
-                          gallery: [...(prev.gallery || []), ...uploadedPaths],
-                        }));
-                      }
-                      setUploadProgress(0);
-                    };
-
-                    await handleImageUpload(files);
-                  }}
+                  onDrop={handleImageUpload}
                   isUploading={uploadProgress > 0}
                   progress={uploadProgress}
                   className="mb-4"
