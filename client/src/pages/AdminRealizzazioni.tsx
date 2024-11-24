@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Project } from "@/types/project";
 
@@ -121,10 +121,20 @@ export function AdminRealizzazioni() {
                 try {
                   const response = await fetch("/api/admin/projects", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                      "Content-Type": "application/json",
+                    },
                     credentials: "include",
                     body: JSON.stringify(newProject),
                   });
+                  
+                  if (!response.ok) {
+                    const errorText = await response.text();
+                    if (response.status === 401) {
+                      throw new Error("Non sei autorizzato a creare progetti");
+                    }
+                    throw new Error(errorText || "Errore nella creazione del progetto");
+                  }
                   
                   if (!response.ok) {
                     throw new Error("Failed to create project");
@@ -238,10 +248,15 @@ export function AdminRealizzazioni() {
                         const response = await fetch("/api/upload-image", {
                           method: "POST",
                           body: formData,
+                          credentials: "include",
                         });
 
                         if (!response.ok) {
-                          throw new Error(`Upload failed for ${file.name}`);
+                          if (response.status === 401) {
+                            throw new Error("Non sei autorizzato a caricare immagini");
+                          }
+                          const errorText = await response.text();
+                          throw new Error(errorText || `Caricamento fallito per ${file.name}`);
                         }
 
                         const { path } = await response.json();
