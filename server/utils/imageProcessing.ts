@@ -119,11 +119,10 @@ export async function optimizeImage(
         })
         .webp({ 
           quality,
-          effort: 6,
+          effort: 6, // Using effort instead of reductionEffort as per Sharp's WebP options
           lossless: false,
           nearLossless: false,
-          smartSubsample: true,
-          effort: 6 // Using effort instead of reductionEffort as per Sharp's WebP options
+          smartSubsample: true
         })
         .toFile(outputPath);
     }
