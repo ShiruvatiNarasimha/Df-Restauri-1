@@ -96,12 +96,12 @@ export function AdminRealizzazioni() {
       setUploadProgress(0);
     }
 
-    if (uploadedPaths.length > 0) {
-      setNewProject(prev => ({
-        ...prev,
-        gallery: [...(prev.gallery || []), ...uploadedPaths],
-      }));
-    }
+    setUploadProgress(100);
+      
+    toast({
+      title: "Successo",
+      description: `${validFiles.length} immagini caricate con successo`,
+    });
   };
   const [newProject, setNewProject] = useState<Omit<Project, "id">>({
     title: "",
