@@ -4,6 +4,8 @@ import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageP
 import { db } from "../db";
 import { projects, caseHistories } from "../db/schema";
 import { setupAuth } from "./auth";
+import { eq } from "drizzle-orm";
+
 // Authentication middleware
 function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
@@ -19,7 +21,6 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
   }
   res.status(403).json({ error: "Accesso non autorizzato" });
 }
-import { type Request, type Response, type NextFunction } from "express";
 import { eq } from "drizzle-orm";
 
 // Middleware to handle WebP conversion

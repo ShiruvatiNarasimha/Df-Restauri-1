@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import * as React from "react";
 import { STOCK_PHOTOS } from "@/lib/constants";
+import { AdminButton } from "@/components/ui/admin-button";
 
 export function Hero() {
   return (
@@ -21,6 +22,9 @@ export function Hero() {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
+        <div className="absolute top-4 right-4">
+          <AdminButton />
+        </div>
         <div className="max-w-3xl animate-fade-in">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-xl">
             Restauri: Mantieni viva la storia
