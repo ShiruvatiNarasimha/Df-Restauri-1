@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Project } from "@/types/project";
 
@@ -21,83 +21,79 @@ export function AdminRealizzazioni() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const handleImageUpload = async (files: File[]) => {
-  // Validate file types and sizes first
-  const validFiles = files.filter(file => {
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Errore",
-        description: `${file.name} non è un'immagine valida`,
-        variant: "destructive",
-      });
-      return false;
-    }
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      toast({
-        title: "Errore",
-        description: `${file.name} supera il limite di 5MB`,
-        variant: "destructive",
-      });
-      return false;
-    }
-    return true;
-  });
-
-  if (validFiles.length === 0) return;
-
-  setUploadProgress(0);
-  const totalFiles = validFiles.length;
-  const uploadedPaths: string[] = [];
-  let completedFiles = 0;
-
-  for (const file of validFiles) {
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(await response.text());
+    const validFiles = files.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Errore",
+          description: `${file.name} non è un'immagine valida`,
+          variant: "destructive",
+        });
+        return false;
       }
-
-      const data = await response.json();
-      if (!data.path) {
-        throw new Error('Risposta del server non valida');
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Errore",
+          description: `${file.name} supera il limite di 5MB`,
+          variant: "destructive",
+        });
+        return false;
       }
+      return true;
+    });
 
-      uploadedPaths.push(data.path);
-      completedFiles++;
-      setUploadProgress((completedFiles / totalFiles) * 100);
+    if (validFiles.length === 0) return;
 
-      // Add preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviews(prev => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
+    setUploadProgress(0);
+    const totalFiles = validFiles.length;
+    const uploadedPaths: string[] = [];
+    let completedFiles = 0;
 
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast({
-        title: "Errore",
-        description: error instanceof Error ? error.message : 'Errore nel caricamento',
-        variant: "destructive",
-      });
+    for (const file of validFiles) {
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch('/api/upload-image', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Errore nel caricamento');
+        }
+
+        const data = await response.json();
+        uploadedPaths.push(data.path);
+        completedFiles++;
+        setUploadProgress((completedFiles / totalFiles) * 100);
+
+        // Add preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews(prev => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Errore",
+          description: error instanceof Error ? error.message : 'Errore nel caricamento',
+          variant: "destructive",
+        });
+        setUploadProgress(0);
+      }
     }
-  }
 
-  if (uploadedPaths.length > 0) {
-    setNewProject(prev => ({
-      ...prev,
-      gallery: [...(prev.gallery || []), ...uploadedPaths],
-    }));
-  }
-  setUploadProgress(0);
-};
+    if (uploadedPaths.length > 0) {
+      setNewProject(prev => ({
+        ...prev,
+        gallery: [...(prev.gallery || []), ...uploadedPaths],
+      }));
+    }
+  };
   const [newProject, setNewProject] = useState<Omit<Project, "id">>({
     title: "",
     description: "",
@@ -201,25 +197,16 @@ export function AdminRealizzazioni() {
                 try {
                   const response = await fetch("/api/admin/projects", {
                     method: "POST",
-                    headers: { 
-                      "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     credentials: "include",
                     body: JSON.stringify(newProject),
                   });
-                  
+
                   if (!response.ok) {
                     const errorText = await response.text();
-                    if (response.status === 401) {
-                      throw new Error("Non sei autorizzato a creare progetti");
-                    }
                     throw new Error(errorText || "Errore nella creazione del progetto");
                   }
-                  
-                  if (!response.ok) {
-                    throw new Error("Failed to create project");
-                  }
-                  
+
                   queryClient.invalidateQueries({ queryKey: ["admin-projects"] });
                   setShowNewProjectForm(false);
                   setNewProject({
@@ -232,7 +219,7 @@ export function AdminRealizzazioni() {
                     gallery: [],
                   });
                   setImagePreviews([]);
-                  
+
                   toast({
                     title: "Successo",
                     description: "Progetto creato con successo",
@@ -240,7 +227,7 @@ export function AdminRealizzazioni() {
                 } catch (error) {
                   toast({
                     title: "Errore",
-                    description: "Errore nella creazione del progetto",
+                    description: error instanceof Error ? error.message : "Errore nella creazione del progetto",
                     variant: "destructive",
                   });
                 } finally {
