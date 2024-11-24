@@ -34,7 +34,7 @@ export function AdminButton() {
 
       const data = await response.json();
       if (data.user.isAdmin) {
-        window.location.href = "/admin";
+        window.location.href = "/admin-realizzazioni";
       } else {
         setError("Accesso non autorizzato");
       }
@@ -46,7 +46,7 @@ export function AdminButton() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Admin Access</Button>
+        <Button variant="outline" className="text-foreground hover:text-foreground">Admin Access</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
