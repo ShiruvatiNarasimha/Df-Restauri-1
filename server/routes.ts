@@ -259,6 +259,11 @@ export async function registerRoutes(app: Express) {
     }
   });
   app.post("/api/contact", (req, res) => {
+    const { name, email, phone, message } = req.body;
+    console.log("Contact form submission:", { name, email, phone, message });
+    res.json({ success: true });
+  });
+
   // Bulk image upload endpoint
   app.post('/api/upload-images', upload.array('images', 10), async (req, res) => {
     // Set proper content type header
@@ -315,7 +320,9 @@ export async function registerRoutes(app: Express) {
               width: optimized.metadata.width || 0,
               height: optimized.metadata.height || 0,
               format: optimized.metadata.format || 'unknown',
-              size: file.size
+              originalSize: optimized.originalSize,
+              optimizedSize: optimized.optimizedSize,
+              compressionRatio: ((optimized.originalSize - optimized.optimizedSize) / optimized.originalSize * 100).toFixed(2) + '%'
             }
           };
         } catch (err) {
@@ -351,12 +358,13 @@ export async function registerRoutes(app: Express) {
 
       res.json(response);
     } catch (error) {
+      const uploadedFiles = Array.isArray(req.files) ? req.files : [];
       console.error('Upload error:', error);
       res.status(500).json({ 
         success: false,
-        totalFiles: files?.length || 0,
+        totalFiles: uploadedFiles.length,
         successfulFiles: 0,
-        failedFiles: files?.length || 0,
+        failedFiles: uploadedFiles.length,
         files: [],
         errors: [{
           name: 'system',
@@ -365,12 +373,7 @@ export async function registerRoutes(app: Express) {
       });
     }
   });
-    const { name, email, phone, message } = req.body;
-    console.log("Contact form submission:", { name, email, phone, message });
-    res.json({ success: true });
-  });
-
-  app.get("/api/content/:section", (req, res) => {
+    app.get("/api/content/:section", (req, res) => {
     const { section } = req.params;
     const content = DYNAMIC_CONTENT[section as keyof typeof DYNAMIC_CONTENT];
     

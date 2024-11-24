@@ -69,13 +69,40 @@ export function AdminRealizzazioni() {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               try {
-                const response = JSON.parse(xhr.responseText) as UploadResponse;
-                if (!('success' in response) || !('files' in response)) {
-                  throw new Error('Formato risposta non valido: mancano campi obbligatori');
+                const response = JSON.parse(xhr.responseText);
+                // Validate response structure
+                if (!response || typeof response !== 'object') {
+                  throw new Error('Formato risposta non valido: risposta non è un oggetto');
                 }
-                resolve(response);
+                
+                if (typeof response.success !== 'boolean') {
+                  throw new Error('Formato risposta non valido: campo success mancante o non booleano');
+                }
+                
+                if (!Array.isArray(response.files)) {
+                  throw new Error('Formato risposta non valido: campo files mancante o non array');
+                }
+                
+                // Validate files array structure
+                response.files.forEach((file: any, index: number) => {
+                  if (!file.name || !file.originalPath || !file.optimizedPath || !file.responsiveSizes || !file.metadata) {
+                    throw new Error(`File ${index + 1}: campi obbligatori mancanti`);
+                  }
+                  
+                  if (!file.metadata.width || !file.metadata.height || !file.metadata.format || !file.metadata.size) {
+                    throw new Error(`File ${index + 1}: campi metadata incompleti`);
+                  }
+                });
+                
+                if (typeof response.totalFiles !== 'number' || 
+                    typeof response.successfulFiles !== 'number' || 
+                    typeof response.failedFiles !== 'number') {
+                  throw new Error('Formato risposta non valido: campi contatori mancanti o non numerici');
+                }
+                
+                resolve(response as UploadResponse);
               } catch (parseError) {
-                reject(new Error('Formato risposta non valido: JSON malformato'));
+                reject(new Error(`Errore nel parsing della risposta: ${parseError instanceof Error ? parseError.message : 'Errore sconosciuto'}`));
               }
             } catch (error) {
               reject(new Error('Formato risposta non valido'));

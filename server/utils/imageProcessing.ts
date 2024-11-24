@@ -17,10 +17,10 @@ const CACHE_DIR = path.join(process.cwd(), 'public', 'cache');
 
 // Predefined sizes for responsive images
 const DEFAULT_SIZES: ImageSize[] = [
-  { width: 320, suffix: 'sm' },
-  { width: 640, suffix: 'md' },
-  { width: 1024, suffix: 'lg' },
-  { width: 1920, suffix: 'xl' }
+  { width: 320, height: 240, suffix: 'sm' },
+  { width: 640, height: 480, suffix: 'md' },
+  { width: 1024, height: 768, suffix: 'lg' },
+  { width: 1920, height: 1080, suffix: 'xl' }
 ];
 
 const DEFAULT_OPTIONS: OptimizationOptions = {
@@ -46,7 +46,13 @@ async function generateCacheKey(imagePath: string, size?: ImageSize, format: str
 export async function optimizeImage(
   imagePath: string,
   options: OptimizationOptions = DEFAULT_OPTIONS
-): Promise<{ original: string; sizes: Record<string, string>; metadata: sharp.Metadata }> {
+): Promise<{ 
+  original: string; 
+  sizes: Record<string, string>; 
+  metadata: sharp.Metadata;
+  optimizedSize: number;
+  originalSize: number;
+}> {
   const { quality = 80, sizes = DEFAULT_SIZES } = options;
   const results: Record<string, string> = {};
 
@@ -57,11 +63,19 @@ export async function optimizeImage(
     throw new Error(`Input file is missing: ${imagePath}`);
   }
 
-  // Get original image metadata
+  // Get original image metadata and size
+  const originalBuffer = await fs.readFile(imagePath);
+  const originalSize = originalBuffer.length;
   const imageMetadata = await sharp(imagePath).metadata();
+  
   if (!imageMetadata.width || !imageMetadata.height) {
     throw new Error('Unable to read image dimensions');
   }
+
+  // Auto-orient based on EXIF data and strip metadata
+  const baseImage = sharp(imagePath)
+    .rotate() // Auto-orient based on EXIF
+    .withMetadata({ orientation: undefined }); // Strip EXIF
 
   // Process each size
   for (const size of sizes) {
@@ -81,14 +95,21 @@ export async function optimizeImage(
         withoutEnlargement: true
       };
 
-      // Generate optimized version
-      await sharp(imagePath)
-        .resize(resizeOptions)
+      // Generate optimized version with smart compression
+      await baseImage
+        .resize({
+          ...resizeOptions,
+          withoutEnlargement: true,
+          fit: 'inside',
+          position: 'center'
+        })
         .webp({ 
           quality,
-          effort: 6, // Higher compression effort
+          effort: 6,
           lossless: false,
-          nearLossless: false
+          nearLossless: false,
+          smartSubsample: true,
+          reductionEffort: 6
         })
         .toFile(outputPath);
     }
@@ -113,10 +134,16 @@ export async function optimizeImage(
       .toFile(originalOutputPath);
   }
 
+  // Get optimized file size
+  const optimizedBuffer = await fs.readFile(originalOutputPath);
+  const optimizedSize = optimizedBuffer.length;
+
   return {
     original: `/cache/${originalCacheKey}`,
     sizes: results,
-    metadata: imageMetadata
+    metadata: imageMetadata,
+    optimizedSize,
+    originalSize
   };
 }
 
