@@ -255,10 +255,72 @@ export async function registerRoutes(app: Express) {
 
   app.post("/api/admin/projects", requireAdmin, async (req, res) => {
     try {
-      const [project] = await db.insert(projects).values(req.body).returning();
+      const { title, description, category, location, year, gallery = [], status = 'draft' } = req.body;
+
+      // Validate required fields
+      if (!title || !description || !category || !location || !year) {
+        return res.status(400).json({
+          error: "Campi obbligatori mancanti",
+          code: "MISSING_FIELDS",
+          details: {
+            title: !title,
+            description: !description,
+            category: !category,
+            location: !location,
+            year: !year
+          }
+        });
+      }
+
+      // Validate year
+      const currentYear = new Date().getFullYear();
+      if (year < 1900 || year > currentYear) {
+        return res.status(400).json({
+          error: `L'anno deve essere compreso tra 1900 e ${currentYear}`,
+          code: "INVALID_YEAR"
+        });
+      }
+
+      // Validate category
+      const validCategories = ['restauro', 'costruzione', 'ristrutturazione'];
+      if (!validCategories.includes(category)) {
+        return res.status(400).json({
+          error: "Categoria non valida",
+          code: "INVALID_CATEGORY",
+          validCategories
+        });
+      }
+
+      // Ensure gallery is an array
+      if (!Array.isArray(gallery)) {
+        return res.status(400).json({
+          error: "Il campo gallery deve essere un array",
+          code: "INVALID_GALLERY_FORMAT"
+        });
+      }
+
+      // Create project with validated data
+      const [project] = await db.insert(projects).values({
+        title,
+        description,
+        category,
+        location,
+        year,
+        gallery,
+        status,
+        image: gallery[0] || '', // Use first gallery image as main image if available
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+
       res.json(project);
     } catch (error) {
-      res.status(500).json({ error: "Errore nella creazione del progetto" });
+      console.error('Project creation error:', error);
+      res.status(500).json({
+        error: "Errore nella creazione del progetto",
+        code: "DB_ERROR",
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
