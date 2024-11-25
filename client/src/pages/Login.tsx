@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 
 const loginFormSchema = z.object({
-  username: z.string().min(1, "Il nome utente è obbligatorio").trim(),
+  username: z.string().min(1, "Il nome utente è obbligatorio"),
   password: z.string().min(1, "La password è obbligatoria")
 });
 
@@ -83,7 +83,7 @@ export default function Login() {
       // Update the token validation
       try {
         const decoded = jwtDecode(token);
-        if (!decoded || typeof decoded !== 'object') {
+        if (!decoded || typeof decoded !== 'object' || !('exp' in decoded)) {
           throw new Error('Invalid token format');
         }
       } catch (error) {
