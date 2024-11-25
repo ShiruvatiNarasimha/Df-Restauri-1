@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { validateAndDecodeToken, TokenValidationError, type JWTPayload } from '@/utils/jwt';
+import { jwtDecode } from 'jwt-decode';
+import { validateAndDecodeToken, isJWTPayload, TokenValidationError, type JWTPayload } from '@/utils/jwt';
 
 interface User {
   id: number;
@@ -91,10 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       try {
-        const decoded = jwtDecode<JWTPayload>(token);
-        if (!isJWTPayload(decoded)) {
-          throw new Error('Invalid token format: missing required fields');
-        }
+        const decoded = validateAndDecodeToken(token);
         const userData = {
           id: decoded.id,
           username: decoded.username,
@@ -113,10 +111,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = (token: string) => {
     try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      if (!isJWTPayload(decoded)) {
-        throw new Error('Invalid token format: missing required fields');
-      }
+      const decoded = validateAndDecodeToken(token);
       const userData = {
         id: decoded.id,
         username: decoded.username,
