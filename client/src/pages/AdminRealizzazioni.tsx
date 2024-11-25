@@ -1,22 +1,126 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { LogOut, Loader2, X } from "lucide-react";
-import { Dropzone } from "@/components/ui/dropzone";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UploadCloud, X, LogOut, Loader2 } from "lucide-react";
+import { Dropzone } from "@/components/ui/dropzone";
+import type { Project, CreateProject } from "@/types/project";
+import type { TeamMember, CreateTeamMember } from "@/types/team";
 import { useUser } from "@/hooks/use-user";
-import type { Project } from "@/types/project";
+
+interface DropzoneProps {
+  onDrop: (files: File[]) => Promise<void>;
+  accept: Record<string, string[]>;
+  maxFiles: number;
+  className?: string;
+}
+
+// Authentication error handling
+const handleAuthError = (error: { response?: { status: number }, message?: string }) => {
+  if (error.response?.status === 401 || error.response?.status === 403) {
+    window.location.href = "/login";
+  }
+};
 
 export function AdminRealizzazioni() {
+  const [location, setLocation] = useLocation();
   const { logout } = useUser();
   const { toast } = useToast();
-  const [location, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [isSessionExpired, setIsSessionExpired] = useState(false);
+  const [showNewProjectForm, setShowNewProjectForm] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+  // Team members state
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const response = await fetch("/api/admin/team-members", {
+          credentials: "include",
+          headers: {
+            "Accept": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+          }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            window.location.href = "/login";
+            return;
+          }
+          throw new Error("Failed to fetch team members");
+        }
+        
+        const data = await response.json();
+        setTeamMembers(data);
+      } catch (error) {
+        toast({
+          title: "Errore",
+          description: error instanceof Error ? error.message : "Failed to fetch team members",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    fetchTeamMembers();
+  }, []);
+// Team management state and handlers
+const [newTeamMember, setNewTeamMember] = useState<CreateTeamMember>({
+  name: "",
+  role: "",
+  avatar: "",
+  facebookUrl: "",
+  twitterUrl: "",
+  instagramUrl: ""
+});
+
+const createTeamMember = useMutation({
+  mutationFn: async (member: CreateTeamMember) => {
+    const response = await fetch("/api/admin/team-members", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(member),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create team member");
+    }
+
+    return response.json();
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["team-members"] });
+    toast({
+      title: "Successo",
+      description: "Membro del team aggiunto con successo",
+    });
+    setNewTeamMember({
+      name: "",
+      role: "",
+      avatar: "",
+      facebookUrl: "",
+      twitterUrl: "",
+      instagramUrl: ""
+    });
+  },
+  onError: (error) => {
+    toast({
+      title: "Errore",
+      description: error instanceof Error ? error.message : "Errore nella creazione del membro del team",
+      variant: "destructive",
+    });
+  },
+});
 
   // Handle authentication errors
   const handleAuthError = (error: any) => {
@@ -37,12 +141,8 @@ export function AdminRealizzazioni() {
     }
   };
 
-  const queryClient = useQueryClient();
-  const [showNewProjectForm, setShowNewProjectForm] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [showTeamForm, setShowTeamForm] = useState(false);
+  const [selectedTeamMember, setSelectedTeamMember] = useState<TeamMember | null>(null);
 
   interface UploadResponse {
     success: boolean;
@@ -190,10 +290,14 @@ export function AdminRealizzazioni() {
       }
 
       // Add optimized paths to the project gallery
-      setNewProject(prev => ({
-        ...prev,
-        gallery: [...(prev.gallery || []), ...data.files.map(f => f.optimizedPath)],
-      }));
+      setNewProject((prev: CreateProject) => {
+        const updatedGallery = [...(prev.gallery || []), ...data.files.map(f => f.optimizedPath)];
+        return {
+          ...prev,
+          image: prev.image || (updatedGallery[0] || ''), // Set first image as main image if not set
+          gallery: updatedGallery,
+        };
+      });
 
       // Generate previews for successful uploads
       const successfulFiles = files.filter(file => 
@@ -232,7 +336,7 @@ export function AdminRealizzazioni() {
     }
   };
   
-  const [newProject, setNewProject] = useState<Omit<Project, "id" | "createdAt" | "updatedAt">>({
+  const initialProject: CreateProject = {
     title: "",
     description: "",
     category: "restauro",
@@ -240,57 +344,33 @@ export function AdminRealizzazioni() {
     year: new Date().getFullYear(),
     image: "",
     gallery: [],
-    status: "draft"
-  });
+    status: "draft" as const
+  };
+  
+  const [newProject, setNewProject] = useState<CreateProject>(initialProject);
 
-  const { data: projects } = useQuery<Project[]>({
+  const { data: projects = [] } = useQuery({
     queryKey: ["admin-projects"],
-    onError: (error: unknown) => {
-      if (error?.response?.status === 401 || error?.response?.status === 403) {
-        handleAuthError(error);
-      } else {
-        toast({
-          title: "Errore",
-          description: "Errore nel caricamento dei progetti",
-          variant: "destructive",
-        });
-      }
-    },
     queryFn: async () => {
-      try {
-        const response = await fetch("/api/admin/projects", {
-          credentials: "include",
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache'
-          }
-        });
-
-        if (response.status === 401 || response.status === 403) {
-          const error = await response.json();
-          throw new Error(error.error || 'Authentication error');
+      const response = await fetch("/api/admin/projects", {
+        credentials: "include",
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
         }
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch projects");
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = "/login";
+          throw new Error("Authentication required");
         }
-
-        return response.json();
-      } catch (error) {
-        if (error instanceof Error && (error.message.includes('Authentication') || error.message.includes('authorized'))) {
-          // Handle authentication errors
-          setLocation('/'); // Redirect to home on auth error
-        }
-        throw error;
+        throw new Error("Failed to fetch projects");
       }
+      
+      return response.json();
     },
-    retry: (failureCount: number, error: Error) => {
-      // Don't retry on authentication errors
-      if (error.message.includes('Authentication') || error.message.includes('authorized')) {
-        return false;
-      }
-      return failureCount < 3;
-    }
+    retry: false
   });
 
   const updateProject = useMutation<Project, Error, Project>({
@@ -372,13 +452,15 @@ export function AdminRealizzazioni() {
         <Dropzone
           onDrop={handleImageUpload}
           accept={{
-            'image/*': ['.png', '.jpg', '.jpeg', '.webp']
+            'image/png': ['.png'],
+            'image/jpeg': ['.jpg', '.jpeg'],
+            'image/webp': ['.webp']
           }}
           maxFiles={10}
           className="border-2 border-dashed border-primary/40 hover:border-primary transition-colors p-8 rounded-lg text-center cursor-pointer"
         >
           <div className="space-y-2">
-            <Upload className="w-12 h-12 mx-auto text-primary/60" />
+            <UploadCloud className="w-12 h-12 mx-auto text-primary/60" />
             <p className="font-medium">Trascina le immagini qui o clicca per selezionarle</p>
             <p className="text-sm text-muted-foreground">Massimo 10 file, 5MB per file</p>
           </div>
@@ -403,7 +485,7 @@ export function AdminRealizzazioni() {
           <div className="mt-6">
             <h4 className="text-sm font-medium mb-3">Immagini caricate ({newProject.gallery.length})</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {newProject.gallery.map((image, index) => (
+              {newProject.gallery.map((image: string, index: number) => (
                 <div key={index} className="relative group">
                   <img
                     src={image}
@@ -549,6 +631,7 @@ export function AdminRealizzazioni() {
                     year: new Date().getFullYear(),
                     image: "",
                     gallery: [],
+                    status: "draft"
                   });
                   setImagePreviews([]);
 
@@ -665,7 +748,7 @@ export function AdminRealizzazioni() {
       )}
 
       {/* Projects List and Edit Form */}
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-8 mb-8">
         {/* Projects List */}
         <Card>
           <CardHeader>
@@ -673,7 +756,7 @@ export function AdminRealizzazioni() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {projects?.map((project: Project) => (
+              {Array.isArray(projects) && projects.map((project: Project) => (
                 <div
                   key={project.id}
                   className="p-4 border rounded hover:bg-accent cursor-pointer"
@@ -744,6 +827,162 @@ export function AdminRealizzazioni() {
           </Card>
         )}
       </div>
+
+      {/* Team Management Section */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Gestione Team</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* New Team Member Form */}
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const formData = new FormData(form);
+                
+                const memberData = {
+                  name: formData.get('name') as string,
+                  role: formData.get('role') as string,
+                  avatar: formData.get('avatar') as string,
+                  facebookUrl: formData.get('facebookUrl') as string,
+                  twitterUrl: formData.get('twitterUrl') as string,
+                  instagramUrl: formData.get('instagramUrl') as string,
+                };
+
+                try {
+                  const response = await fetch("/api/admin/team-members", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Accept": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(memberData),
+                  });
+
+                  if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    if (response.status === 401 || response.status === 403) {
+                      handleAuthError({
+                        response: { status: response.status },
+                        ...errorData
+                      });
+                      return;
+                    }
+                    throw new Error(errorData?.error || "Errore nella creazione del membro del team");
+                  }
+
+                  queryClient.invalidateQueries({ queryKey: ["team-members"] });
+                  form.reset();
+                  toast({
+                    title: "Successo",
+                    description: "Membro del team aggiunto con successo",
+                  });
+                } catch (error) {
+                  console.error('Team member creation error:', error);
+                  toast({
+                    title: "Errore",
+                    description: error instanceof Error ? error.message : "Errore nella creazione del membro del team",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Nome</label>
+                  <Input name="name" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Ruolo</label>
+                  <Input name="role" required />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">URL Avatar</label>
+                <Input name="avatar" type="url" required />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Facebook URL</label>
+                  <Input name="facebookUrl" type="url" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Twitter URL</label>
+                  <Input name="twitterUrl" type="url" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Instagram URL</label>
+                  <Input name="instagramUrl" type="url" />
+                </div>
+              </div>
+              <Button type="submit">Aggiungi Membro</Button>
+            </form>
+
+            {/* Team Members List */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-4">Membri del Team</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {teamMembers?.map((member) => (
+                  <div key={member.id} className="border rounded-lg p-4">
+                    <img
+                      src={member.avatar}
+                      alt={member.name}
+                      className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+                    />
+                    <h4 className="font-medium text-center">{member.name}</h4>
+                    <p className="text-sm text-center text-muted-foreground mb-4">{member.role}</p>
+                    <div className="flex justify-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch(`/api/admin/team-members/${member.id}`, {
+                              method: "DELETE",
+                              credentials: "include",
+                            });
+
+                            if (!response.ok) {
+                              const errorData = await response.json().catch(() => null);
+                              if (response.status === 401 || response.status === 403) {
+                                handleAuthError({
+                                  response: { status: response.status },
+                                  ...errorData
+                                });
+                                return;
+                              }
+                              throw new Error(errorData?.error || "Errore nell'eliminazione del membro");
+                            }
+
+                            queryClient.invalidateQueries({ queryKey: ["team-members"] });
+                            toast({
+                              title: "Successo",
+                              description: "Membro del team eliminato con successo",
+                            });
+                          } catch (error) {
+                            console.error('Team member deletion error:', error);
+                            toast({
+                              title: "Errore",
+                              description: error instanceof Error ? error.message : "Errore nell'eliminazione del membro",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        Elimina
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

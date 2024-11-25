@@ -6,22 +6,18 @@ import { AlertCircle, Loader2, Upload, X } from "lucide-react";
 
 interface DropzoneProps {
   onDrop: (acceptedFiles: File[]) => void;
-  isUploading?: boolean;
-  progress?: number;
-  error?: string | null;
-  className?: string;
+  accept?: Record<string, string[]>;
   maxFiles?: number;
-  maxSize?: number;
+  className?: string;
+  children?: React.ReactNode;
 }
 
 export function Dropzone({
   onDrop,
-  isUploading = false,
-  progress = 0,
-  error = null,
-  className,
+  accept,
   maxFiles = 10,
-  maxSize = 5 * 1024 * 1024, // 5MB
+  className,
+  children,
   ...props
 }: DropzoneProps) {
   const handleDrop = useCallback(
@@ -33,12 +29,10 @@ export function Dropzone({
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop: handleDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp']
-    },
+    accept,
     multiple: true,
     maxFiles,
-    maxSize,
+    maxSize: 5 * 1024 * 1024, // 5MB
     onDropRejected: (rejections) => {
       console.error('Files rejected:', rejections);
     }
@@ -56,27 +50,7 @@ export function Dropzone({
     >
       <input {...getInputProps()} />
       <div className="flex flex-col items-center gap-2">
-        {error ? (
-          <div className="flex items-center gap-2 text-destructive">
-            <AlertCircle className="h-6 w-6" />
-            <p className="text-sm">{error}</p>
-          </div>
-        ) : isUploading ? (
-          <>
-            <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
-            <div className="w-full max-w-xs">
-              <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="text-sm text-muted-foreground text-center mt-2">
-                Caricamento in corso... {progress}%
-              </p>
-            </div>
-          </>
-        ) : (
+        {children || (
           <>
             <Upload className="h-10 w-10 text-muted-foreground" />
             {isDragActive ? (
@@ -87,7 +61,7 @@ export function Dropzone({
                   Trascina i file qui, o clicca per selezionarli
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Massimo {maxFiles} file, {Math.round(maxSize / (1024 * 1024))}MB ciascuno
+                  Massimo {maxFiles} file, 5MB ciascuno
                 </p>
               </div>
             )}
