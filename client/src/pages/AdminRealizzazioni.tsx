@@ -239,12 +239,12 @@ export function AdminRealizzazioni() {
     year: new Date().getFullYear(),
     image: "",
     gallery: [],
-    status: "draft"
+    status: "draft" as const
   });
 
-  const { data: projects } = useQuery({
+  const { data: projects } = useQuery<Project[]>({
     queryKey: ["admin-projects"],
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       if (error?.response?.status === 401 || error?.response?.status === 403) {
         handleAuthError(error);
       } else {
@@ -608,7 +608,7 @@ export function AdminRealizzazioni() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {projects?.map((project) => (
+              {projects?.map((project: Project) => (
                 <div
                   key={project.id}
                   className="p-4 border rounded hover:bg-accent cursor-pointer"
