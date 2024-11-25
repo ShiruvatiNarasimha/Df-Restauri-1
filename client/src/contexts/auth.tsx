@@ -47,10 +47,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const isTokenExpired = (token: string): boolean => {
     try {
-      const decoded = jwt_decode<JWTPayload>(token);
+      const decoded = jwtDecode<JWTPayload>(token);
+      if (!isJWTPayload(decoded)) {
+        console.error('Invalid token format: missing required fields');
+        return true;
+      }
       // Check if token is expired (considering a 30-second buffer)
       return decoded.exp * 1000 < Date.now() + 30000;
-    } catch {
+    } catch (error) {
+      console.error('Token validation error:', error instanceof Error ? error.message : 'Unknown error');
       return true;
     }
   };
@@ -109,7 +114,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       try {
-        const decoded = jwt_decode<JWTPayload>(token);
+        const decoded = jwtDecode<JWTPayload>(token);
+        if (!isJWTPayload(decoded)) {
+          throw new Error('Invalid token format: missing required fields');
+        }
         const userData = {
           id: decoded.id,
           username: decoded.username,
@@ -128,7 +136,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = (token: string) => {
     try {
-      const decoded = jwt_decode<JWTPayload>(token);
+      const decoded = jwtDecode<JWTPayload>(token);
+      if (!isJWTPayload(decoded)) {
+        throw new Error('Invalid token format: missing required fields');
+      }
       const userData = {
         id: decoded.id,
         username: decoded.username,
