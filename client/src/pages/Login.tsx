@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/contexts/auth";
+import { jwtDecode } from "jwt-decode";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 
 const loginFormSchema = z.object({
-  username: z.string().min(1, "Il nome utente è obbligatorio"),
+  username: z.string().min(1, "Il nome utente è obbligatorio").trim(),
   password: z.string().min(1, "La password è obbligatoria")
 });
 

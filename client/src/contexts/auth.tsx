@@ -2,6 +2,18 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useLocation } from 'wouter';
 import { jwtDecode } from 'jwt-decode';
 
+// Type guard for JWT payload
+function isJWTPayload(decoded: unknown): decoded is JWTPayload {
+  return (
+    typeof decoded === 'object' &&
+    decoded !== null &&
+    'exp' in decoded &&
+    'id' in decoded &&
+    'role' in decoded &&
+    'username' in decoded
+  );
+}
+
 interface User {
   id: number;
   username: string;
