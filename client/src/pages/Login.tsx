@@ -55,14 +55,14 @@ export default function Login() {
         
         if (response.status === 401) {
           form.setError("root", {
-            message: "Invalid username or password",
+            message: "Nome utente o password non validi",
           });
           return;
         }
         
         if (response.status === 429) {
           form.setError("root", {
-            message: "Too many login attempts. Please try again later.",
+            message: "Troppi tentativi di accesso. Per favore riprova più tardi.",
           });
           return;
         }
@@ -78,7 +78,7 @@ export default function Login() {
       
       if (!navigator.onLine) {
         form.setError("root", {
-          message: "Network error. Please check your internet connection.",
+          message: "Errore di rete. Verifica la tua connessione internet.",
         });
         return;
       }
