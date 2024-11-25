@@ -239,7 +239,7 @@ export function AdminRealizzazioni() {
     year: new Date().getFullYear(),
     image: "",
     gallery: [],
-    status: "draft" as const
+    status: "draft"
   });
 
   const { data: projects } = useQuery<Project[]>({
@@ -339,6 +339,64 @@ export function AdminRealizzazioni() {
     }
   };
 
+  const handleReorderImages = (startIndex: number, endIndex: number) => {
+    setNewProject(prev => {
+      const newGallery = [...prev.gallery];
+      const [removed] = newGallery.splice(startIndex, 1);
+      newGallery.splice(endIndex, 0, removed);
+      return { ...prev, gallery: newGallery };
+    });
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setNewProject(prev => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, i) => i !== index)
+    }));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const RestauroImageSection = () => (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold mb-2">Immagini Restauro</h3>
+      <Dropzone
+        onDrop={handleImageUpload}
+        accept={{
+          'image/*': ['.png', '.jpg', '.jpeg', '.webp']
+        }}
+        maxFiles={10}
+      />
+      {uploadProgress > 0 && (
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div
+            className="bg-primary h-2.5 rounded-full transition-all"
+            style={{ width: `${uploadProgress}%` }}
+          />
+        </div>
+      )}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+        {newProject.gallery.map((image, index) => (
+          <div key={index} className="relative group">
+            <img
+              src={image}
+              alt={`Preview ${index + 1}`}
+              className="w-full h-32 object-cover rounded-lg"
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center space-x-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => handleRemoveImage(index)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -365,7 +423,8 @@ export function AdminRealizzazioni() {
             <CardTitle>Nuovo Progetto</CardTitle>
           </CardHeader>
           <CardContent>
-            <form
+            <RestauroImageSection />
+            <form className="mt-8"
               onSubmit={async (e) => {
                 e.preventDefault();
                 
