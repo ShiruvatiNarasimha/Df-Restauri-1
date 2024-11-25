@@ -55,6 +55,7 @@ export default function AdminProjects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<ProjectFormValues>({
@@ -126,6 +127,7 @@ export default function AdminProjects() {
   };
 
   const onSubmit = async (data: ProjectFormValues) => {
+    setIsLoading(true);
     const formData = new FormData();
     
     // Handle each field explicitly with proper typing
@@ -141,6 +143,11 @@ export default function AdminProjects() {
 
     try {
       const token = localStorage.getItem('adminToken');
+      if (!token) {
+        handleAuthError();
+        return;
+      }
+
       const url = isEditing && currentProject
         ? `/api/projects/${currentProject.id}`
         : "/api/projects";
@@ -172,6 +179,21 @@ export default function AdminProjects() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
+        
+        if (response.status === 401) {
+          handleAuthError();
+          return;
+        }
+        
+        if (response.status === 403) {
+          toast({
+            title: "Permission Denied",
+            description: "You don't have permission to perform this action",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         throw new Error(errorData?.message || "Failed to save project");
       }
 
@@ -199,6 +221,8 @@ export default function AdminProjects() {
           : "Failed to save project. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -410,8 +434,10 @@ export default function AdminProjects() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full">
-                  {isEditing ? "Aggiorna" : "Crea"} Progetto
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading 
+                    ? "Salvataggio in corso..." 
+                    : `${isEditing ? "Aggiorna" : "Crea"} Progetto`}
                 </Button>
               </form>
             </Form>
