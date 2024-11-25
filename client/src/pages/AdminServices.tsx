@@ -239,14 +239,52 @@ export default function AdminServices() {
                       <FormMessage />
                       {currentService && (
                         <div className="mt-4">
-                          <h3 className="text-lg font-medium mb-4">Ordine Immagini</h3>
+                          <h3 className="text-lg font-medium mb-4">Gallery Images</h3>
                           <ImageOrderList
                             images={[
                               {
                                 id: currentService.id.toString(),
                                 url: currentService.image,
+                                order: 1,
                               },
+                              ...(currentService.gallery || []).map((url, index) => ({
+                                id: `${currentService.id}-${index + 1}`,
+                                url,
+                                order: index + 2,
+                              })),
                             ]}
+                            onImageUpload={async (files) => {
+                              const formData = new FormData();
+                              Array.from(files).forEach((file) => {
+                                formData.append('images', file);
+                              });
+                              
+                              try {
+                                const response = await fetch(
+                                  `/api/services/${currentService.id}/images`,
+                                  {
+                                    method: 'POST',
+                                    body: formData,
+                                  }
+                                );
+
+                                if (!response.ok) throw new Error('Failed to upload images');
+
+                                const data = await response.json();
+                                fetchServices();
+
+                                toast({
+                                  title: 'Success',
+                                  description: 'Images uploaded successfully',
+                                });
+                              } catch (error) {
+                                toast({
+                                  title: 'Error',
+                                  description: 'Failed to upload images',
+                                  variant: 'destructive',
+                                });
+                              }
+                            }}
                             onChange={async (images) => {
                               try {
                                 const response = await fetch(
@@ -257,7 +295,10 @@ export default function AdminServices() {
                                       "Content-Type": "application/json",
                                     },
                                     body: JSON.stringify({
-                                      imageOrder: images.map((img) => parseInt(img.id)),
+                                      imageOrder: images.map((img) => ({
+                                        id: img.id,
+                                        order: img.order,
+                                      })),
                                     }),
                                   }
                                 );
