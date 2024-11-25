@@ -36,8 +36,9 @@ const serviceFormSchema = z.object({
   name: z.string().min(1, "Il nome è obbligatorio"),
   description: z.string().min(1, "La descrizione è obbligatoria"),
   category: z.string().min(1, "La categoria è obbligatoria"),
-  image: z.any(),
+  image: z.instanceof(FileList).optional(),
   features: z.string().optional(),
+  gallery: z.array(z.string()).optional(),
 });
 
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
@@ -81,14 +82,40 @@ export default function AdminServices() {
 
   const onSubmit = async (data: ServiceFormValues) => {
     const formData = new FormData();
+    
     // Handle each field explicitly with proper typing
     formData.append("name", data.name);
     formData.append("description", data.description);
     formData.append("category", data.category);
-    formData.append("features", data.features || "[]");
     
-    if (data.image?.[0]) {
-      formData.append("image", data.image[0]);
+    // Handle features with proper JSON validation
+    try {
+      const featuresArray = data.features ? JSON.parse(data.features) : [];
+      if (!Array.isArray(featuresArray)) {
+        throw new Error("Features must be a valid JSON array");
+      }
+      formData.append("features", JSON.stringify(featuresArray));
+    } catch (error) {
+      toast({
+        title: "Invalid Features Format",
+        description: "Please ensure features is a valid JSON array",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Handle image upload with type checking
+    if (data.image instanceof FileList && data.image.length > 0) {
+      const file = data.image[0];
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload only image files",
+          variant: "destructive",
+        });
+        return;
+      }
+      formData.append("image", file);
     }
 
     try {
@@ -247,7 +274,7 @@ export default function AdminServices() {
                                 url: currentService.image,
                                 order: 1,
                               },
-                              ...(Array.isArray(currentService.gallery) ? currentService.gallery : []).map((url: string, index: number) => ({
+                              ...(Array.isArray(currentService.gallery) ? (currentService.gallery as string[]) : []).map((url, index) => ({
                                 id: `${currentService.id}-${index + 1}`,
                                 url,
                                 order: index + 2,
