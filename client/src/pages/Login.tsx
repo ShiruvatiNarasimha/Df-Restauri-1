@@ -18,11 +18,9 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/com
 
 const loginFormSchema = z.object({
   username: z.string()
-    .min(1, "Il nome utente è obbligatorio")
-    .max(50, "Il nome utente non può superare i 50 caratteri"),
+    .min(1, "Il nome utente è obbligatorio"),
   password: z.string()
-    .min(6, "La password deve contenere almeno 6 caratteri")
-    .max(100, "La password non può superare i 100 caratteri"),
+    .min(1, "La password è obbligatoria")
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
