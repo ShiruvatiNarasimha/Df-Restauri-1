@@ -64,7 +64,7 @@ export default function AdminProjects() {
       title: "",
       description: "",
       category: "restauro" as const,
-      year: new Date().getFullYear().toString(),
+      year: String(new Date().getFullYear()),
       location: "",
     },
   });
@@ -78,27 +78,49 @@ export default function AdminProjects() {
     window.location.href = `/login?redirectTo=${encodeURIComponent(currentPath)}`;
   };
 
-  const fetchProjects = async () => {
+  const fetchProjects = async (retryCount = 0) => {
     try {
       const token = localStorage.getItem('adminToken');
+      if (!token) {
+        handleAuthError();
+        return;
+      }
+
       const response = await fetch("/api/projects", {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
       
       if (response.status === 401) {
+        console.error('Authentication failed: Token may be expired');
         handleAuthError();
         return;
       }
       
-      if (!response.ok) throw new Error("Failed to fetch projects");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+        throw new Error(errorData.message || 'Failed to fetch projects');
+      }
+
       const data = await response.json();
       setProjects(data);
     } catch (error) {
+      console.error('Project fetch error:', error);
+      
+      // Retry logic for network errors
+      if (retryCount < 3 && error instanceof Error && error.message.includes('network')) {
+        console.log(`Retrying fetch attempt ${retryCount + 1}/3...`);
+        setTimeout(() => fetchProjects(retryCount + 1), 1000 * (retryCount + 1));
+        return;
+      }
+
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch projects",
+        title: "Error fetching projects",
+        description: error instanceof Error 
+          ? `Error: ${error.message}`
+          : "Failed to fetch projects. Please try again later.",
         variant: "destructive",
       });
     }
@@ -289,13 +311,10 @@ export default function AdminProjects() {
                                 url: currentProject.image,
                                 order: 1,
                               },
-                              ...(currentProject.imageOrder || []).map(({id, order}, index) => ({
+                              ...(currentProject.imageOrder || []).map(({id, order}) => ({
                                 id,
-                                url: id,
+                                url: `/uploads/${id}`,
                                 order,
-                                id: `${currentProject.id}-${index + 1}`,
-                                url,
-                                order: index + 2,
                               })),
                             ]}
                             onImageUpload={async (files) => {
