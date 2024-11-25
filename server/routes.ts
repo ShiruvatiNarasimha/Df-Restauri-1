@@ -231,11 +231,15 @@ export async function registerRoutes(app: Express) {
   app.put("/api/projects/:id/image-order", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      const { imageOrder } = req.body;
+      const { imageOrder } = req.body as { imageOrder: { id: string; order: number }[] };
       
+      if (!Array.isArray(imageOrder)) {
+        return res.status(400).json({ message: "Invalid image order format" });
+      }
+
       const updatedProject = await db
         .update(projects)
-        .set({ imageOrder })
+        .set({ image_order: imageOrder })
         .where(eq(projects.id, parseInt(id)))
         .returning();
 
@@ -248,11 +252,15 @@ export async function registerRoutes(app: Express) {
   app.put("/api/services/:id/image-order", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      const { imageOrder } = req.body;
+      const { imageOrder } = req.body as { imageOrder: { id: string; order: number }[] };
       
+      if (!Array.isArray(imageOrder)) {
+        return res.status(400).json({ message: "Invalid image order format" });
+      }
+
       const updatedService = await db
         .update(services)
-        .set({ imageOrder })
+        .set({ image_order: imageOrder })
         .where(eq(services.id, parseInt(id)))
         .returning();
 

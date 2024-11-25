@@ -18,6 +18,7 @@ export const projects = pgTable("projects", {
   image: text("image").notNull(),
   year: integer("year").notNull(),
   location: text("location").notNull(),
+  imageOrder: json("image_order").$type<{ id: string; order: number }[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -40,6 +41,7 @@ export const services = pgTable("services", {
   image: text("image").notNull(),
   category: text("category").notNull(),
   features: json("features").$type<string[]>(),
+  imageOrder: json("image_order").$type<{ id: string; order: number }[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

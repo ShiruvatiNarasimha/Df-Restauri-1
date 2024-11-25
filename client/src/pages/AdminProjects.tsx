@@ -313,10 +313,12 @@ export default function AdminProjects() {
                                       "Content-Type": "application/json",
                                     },
                                     body: JSON.stringify({
-                                      imageOrder: images.map((img) => ({
-                                        id: img.id,
-                                        order: img.order,
-                                      })),
+                                      imageOrder: images
+                                        .filter(img => img.order !== undefined)
+                                        .map((img) => ({
+                                          id: img.id,
+                                          order: img.order || 0,
+                                        })),
                                     }),
                                   }
                                 );
