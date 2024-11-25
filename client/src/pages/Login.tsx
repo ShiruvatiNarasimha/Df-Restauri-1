@@ -83,12 +83,45 @@ export default function Login() {
       // Update the token validation
       try {
         const decoded = jwtDecode(token);
-        if (!decoded || typeof decoded !== 'object' || !('exp' in decoded)) {
-          throw new Error('Invalid token format');
+        
+        // Validate token structure
+        if (!decoded || typeof decoded !== 'object') {
+          throw new Error('Token malformato: payload non valido');
+        }
+
+        // Check required fields
+        const requiredFields = ['exp', 'id', 'role', 'username'] as const;
+        for (const field of requiredFields) {
+          if (!(field in decoded)) {
+            throw new Error(`Token malformato: campo ${field} mancante`);
+          }
+        }
+
+        // Type check specific fields
+        const payload = decoded as Record<string, unknown>;
+        if (typeof payload.exp !== 'number') {
+          throw new Error('Token malformato: campo exp non valido');
+        }
+        if (typeof payload.id !== 'number') {
+          throw new Error('Token malformato: campo id non valido');
+        }
+        if (typeof payload.role !== 'string') {
+          throw new Error('Token malformato: campo role non valido');
+        }
+        if (typeof payload.username !== 'string') {
+          throw new Error('Token malformato: campo username non valido');
+        }
+
+        // Check token expiration
+        if (payload.exp * 1000 < Date.now()) {
+          throw new Error('Token scaduto');
         }
       } catch (error) {
+        console.error('Token validation error:', error);
         form.setError("root", {
-          message: "Errore di autenticazione. Per favore riprova.",
+          message: error instanceof Error 
+            ? `Errore di autenticazione: ${error.message}`
+            : "Errore di autenticazione sconosciuto. Per favore riprova.",
         });
         return;
       }
