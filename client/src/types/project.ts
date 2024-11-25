@@ -1,13 +1,16 @@
+import { type Json } from '@db/schema';
+
+export type ProjectCategory = 'restauro' | 'costruzione' | 'ristrutturazione';
+
 export interface Project {
   id: number;
   title: string;
   description: string;
-  category: 'restauro' | 'costruzione' | 'ristrutturazione';
+  category: ProjectCategory;
   image: string;
   year: number;
   location: string;
-  gallery?: string[];
-  imageOrder?: { id: string; order: number }[];
+  imageOrder: { id: string; order: number }[] | null;
   createdAt: Date;
   updatedAt: Date;
 }

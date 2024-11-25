@@ -73,16 +73,32 @@ export default function AdminProjects() {
     fetchProjects();
   }, []);
 
+  const handleAuthError = () => {
+    const currentPath = window.location.pathname;
+    window.location.href = `/login?redirectTo=${encodeURIComponent(currentPath)}`;
+  };
+
   const fetchProjects = async () => {
     try {
-      const response = await fetch("/api/projects");
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch("/api/projects", {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.status === 401) {
+        handleAuthError();
+        return;
+      }
+      
       if (!response.ok) throw new Error("Failed to fetch projects");
       const data = await response.json();
       setProjects(data);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch projects",
+        description: error instanceof Error ? error.message : "Failed to fetch projects",
         variant: "destructive",
       });
     }
@@ -95,7 +111,7 @@ export default function AdminProjects() {
     formData.append("title", data.title);
     formData.append("description", data.description);
     formData.append("category", data.category);
-    formData.append("year", data.year);
+    formData.append("year", data.year.toString());
     formData.append("location", data.location);
     
     if (data.image?.[0]) {
@@ -103,6 +119,7 @@ export default function AdminProjects() {
     }
 
     try {
+      const token = localStorage.getItem('adminToken');
       const url = isEditing && currentProject
         ? `/api/projects/${currentProject.id}`
         : "/api/projects";
@@ -110,10 +127,21 @@ export default function AdminProjects() {
 
       const response = await fetch(url, {
         method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 
-      if (!response.ok) throw new Error("Failed to save project");
+      if (response.status === 401) {
+        handleAuthError();
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to save project");
+      }
 
       toast({
         title: "Success",
@@ -301,12 +329,14 @@ export default function AdminProjects() {
                             }}
                             onChange={async (images) => {
                               try {
+                                const token = localStorage.getItem('adminToken');
                                 const response = await fetch(
                                   `/api/projects/${currentProject.id}/image-order`,
                                   {
                                     method: "PUT",
                                     headers: {
                                       "Content-Type": "application/json",
+                                      "Authorization": `Bearer ${token}`
                                     },
                                     body: JSON.stringify({
                                       imageOrder: images
