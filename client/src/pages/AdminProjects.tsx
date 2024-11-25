@@ -35,10 +35,17 @@ import { useToast } from "@/hooks/use-toast";
 const projectFormSchema = z.object({
   title: z.string().min(1, "Il titolo è obbligatorio"),
   description: z.string().min(1, "La descrizione è obbligatoria"),
-  category: z.string().min(1, "La categoria è obbligatoria"),
-  year: z.string().min(1, "L'anno è obbligatorio"),
+  category: z.enum(["restauro", "costruzione", "ristrutturazione"], {
+    errorMap: () => ({ message: "La categoria deve essere restauro, costruzione o ristrutturazione" })
+  }),
+  year: z.string()
+    .min(1, "L'anno è obbligatorio")
+    .transform((val) => parseInt(val, 10))
+    .refine((val) => !isNaN(val) && val > 1900 && val <= new Date().getFullYear(), {
+      message: "L'anno deve essere valido"
+    }),
   location: z.string().min(1, "La località è obbligatoria"),
-  image: z.any(),
+  image: z.instanceof(FileList).optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
@@ -265,7 +272,7 @@ export default function AdminProjects() {
                                 url: currentProject.image,
                                 order: 1,
                               },
-                              ...(currentProject.gallery || []).map((url, index) => ({
+                              ...(currentProject.gallery || []).map((url: string, index: number) => ({
                                 id: `${currentProject.id}-${index + 1}`,
                                 url,
                                 order: index + 2,
