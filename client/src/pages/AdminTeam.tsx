@@ -29,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Pencil } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { TeamMember } from "@db/schema";
 
 const teamFormSchema = z.object({
@@ -79,15 +79,16 @@ export default function AdminTeam() {
 
   const onSubmit = async (data: TeamFormValues) => {
     const formData = new FormData();
-    Object.keys(data).forEach((key) => {
-      if (key === "image") {
-        if (data.image[0]) {
-          formData.append("image", data.image[0]);
-        }
-      } else {
-        formData.append(key, data[key]);
-      }
-    });
+    
+    // Handle each field explicitly with proper typing
+    formData.append("name", data.name);
+    formData.append("role", data.role);
+    formData.append("bio", data.bio);
+    formData.append("socialLinks", data.socialLinks || "[]");
+    
+    if (data.image?.[0]) {
+      formData.append("image", data.image[0]);
+    }
 
     try {
       const url = isEditing

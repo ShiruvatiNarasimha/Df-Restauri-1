@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Project } from "@db/schema";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -29,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Pencil } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const projectFormSchema = z.object({
   title: z.string().min(1, "Il titolo è obbligatorio"),
@@ -80,15 +81,17 @@ export default function AdminProjects() {
 
   const onSubmit = async (data: ProjectFormValues) => {
     const formData = new FormData();
-    Object.keys(data).forEach((key) => {
-      if (key === "image") {
-        if (data.image[0]) {
-          formData.append("image", data.image[0]);
-        }
-      } else {
-        formData.append(key, data[key]);
-      }
-    });
+    
+    // Handle each field explicitly with proper typing
+    formData.append("title", data.title);
+    formData.append("description", data.description);
+    formData.append("category", data.category);
+    formData.append("year", data.year);
+    formData.append("location", data.location);
+    
+    if (data.image?.[0]) {
+      formData.append("image", data.image[0]);
+    }
 
     try {
       const url = isEditing
@@ -121,7 +124,7 @@ export default function AdminProjects() {
     }
   };
 
-  const handleEdit = (project) => {
+  const handleEdit = (project: Project) => {
     setCurrentProject(project);
     setIsEditing(true);
     form.reset({
