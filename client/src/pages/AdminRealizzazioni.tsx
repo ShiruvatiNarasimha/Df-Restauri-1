@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { useUser } from "@/hooks/use-user";
 import type { Project } from "@/types/project";
 
@@ -357,42 +358,77 @@ export function AdminRealizzazioni() {
   };
 
   const RestauroImageSection = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold mb-2">Immagini Restauro</h3>
-      <Dropzone
-        onDrop={handleImageUpload}
-        accept={{
-          'image/*': ['.png', '.jpg', '.jpeg', '.webp']
-        }}
-        maxFiles={10}
-      />
-      {uploadProgress > 0 && (
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
-          <div
-            className="bg-primary h-2.5 rounded-full transition-all"
-            style={{ width: `${uploadProgress}%` }}
-          />
+    <div className="border-2 border-primary/20 rounded-lg p-6 bg-secondary/5 mb-8">
+      <div className="space-y-4">
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-primary mb-2">Immagini Restauro</h3>
+          <p className="text-muted-foreground">
+            Carica le immagini del progetto di restauro. Le immagini saranno ottimizzate automaticamente.
+            La prima immagine caricata sarà utilizzata come immagine principale del progetto.
+            Formati supportati: PNG, JPG, JPEG, WebP. Dimensione massima: 5MB per file.
+          </p>
         </div>
-      )}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-        {newProject.gallery.map((image, index) => (
-          <div key={index} className="relative group">
-            <img
-              src={image}
-              alt={`Preview ${index + 1}`}
-              className="w-full h-32 object-cover rounded-lg"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center space-x-2">
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleRemoveImage(index)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+        
+        <Dropzone
+          onDrop={handleImageUpload}
+          accept={{
+            'image/*': ['.png', '.jpg', '.jpeg', '.webp']
+          }}
+          maxFiles={10}
+          className="border-2 border-dashed border-primary/40 hover:border-primary transition-colors p-8 rounded-lg text-center cursor-pointer"
+        >
+          <div className="space-y-2">
+            <Upload className="w-12 h-12 mx-auto text-primary/60" />
+            <p className="font-medium">Trascina le immagini qui o clicca per selezionarle</p>
+            <p className="text-sm text-muted-foreground">Massimo 10 file, 5MB per file</p>
+          </div>
+        </Dropzone>
+
+        {uploadProgress > 0 && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Caricamento in corso...</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="w-full bg-secondary rounded-full h-2.5">
+              <div
+                className="bg-primary h-2.5 rounded-full transition-all"
+                style={{ width: `${uploadProgress}%` }}
+              />
             </div>
           </div>
-        ))}
+        )}
+
+        {newProject.gallery.length > 0 && (
+          <div className="mt-6">
+            <h4 className="text-sm font-medium mb-3">Immagini caricate ({newProject.gallery.length})</h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {newProject.gallery.map((image, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={image}
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg border border-border"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center space-x-2">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleRemoveImage(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {index === 0 && (
+                    <span className="absolute top-2 left-2 bg-primary text-white px-2 py-1 rounded-md text-xs">
+                      Principale
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -423,8 +459,7 @@ export function AdminRealizzazioni() {
             <CardTitle>Nuovo Progetto</CardTitle>
           </CardHeader>
           <CardContent>
-            <RestauroImageSection />
-            <form className="mt-8"
+            <form
               onSubmit={async (e) => {
                 e.preventDefault();
                 
@@ -534,11 +569,15 @@ export function AdminRealizzazioni() {
                   setIsSaving(false);
                 }
               }}
-              className="space-y-4"
+              className="space-y-6"
             >
-              <div>
-                <label className="block text-sm font-medium mb-1">Titolo</label>
-                <Input
+              <RestauroImageSection />
+              
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Informazioni Progetto</h3>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Titolo</label>
+                  <Input
                   value={newProject.title}
                   onChange={(e) =>
                     setNewProject({ ...newProject, title: e.target.value })
@@ -600,39 +639,6 @@ export function AdminRealizzazioni() {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Immagini</label>
-                <Dropzone
-                  onDrop={handleImageUpload}
-                  isUploading={uploadProgress > 0}
-                  progress={uploadProgress}
-                  className="mb-4"
-                />
-                {imagePreviews.length > 0 && (
-                  <div className="mt-4 grid grid-cols-3 gap-4">
-                    {imagePreviews.map((preview, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={preview}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg"
-                        />
-                        <button
-                          onClick={() => {
-                            setImagePreviews(prev => prev.filter((_, i) => i !== index));
-                            setNewProject(prev => ({
-                              ...prev,
-                              gallery: prev.gallery ? prev.gallery.filter((_, i) => i !== index) : [],
-                            }));
-                          }}
-                          className="absolute top-2 right-2 p-1 bg-destructive rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="h-4 w-4 text-white" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
               <div className="flex justify-end gap-4">
                 <Button
