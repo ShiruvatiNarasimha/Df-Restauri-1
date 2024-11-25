@@ -1,5 +1,3 @@
-import { type Json } from '@db/schema';
-
 export type ProjectCategory = 'restauro' | 'costruzione' | 'ristrutturazione';
 
 export interface Project {

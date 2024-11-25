@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Project } from "@db/schema";
+import { type Project } from "@/types/project";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -63,8 +63,8 @@ export default function AdminProjects() {
     defaultValues: {
       title: "",
       description: "",
-      category: "restauro",
-      year: "",
+      category: "restauro" as const,
+      year: new Date().getFullYear().toString(),
       location: "",
     },
   });
@@ -167,7 +167,7 @@ export default function AdminProjects() {
     form.reset({
       title: project.title,
       description: project.description,
-      category: project.category,
+      category: project.category as ProjectCategory,
       year: project.year.toString(),
       location: project.location,
     });
@@ -289,7 +289,10 @@ export default function AdminProjects() {
                                 url: currentProject.image,
                                 order: 1,
                               },
-                              ...(currentProject.gallery || []).map((url: string, index: number) => ({
+                              ...(currentProject.imageOrder || []).map(({id, order}, index) => ({
+                                id,
+                                url: id,
+                                order,
                                 id: `${currentProject.id}-${index + 1}`,
                                 url,
                                 order: index + 2,
