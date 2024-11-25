@@ -1,7 +1,6 @@
 import { Link } from "wouter";
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from "lucide-react";
 import { NAVIGATION_ITEMS } from "@/lib/constants";
-import { AdminButton } from "@/components/ui/admin-button";
 
 export function Footer() {
   return (
@@ -69,11 +68,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-12 pt-8">
-          <div className="flex justify-between items-center">
-            <p className="text-gray-400">© {new Date().getFullYear()} DF Restauri SRL. Tutti i diritti riservati.</p>
-            <AdminButton />
-          </div>
+        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+          <p>© {new Date().getFullYear()} DF Restauri SRL. Tutti i diritti riservati.</p>
         </div>
       </div>
     </footer>

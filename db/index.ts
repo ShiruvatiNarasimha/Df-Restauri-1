@@ -1,6 +1,5 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import pg from 'pg';
-const { Pool } = pg;
+import { drizzle } from "drizzle-orm/neon-serverless";
+import ws from "ws";
 import * as schema from "@db/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -9,8 +8,8 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+export const db = drizzle({
+  connection: process.env.DATABASE_URL,
+  schema,
+  ws: ws,
 });
-
-export const db = drizzle(pool, { schema });

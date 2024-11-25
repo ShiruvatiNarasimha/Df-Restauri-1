@@ -11,60 +11,8 @@ import { default as Certificazioni } from "./pages/Certificazioni";
 import { CiPresentiamo } from "./pages/CiPresentiamo";
 import { Servizi } from "./pages/Servizi";
 import { Realizzazioni } from "./pages/Realizzazioni";
-import AdminRealizzazioni from "./pages/AdminRealizzazioni";
-import { useUser } from "./hooks/use-user";
-import { Loader2 } from "lucide-react";
 
 function Router() {
-  const { user, isLoading } = useUser();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  // Protect admin routes
-  const AdminRoute = ({ component: Component }: { component: React.ComponentType<any> }) => {
-    const { user, isLoading } = useUser();
-    
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      );
-    }
-
-    if (!user?.isAdmin) {
-      window.location.href = "/";
-      return null;
-    }
-
-    return <Component />;
-  };
-
-  const ProtectedAdminRoute = () => {
-    const { user, isLoading } = useUser();
-    
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      );
-    }
-
-    if (!user?.isAdmin) {
-      window.location.href = "/";
-      return null;
-    }
-
-    return <AdminRealizzazioni />;
-  };
-
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -73,7 +21,6 @@ function Router() {
       <Route path="/ci-presentiamo" component={CiPresentiamo} />
       <Route path="/servizi" component={Servizi} />
       <Route path="/realizzazioni" component={Realizzazioni} />
-      <Route path="/admin-realizzazioni" component={ProtectedAdminRoute} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );

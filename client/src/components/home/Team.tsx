@@ -1,41 +1,8 @@
 import { Facebook, Twitter, Instagram } from "lucide-react";
+import { TEAM_MEMBERS } from "@/lib/constants";
 import { SectionSeparator } from "@/components/ui/section-separator";
-import { useQuery } from "@tanstack/react-query";
-import type { TeamMember } from "@/types/team";
-import { useToast } from "@/hooks/use-toast";
 
 export function Team() {
-  const { data: members, isLoading, error } = useQuery({
-    queryKey: ["team-members"],
-    queryFn: async () => {
-      const response = await fetch("/api/team-members");
-      if (!response.ok) {
-        throw new Error("Failed to fetch team members");
-      }
-      return response.json() as Promise<TeamMember[]>;
-    },
-  });
-
-  if (isLoading) {
-    return (
-      <section className="section-padding bg-gray-50">
-        <div className="container section-spacing text-center">
-          <p>Caricamento...</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="section-padding bg-gray-50">
-        <div className="container section-spacing text-center">
-          <p className="text-red-500">Errore nel caricamento dei membri del team</p>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="section-padding bg-gray-50">
       <div className="container section-spacing">
@@ -48,8 +15,8 @@ export function Team() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {members?.map((member) => (
-            <div key={member.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
+          {TEAM_MEMBERS.map((member) => (
+            <div key={member.name} className="bg-white rounded-lg overflow-hidden shadow-lg">
               <img
                 src={member.avatar}
                 alt={member.name}
@@ -59,21 +26,15 @@ export function Team() {
                 <h3 className="text-xl font-semibold mb-2">{member.name}</h3>
                 <p className="text-gray-600 mb-4">{member.role}</p>
                 <div className="flex justify-center gap-4">
-                  {member.facebookUrl && (
-                    <a href={member.facebookUrl} className="text-gray-400 hover:text-primary">
-                      <Facebook size={20} />
-                    </a>
-                  )}
-                  {member.twitterUrl && (
-                    <a href={member.twitterUrl} className="text-gray-400 hover:text-primary">
-                      <Twitter size={20} />
-                    </a>
-                  )}
-                  {member.instagramUrl && (
-                    <a href={member.instagramUrl} className="text-gray-400 hover:text-primary">
-                      <Instagram size={20} />
-                    </a>
-                  )}
+                  <a href={member.social.facebook} className="text-gray-400 hover:text-primary">
+                    <Facebook size={20} />
+                  </a>
+                  <a href={member.social.twitter} className="text-gray-400 hover:text-primary">
+                    <Twitter size={20} />
+                  </a>
+                  <a href={member.social.instagram} className="text-gray-400 hover:text-primary">
+                    <Instagram size={20} />
+                  </a>
                 </div>
               </div>
             </div>

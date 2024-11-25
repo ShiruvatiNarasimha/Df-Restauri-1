@@ -1,17 +1,11 @@
-// Helper function to ensure images go through WebP conversion and handle missing images
+// Helper function to ensure images go through WebP conversion
 const getImagePath = (path: string) => {
   // If it's an external URL, return as is
-  if (path?.startsWith('http')) {
+  if (path.startsWith('http')) {
     return path;
   }
-  // If path is empty or undefined, return a fallback image
-  if (!path) {
-    return '/images/placeholder.webp';
-  }
-  // Ensure path starts with /
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  // Return path for WebP conversion
-  return normalizedPath;
+  // Otherwise, let the server handle WebP conversion
+  return path;
 };
 
 export const STOCK_PHOTOS = {
