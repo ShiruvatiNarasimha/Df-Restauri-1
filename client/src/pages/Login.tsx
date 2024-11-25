@@ -80,11 +80,11 @@ export default function Login() {
 
       const { token } = await response.json();
       
-      // Validate token structure before storing
+      // Update the token validation
       try {
         const decoded = jwtDecode(token);
-        if (!decoded || typeof decoded !== 'object' || !('exp' in decoded)) {
-          throw new Error('Invalid token structure');
+        if (!decoded || typeof decoded !== 'object') {
+          throw new Error('Invalid token format');
         }
       } catch (error) {
         form.setError("root", {
