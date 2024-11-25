@@ -1,6 +1,23 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import path from "path";
+import multer from "multer";
+import { eq } from "drizzle-orm";
 import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
+import { db } from "@db/index";
+import { projects, services, team } from "@db/schema";
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(process.cwd(), 'public', 'uploads'));
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // Middleware to handle WebP conversion
 async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -18,46 +35,21 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-const DYNAMIC_CONTENT = {
-  about: {
-    storia: {
-      title: "La Nostra Storia",
-      content: "Da oltre vent'anni, DF Restauri è sinonimo di eccellenza nel mondo del restauro, delle pitture e delle decorazioni. Rappresenta la prosecuzione dell'attività nata nel 1992 in capo a De Faveri Luca. L'azienda ha saputo coniugare la maestria artigianale con le più moderne tecniche, offrendo soluzioni personalizzate per ogni esigenza dalle delicate operazioni di costruzione, ristrutturazione e restauro. DF è il partner ideale per chi desidera valorizzare i propri spazi con un tocco di esclusività. Grazie all'esperienza maturata nel corso degli anni, siamo in grado di garantire risultati impeccabili e duraturi, rispondendo alle richieste più esigenti del mercato dell'edilizia. Abbiamo saputo evolversi e adattarsi ai continui cambiamenti del mercato, mantenendo sempre al centro il cliente e la qualità dei lavori."
-    },
-    valori: {
-      title: "Valori Aziendali",
-      content: "Definizione dei principi e dei valori che guidano l'operato dell'azienda",
-      items: [
-        "Qualità senza compromessi",
-        "Innovazione sostenibile",
-        "Rispetto per la tradizione",
-        "Attenzione al cliente"
-      ]
-    },
-    mission: {
-      title: "Mission",
-      content: "Costruiamo il futuro, rispettando l'ambiente. Il nostro approccio all'edilizia è orientato alla sostenibilità e all'innovazione. Utilizziamo materiali eco-compatibili e tecnologie all'avanguardia per realizzare edifici efficienti dal punto di vista energetico e a basso impatto ambientale. Grazie ad una progettazione attenta e a una gestione efficiente delle risorse, siamo in grado di offrire soluzioni personalizzate e durature nel tempo."
-    },
-    vision: {
-      title: "Vision",
-      content: "Aspirare a diventare leader nel settore delle costruzioni sostenibili, creando un futuro dove l'eccellenza costruttiva si fonde con il rispetto per l'ambiente. Vogliamo essere riconosciuti come pionieri nell'innovazione edilizia sostenibile, mantenendo sempre vivo il legame con la tradizione e l'artigianato di qualità."
-    }
-  },
-  case_studies: [
-    {
-      id: 1,
-      title: "Restauro Palazzo Storico",
-      description: "Recupero e valorizzazione di un edificio del XVIII secolo",
-      image: "/images/case-studies/palazzo.jpg"
-    },
-    {
-      id: 2,
-      title: "Edificio Sostenibile",
-      description: "Progetto di costruzione eco-compatibile",
-      image: "/images/case-studies/eco.jpg"
-    }
-  ]
-};
+// Authentication middleware
+interface AuthenticatedRequest extends Request {
+  session?: {
+    user?: {
+      role?: string;
+    };
+  };
+}
+
+function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  if (!req.session?.user?.role || req.session.user.role !== 'admin') {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+  next();
+}
 
 export async function registerRoutes(app: Express) {
   // Ensure cache directory exists
@@ -65,24 +57,181 @@ export async function registerRoutes(app: Express) {
   
   // Add WebP middleware
   app.use(webpMiddleware);
+
+  // Projects API Routes
+  app.get("/api/projects", async (_req, res) => {
+    try {
+      const allProjects = await db.select().from(projects);
+      res.json(allProjects);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching projects" });
+    }
+  });
+
+  app.post("/api/projects", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { title, description, category, year, location } = req.body;
+      const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
+      
+      const newProject = await db.insert(projects).values({
+        title,
+        description,
+        category,
+        image: imagePath,
+        year: parseInt(year),
+        location
+      }).returning();
+
+      res.json(newProject[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating project" });
+    }
+  });
+
+  app.put("/api/projects/:id", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { title, description, category, year, location } = req.body;
+      const updateData: any = {
+        title,
+        description,
+        category,
+        year: parseInt(year),
+        location
+      };
+
+      if (req.file) {
+        updateData.image = `/uploads/${req.file.filename}`;
+      }
+
+      const updatedProject = await db
+        .update(projects)
+        .set(updateData)
+        .where(eq(projects.id, parseInt(id)))
+        .returning();
+
+      res.json(updatedProject[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating project" });
+    }
+  });
+
+  // Team API Routes
+  app.get("/api/team", async (_req, res) => {
+    try {
+      const allTeamMembers = await db.select().from(team);
+      res.json(allTeamMembers);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching team members" });
+    }
+  });
+
+  app.post("/api/team", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { name, role, bio, socialLinks } = req.body;
+      const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
+      
+      const newMember = await db.insert(team).values({
+        name,
+        role,
+        bio,
+        image: imagePath,
+        socialLinks: JSON.parse(socialLinks || '[]')
+      }).returning();
+
+      res.json(newMember[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating team member" });
+    }
+  });
+
+  app.put("/api/team/:id", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, role, bio, socialLinks } = req.body;
+      const updateData: any = {
+        name,
+        role,
+        bio,
+        socialLinks: JSON.parse(socialLinks || '[]')
+      };
+
+      if (req.file) {
+        updateData.image = `/uploads/${req.file.filename}`;
+      }
+
+      const updatedMember = await db
+        .update(team)
+        .set(updateData)
+        .where(eq(team.id, parseInt(id)))
+        .returning();
+
+      res.json(updatedMember[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating team member" });
+    }
+  });
+
+  // Services API Routes
+  app.get("/api/services", async (_req, res) => {
+    try {
+      const allServices = await db.select().from(services);
+      res.json(allServices);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching services" });
+    }
+  });
+
+  app.post("/api/services", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { name, description, category, features } = req.body;
+      const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
+      
+      const newService = await db.insert(services).values({
+        name,
+        description,
+        category,
+        image: imagePath,
+        features: JSON.parse(features || '[]')
+      }).returning();
+
+      res.json(newService[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating service" });
+    }
+  });
+
+  app.put("/api/services/:id", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, description, category, features } = req.body;
+      const updateData: any = {
+        name,
+        description,
+        category,
+        features: JSON.parse(features || '[]')
+      };
+
+      if (req.file) {
+        updateData.image = `/uploads/${req.file.filename}`;
+      }
+
+      const updatedService = await db
+        .update(services)
+        .set(updateData)
+        .where(eq(services.id, parseInt(id)))
+        .returning();
+
+      res.json(updatedService[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating service" });
+    }
+  });
+
+  // Contact form route (preserved from original)
   app.post("/api/contact", (req, res) => {
     const { name, email, phone, message } = req.body;
     console.log("Contact form submission:", { name, email, phone, message });
     res.json({ success: true });
-  });
-
-  app.get("/api/content/:section", (req, res) => {
-    const { section } = req.params;
-    const content = DYNAMIC_CONTENT[section as keyof typeof DYNAMIC_CONTENT];
-    
-    if (!content) {
-      return res.status(404).json({ message: "Content not found" });
-    }
-    
-    res.json(content);
-  });
-
-  app.get("/api/case-studies", (_req, res) => {
-    res.json(DYNAMIC_CONTENT.case_studies);
   });
 }
