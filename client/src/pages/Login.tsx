@@ -18,13 +18,11 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/com
 
 const loginFormSchema = z.object({
   username: z.string()
-    .min(1, "Username is required")
-    .max(50, "Username must not exceed 50 characters")
-    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+    .min(1, "Il nome utente è obbligatorio")
+    .max(50, "Il nome utente non può superare i 50 caratteri"),
   password: z.string()
-    .min(6, "Password must be at least 6 characters")
-    .max(100, "Password must not exceed 100 characters")
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one lowercase letter, one uppercase letter, and one number"),
+    .min(6, "La password deve contenere almeno 6 caratteri")
+    .max(100, "La password non può superare i 100 caratteri"),
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;

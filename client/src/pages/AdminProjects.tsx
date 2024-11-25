@@ -36,16 +36,30 @@ import { useToast } from "@/hooks/use-toast";
 import { ProjectCategory } from "@/types/project";
 
 const projectFormSchema = z.object({
-  title: z.string().min(1, "Il titolo è obbligatorio"),
-  description: z.string().min(1, "La descrizione è obbligatoria"),
+  title: z.string()
+    .min(1, "Il titolo è obbligatorio")
+    .max(200, "Il titolo non può superare i 200 caratteri")
+    .trim(),
+  description: z.string()
+    .min(1, "La descrizione è obbligatoria")
+    .max(2000, "La descrizione non può superare i 2000 caratteri")
+    .trim(),
   category: z.enum(["restauro", "costruzione", "ristrutturazione"] as const, {
-    errorMap: () => ({ message: "La categoria deve essere restauro, costruzione o ristrutturazione" })
+    errorMap: () => ({ message: "Seleziona una categoria valida: restauro, costruzione o ristrutturazione" })
   }),
   year: z.number()
-    .min(1900, "L'anno deve essere maggiore di 1900")
+    .int("L'anno deve essere un numero intero")
+    .min(1900, "L'anno deve essere successivo al 1900")
     .max(new Date().getFullYear(), "L'anno non può essere nel futuro"),
-  location: z.string().min(1, "La località è obbligatoria"),
-  image: z.instanceof(FileList).optional(),
+  location: z.string()
+    .min(1, "La località è obbligatoria")
+    .max(100, "La località non può superare i 100 caratteri")
+    .trim(),
+  image: z.instanceof(FileList)
+    .refine(files => !files.length || files[0].type.startsWith('image/'), {
+      message: "Il file deve essere un'immagine valida"
+    })
+    .optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
