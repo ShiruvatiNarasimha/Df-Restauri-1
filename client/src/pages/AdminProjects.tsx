@@ -94,7 +94,7 @@ export default function AdminProjects() {
     }
 
     try {
-      const url = isEditing
+      const url = isEditing && currentProject
         ? `/api/projects/${currentProject.id}`
         : "/api/projects";
       const method = isEditing ? "PUT" : "POST";

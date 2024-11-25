@@ -79,15 +79,15 @@ export default function AdminServices() {
 
   const onSubmit = async (data: ServiceFormValues) => {
     const formData = new FormData();
-    Object.keys(data).forEach((key) => {
-      if (key === "image") {
-        if (data.image[0]) {
-          formData.append("image", data.image[0]);
-        }
-      } else {
-        formData.append(key, data[key]);
-      }
-    });
+    // Handle each field explicitly with proper typing
+    formData.append("name", data.name);
+    formData.append("description", data.description);
+    formData.append("category", data.category);
+    formData.append("features", data.features || "[]");
+    
+    if (data.image?.[0]) {
+      formData.append("image", data.image[0]);
+    }
 
     try {
       const url = isEditing

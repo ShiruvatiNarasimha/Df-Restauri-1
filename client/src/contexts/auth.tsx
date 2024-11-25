@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useLocation } from 'wouter';
 
 interface User {
   id: number;
@@ -21,6 +22,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     // Check for existing token and validate it
@@ -34,9 +36,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('adminToken');
         localStorage.removeItem('userData');
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith('/admin')) {
+          setLocation(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+        }
       }
     }
-  }, []);
+  }, [setLocation]);
 
   const login = (token: string) => {
     localStorage.setItem('adminToken', token);
@@ -55,6 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('userData');
     setUser(null);
+    setLocation('/login');
   };
 
   return (

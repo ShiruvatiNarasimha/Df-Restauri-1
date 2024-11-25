@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Switch, Route, useLocation } from "wouter";
 import "./index.css";
@@ -16,6 +16,7 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import AdminProjects from "@/pages/AdminProjects";
 import AdminTeam from "@/pages/AdminTeam";
 import AdminServices from "@/pages/AdminServices";
+import Login from "@/pages/Login";
 
 // Protected Route Component with TypeScript
 interface ProtectedRouteProps {
@@ -27,8 +28,14 @@ function ProtectedRoute({ component: Component, ...props }: ProtectedRouteProps)
   const [location, setLocation] = useLocation();
   const { isAuthenticated } = useAuth();
 
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      const currentPath = window.location.pathname;
+      setLocation(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
+    }
+  }, [isAuthenticated, setLocation]);
+
   if (!isAuthenticated) {
-    setLocation('/login');
     return null;
   }
 
@@ -44,6 +51,9 @@ function Router() {
       <Route path="/ci-presentiamo" component={CiPresentiamo} />
       <Route path="/servizi" component={Servizi} />
       <Route path="/realizzazioni" component={Realizzazioni} />
+      
+      {/* Auth Routes */}
+      <Route path="/login" component={Login} />
       
       {/* Admin Routes */}
       <Route path="/admin" component={(props) => <ProtectedRoute component={AdminDashboard} {...props} />} />
