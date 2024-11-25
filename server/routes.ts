@@ -237,11 +237,19 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Invalid image order format" });
       }
 
+      if (!id || isNaN(parseInt(id))) {
+        return res.status(400).json({ message: "Invalid project ID" });
+      }
+
       const updatedProject = await db
         .update(projects)
-        .set({ image_order: imageOrder })
+        .set({ imageOrder: imageOrder })
         .where(eq(projects.id, parseInt(id)))
         .returning();
+
+      if (!updatedProject.length) {
+        return res.status(404).json({ message: "Project not found" });
+      }
 
       res.json(updatedProject[0]);
     } catch (error) {
@@ -258,11 +266,19 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Invalid image order format" });
       }
 
+      if (!id || isNaN(parseInt(id))) {
+        return res.status(400).json({ message: "Invalid service ID" });
+      }
+
       const updatedService = await db
         .update(services)
-        .set({ image_order: imageOrder })
+        .set({ imageOrder: imageOrder })
         .where(eq(services.id, parseInt(id)))
         .returning();
+
+      if (!updatedService.length) {
+        return res.status(404).json({ message: "Service not found" });
+      }
 
       res.json(updatedService[0]);
     } catch (error) {
