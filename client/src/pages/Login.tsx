@@ -17,8 +17,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 
 const loginFormSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  username: z.string()
+    .min(1, "Username is required")
+    .max(50, "Username must not exceed 50 characters")
+    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+  password: z.string()
+    .min(6, "Password must be at least 6 characters")
+    .max(100, "Password must not exceed 100 characters")
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one lowercase letter, one uppercase letter, and one number"),
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
@@ -40,20 +46,51 @@ export default function Login() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      // In a real app, this would be an API call
-      if (data.username === "admin" && data.password === "admin123") {
-        // Generate a mock token
-        const token = "mock-jwt-token";
-        login(token);
-        setLocation(redirectTo);
-      } else {
-        form.setError("root", {
-          message: "Invalid credentials",
-        });
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
+        
+        if (response.status === 401) {
+          form.setError("root", {
+            message: "Invalid username or password",
+          });
+          return;
+        }
+        
+        if (response.status === 429) {
+          form.setError("root", {
+            message: "Too many login attempts. Please try again later.",
+          });
+          return;
+        }
+        
+        throw new Error(errorData.message || 'Login failed');
       }
+
+      const { token } = await response.json();
+      login(token);
+      setLocation(redirectTo);
     } catch (error) {
+      console.error('Login error:', error);
+      
+      if (!navigator.onLine) {
+        form.setError("root", {
+          message: "Network error. Please check your internet connection.",
+        });
+        return;
+      }
+
       form.setError("root", {
-        message: "An error occurred during login",
+        message: error instanceof Error 
+          ? error.message
+          : "An unexpected error occurred. Please try again.",
       });
     } finally {
       setIsLoading(false);
