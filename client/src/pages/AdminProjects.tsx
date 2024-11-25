@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type Project } from "@/types/project";
+import { useAuth } from "@/contexts/auth";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -57,6 +58,7 @@ export default function AdminProjects() {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { getToken } = useAuth();
 
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
@@ -80,7 +82,7 @@ export default function AdminProjects() {
 
   const fetchProjects = async (retryCount = 0) => {
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = await getToken();
       if (!token) {
         handleAuthError();
         return;
@@ -94,8 +96,26 @@ export default function AdminProjects() {
       });
       
       if (response.status === 401) {
-        console.error('Authentication failed: Token may be expired');
-        handleAuthError();
+        const newToken = await getToken(); // Try to refresh the token
+        if (!newToken) {
+          handleAuthError();
+          return;
+        }
+        
+        // Retry with new token
+        const retryResponse = await fetch("/api/projects", {
+          headers: {
+            'Authorization': `Bearer ${newToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!retryResponse.ok) {
+          throw new Error('Failed to fetch projects after token refresh');
+        }
+        
+        const data = await retryResponse.json();
+        setProjects(data);
         return;
       }
       
