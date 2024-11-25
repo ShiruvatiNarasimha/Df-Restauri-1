@@ -9,13 +9,16 @@ import { STOCK_PHOTOS } from "@/lib/constants";
 // Sample data - in a real app, this would come from an API
 const PROJECTS: Project[] = [
   {
-    id: "1",
+    id: 1,
     title: "Restauro Palazzo Storico Veneziano",
     description: "Intervento di restauro conservativo su palazzo del XVI secolo",
     category: "restauro",
     image: STOCK_PHOTOS.restoration[0],
     year: 2023,
-    location: "Venezia"
+    location: "Venezia",
+    imageOrder: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
     id: 2,
@@ -24,7 +27,10 @@ const PROJECTS: Project[] = [
     category: "costruzione",
     image: STOCK_PHOTOS.construction[0],
     year: 2023,
-    location: "Milano"
+    location: "Milano",
+    imageOrder: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
     id: 3,
@@ -33,9 +39,11 @@ const PROJECTS: Project[] = [
     category: "ristrutturazione",
     image: STOCK_PHOTOS.renovation[0],
     year: 2022,
-    location: "Roma"
-  },
-  // Add more projects as needed
+    location: "Roma",
+    imageOrder: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
 ];
 
 interface ProjectGalleryProps {

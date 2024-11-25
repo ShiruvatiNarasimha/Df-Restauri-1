@@ -78,10 +78,39 @@ export async function registerRoutes(app: Express) {
   app.get("/api/projects", async (_req, res) => {
     try {
       const allProjects = await db.select().from(projects);
-      res.json(allProjects);
+      
+      // Transform projects to handle null imageOrder
+      const transformedProjects = allProjects.map(project => ({
+        ...project,
+        imageOrder: project.imageOrder || null,
+      }));
+      
+      res.json(transformedProjects);
     } catch (error) {
       console.error('Database error while fetching projects:', error);
-      if (error instanceof Error) {
+      
+      // PostgreSQL specific error handling
+      if (error && typeof error === 'object' && 'code' in error) {
+        const pgError = error as { code: string; detail?: string; message: string };
+        
+        switch (pgError.code) {
+          case '42703': // undefined_column
+            res.status(500).json({
+              message: "Database schema error",
+              error: "Missing required column",
+              detail: pgError.detail || pgError.message,
+              code: 'SCHEMA_ERROR'
+            });
+            break;
+          default:
+            res.status(500).json({
+              message: "Database error",
+              error: pgError.message,
+              code: 'DB_ERROR',
+              detail: pgError.detail
+            });
+        }
+      } else if (error instanceof Error) {
         res.status(500).json({ 
           message: "Error fetching projects",
           error: error.message,
