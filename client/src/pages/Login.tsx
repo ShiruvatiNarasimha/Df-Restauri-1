@@ -17,10 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 
 const loginFormSchema = z.object({
-  username: z.string()
-    .min(1, "Il nome utente è obbligatorio"),
-  password: z.string()
-    .min(1, "La password è obbligatoria")
+  username: z.string().min(1, "Il nome utente è obbligatorio"),
+  password: z.string().min(1, "La password è obbligatoria")
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
@@ -42,6 +40,15 @@ export default function Login() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
+      // Validate form data
+      const validationResult = loginFormSchema.safeParse(data);
+      if (!validationResult.success) {
+        form.setError("root", {
+          message: "Verifica i dati inseriti",
+        });
+        return;
+      }
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -71,6 +78,20 @@ export default function Login() {
       }
 
       const { token } = await response.json();
+      
+      // Validate token structure before storing
+      try {
+        const decoded = jwtDecode(token);
+        if (!decoded || typeof decoded !== 'object' || !('exp' in decoded)) {
+          throw new Error('Invalid token structure');
+        }
+      } catch (error) {
+        form.setError("root", {
+          message: "Errore di autenticazione. Per favore riprova.",
+        });
+        return;
+      }
+
       login(token);
       setLocation(redirectTo);
     } catch (error) {
