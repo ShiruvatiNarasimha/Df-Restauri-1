@@ -155,7 +155,18 @@ export default function AdminProjects() {
       });
 
       if (response.status === 401) {
+        console.error('Authentication failed: Token may be expired');
         handleAuthError();
+        return;
+      }
+
+      if (response.status === 403) {
+        console.error('Authorization failed: Insufficient permissions');
+        toast({
+          title: "Error",
+          description: "You don't have permission to perform this action",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -174,9 +185,18 @@ export default function AdminProjects() {
       setCurrentProject(null);
       fetchProjects();
     } catch (error) {
+      console.error('Project save error:', error);
+      
+      if (error instanceof Error && error.message.includes('token')) {
+        handleAuthError();
+        return;
+      }
+
       toast({
         title: "Error",
-        description: "Failed to save project",
+        description: error instanceof Error 
+          ? `Failed to save project: ${error.message}`
+          : "Failed to save project. Please try again.",
         variant: "destructive",
       });
     }
