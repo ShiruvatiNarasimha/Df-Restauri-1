@@ -227,6 +227,40 @@ export async function registerRoutes(app: Express) {
       res.status(500).json({ message: "Error updating service" });
     }
   });
+  // Image ordering routes
+  app.put("/api/projects/:id/image-order", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { imageOrder } = req.body;
+      
+      const updatedProject = await db
+        .update(projects)
+        .set({ imageOrder })
+        .where(eq(projects.id, parseInt(id)))
+        .returning();
+
+      res.json(updatedProject[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating image order" });
+    }
+  });
+
+  app.put("/api/services/:id/image-order", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { imageOrder } = req.body;
+      
+      const updatedService = await db
+        .update(services)
+        .set({ imageOrder })
+        .where(eq(services.id, parseInt(id)))
+        .returning();
+
+      res.json(updatedService[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating image order" });
+    }
+  });
 
   // Contact form route (preserved from original)
   app.post("/api/contact", (req, res) => {

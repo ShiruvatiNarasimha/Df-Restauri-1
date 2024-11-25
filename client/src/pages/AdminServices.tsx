@@ -42,6 +42,8 @@ const serviceFormSchema = z.object({
 
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
 
+import { ImageOrderList } from "@/components/admin/ImageOrderList";
+
 export default function AdminServices() {
   const [services, setServices] = useState<Service[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -217,6 +219,66 @@ export default function AdminServices() {
                         />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="image"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Immagine</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => onChange(e.target.files)}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      {currentService && (
+                        <div className="mt-4">
+                          <h3 className="text-lg font-medium mb-4">Ordine Immagini</h3>
+                          <ImageOrderList
+                            images={[
+                              {
+                                id: currentService.id.toString(),
+                                url: currentService.image,
+                              },
+                            ]}
+                            onChange={async (images) => {
+                              try {
+                                const response = await fetch(
+                                  `/api/services/${currentService.id}/image-order`,
+                                  {
+                                    method: "PUT",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({
+                                      imageOrder: images.map((img) => parseInt(img.id)),
+                                    }),
+                                  }
+                                );
+
+                                if (!response.ok) throw new Error("Failed to update image order");
+
+                                toast({
+                                  title: "Success",
+                                  description: "Image order updated successfully",
+                                });
+                              } catch (error) {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to update image order",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
                     </FormItem>
                   )}
                 />
