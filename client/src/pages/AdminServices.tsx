@@ -247,7 +247,7 @@ export default function AdminServices() {
                                 url: currentService.image,
                                 order: 1,
                               },
-                              ...(currentService.gallery || []).map((url: string, index: number) => ({
+                              ...(Array.isArray(currentService.gallery) ? currentService.gallery : []).map((url: string, index: number) => ({
                                 id: `${currentService.id}-${index + 1}`,
                                 url,
                                 order: index + 2,

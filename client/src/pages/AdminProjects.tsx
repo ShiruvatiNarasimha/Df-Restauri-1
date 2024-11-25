@@ -32,18 +32,17 @@ import {
 import { Plus, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+import { ProjectCategory } from "@/types/project";
+
 const projectFormSchema = z.object({
   title: z.string().min(1, "Il titolo è obbligatorio"),
   description: z.string().min(1, "La descrizione è obbligatoria"),
-  category: z.enum(["restauro", "costruzione", "ristrutturazione"], {
+  category: z.enum(["restauro", "costruzione", "ristrutturazione"] as const, {
     errorMap: () => ({ message: "La categoria deve essere restauro, costruzione o ristrutturazione" })
   }),
-  year: z.string()
-    .min(1, "L'anno è obbligatorio")
-    .transform((val) => parseInt(val, 10))
-    .refine((val) => !isNaN(val) && val > 1900 && val <= new Date().getFullYear(), {
-      message: "L'anno deve essere valido"
-    }),
+  year: z.number()
+    .min(1900, "L'anno deve essere maggiore di 1900")
+    .max(new Date().getFullYear(), "L'anno non può essere nel futuro"),
   location: z.string().min(1, "La località è obbligatoria"),
   image: z.instanceof(FileList).optional(),
 });
@@ -64,7 +63,7 @@ export default function AdminProjects() {
       title: "",
       description: "",
       category: "restauro" as const,
-      year: String(new Date().getFullYear()),
+      year: new Date().getFullYear(),
       location: "",
     },
   });
@@ -190,7 +189,7 @@ export default function AdminProjects() {
       title: project.title,
       description: project.description,
       category: project.category as ProjectCategory,
-      year: project.year.toString(),
+      year: project.year,
       location: project.location,
     });
   };

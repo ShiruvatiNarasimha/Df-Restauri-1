@@ -35,20 +35,36 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+import jwt from 'jsonwebtoken';
+
 // Authentication middleware
 interface AuthenticatedRequest extends Request {
-  session?: {
-    user?: {
-      role?: string;
-    };
+  user?: {
+    id: number;
+    role: string;
   };
 }
 
 function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  if (!req.session?.user?.role || req.session.user.role !== 'admin') {
-    return res.status(401).json({ message: 'Unauthorized' });
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'No token provided' });
   }
-  next();
+
+  const token = authHeader.substring(7);
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: number; role: string };
+    req.user = decoded;
+    
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+    
+    next();
+  } catch (error) {
+    console.error('JWT verification error:', error);
+    return res.status(401).json({ message: 'Invalid or expired token' });
+  }
 }
 
 export async function registerRoutes(app: Express) {
@@ -64,7 +80,19 @@ export async function registerRoutes(app: Express) {
       const allProjects = await db.select().from(projects);
       res.json(allProjects);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching projects" });
+      console.error('Database error while fetching projects:', error);
+      if (error instanceof Error) {
+        res.status(500).json({ 
+          message: "Error fetching projects",
+          error: error.message,
+          code: 'DB_FETCH_ERROR'
+        });
+      } else {
+        res.status(500).json({ 
+          message: "An unexpected error occurred",
+          code: 'UNKNOWN_ERROR'
+        });
+      }
     }
   });
 

@@ -18,7 +18,7 @@ const PROJECTS: Project[] = [
     location: "Venezia"
   },
   {
-    id: "2",
+    id: 2,
     title: "Complesso Residenziale Moderno",
     description: "Costruzione di complesso residenziale eco-sostenibile",
     category: "costruzione",
@@ -27,7 +27,7 @@ const PROJECTS: Project[] = [
     location: "Milano"
   },
   {
-    id: "3",
+    id: 3,
     title: "Ristrutturazione Villa Liberty",
     description: "Ristrutturazione completa con adeguamento energetico",
     category: "ristrutturazione",
