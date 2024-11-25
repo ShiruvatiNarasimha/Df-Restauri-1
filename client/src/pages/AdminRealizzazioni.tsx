@@ -349,28 +349,71 @@ const createTeamMember = useMutation({
   
   const [newProject, setNewProject] = useState<CreateProject>(initialProject);
 
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [], error: projectsError } = useQuery({
     queryKey: ["admin-projects"],
     queryFn: async () => {
       const response = await fetch("/api/admin/projects", {
         credentials: "include",
-        headers: {
-          "Accept": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        headers: { 
+          "Accept": "application/json"
         }
       });
       
       if (!response.ok) {
         if (response.status === 401) {
-          window.location.href = "/login";
-          throw new Error("Authentication required");
+          setLocation('/login');
+          throw new Error("Non sei autenticato");
         }
-        throw new Error("Failed to fetch projects");
+        throw new Error("Errore nel recupero dei progetti");
       }
       
       return response.json();
     },
-    retry: false
+    retry: false,
+    onError: (error) => {
+      console.error('Projects fetch error:', error);
+      toast({
+        title: "Errore",
+        description: error instanceof Error ? error.message : "Errore nel recupero dei progetti",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const createProject = useMutation({
+    mutationFn: async (project: CreateProject) => {
+      const response = await fetch("/api/admin/projects", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(project)
+      });
+
+      if (!response.ok) {
+        throw new Error("Errore nella creazione del progetto");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-projects"] });
+      setNewProject(initialProject);
+      setImagePreviews([]);
+      toast({
+        title: "Successo",
+        description: "Progetto creato con successo",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Errore",
+        description: error instanceof Error ? error.message : "Errore nella creazione del progetto",
+        variant: "destructive",
+      });
+    }
   });
 
   const updateProject = useMutation<Project, Error, Project>({
@@ -437,6 +480,395 @@ const createTeamMember = useMutation({
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
+  const TeamMemberForm = () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
+        if (selectedTeamMember) {
+          // Update existing member
+          const response = await fetch(`/api/admin/team-members/${selectedTeamMember.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(newTeamMember),
+          });
+
+          if (!response.ok) throw new Error("Failed to update team member");
+          const updated = await response.json();
+          
+          setTeamMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
+          toast({
+            title: "Successo",
+            description: "Membro del team aggiornato con successo",
+          });
+        } else {
+          // Create new member
+          const response = await fetch("/api/admin/team-members", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify(newTeamMember),
+          });
+
+          if (!response.ok) throw new Error("Failed to create team member");
+          const created = await response.json();
+          
+          setTeamMembers(prev => [...prev, created]);
+          toast({
+            title: "Successo",
+            description: "Nuovo membro del team aggiunto con successo",
+          });
+        }
+        setShowTeamForm(false);
+        setSelectedTeamMember(null);
+        setNewTeamMember({
+          name: "",
+          role: "",
+          avatar: "",
+          facebookUrl: "",
+          twitterUrl: "",
+          instagramUrl: ""
+        });
+      } catch (error) {
+        toast({
+          title: "Errore",
+          description: error instanceof Error ? error.message : "Errore sconosciuto",
+          variant: "destructive",
+        });
+      }
+    };
+
+    return (
+      <Card className="p-6">
+        <CardHeader>
+          <CardTitle>{selectedTeamMember ? "Modifica Membro" : "Nuovo Membro"}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="name">Nome</label>
+              <Input
+                id="name"
+                value={newTeamMember.name}
+                onChange={e => setNewTeamMember(prev => ({ ...prev, name: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="role">Ruolo</label>
+              <Input
+                id="role"
+                value={newTeamMember.role}
+                onChange={e => setNewTeamMember(prev => ({ ...prev, role: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="avatar">URL Avatar</label>
+              <Input
+                id="avatar"
+                type="url"
+                value={newTeamMember.avatar}
+                onChange={e => setNewTeamMember(prev => ({ ...prev, avatar: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="facebookUrl">Facebook URL</label>
+              <Input
+                id="facebookUrl"
+                type="url"
+                value={newTeamMember.facebookUrl || ""}
+                onChange={e => setNewTeamMember(prev => ({ ...prev, facebookUrl: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="twitterUrl">Twitter URL</label>
+              <Input
+                id="twitterUrl"
+                type="url"
+                value={newTeamMember.twitterUrl || ""}
+                onChange={e => setNewTeamMember(prev => ({ ...prev, twitterUrl: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="instagramUrl">Instagram URL</label>
+              <Input
+                id="instagramUrl"
+                type="url"
+                value={newTeamMember.instagramUrl || ""}
+                onChange={e => setNewTeamMember(prev => ({ ...prev, instagramUrl: e.target.value }))}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowTeamForm(false);
+                  setSelectedTeamMember(null);
+                  setNewTeamMember({
+                    name: "",
+                    role: "",
+                    avatar: "",
+                    facebookUrl: "",
+                    twitterUrl: "",
+                    instagramUrl: ""
+                  });
+                }}
+              >
+                Annulla
+              </Button>
+              <Button type="submit">
+                {selectedTeamMember ? "Aggiorna" : "Salva"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const TeamManagementSection = () => {
+    return (
+      <div className="border-2 border-primary/20 rounded-lg p-6 bg-secondary/5 mb-8">
+        <div className="space-y-4">
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold text-primary mb-2">Gestione Team</h3>
+            <p className="text-muted-foreground">
+              Gestisci i membri del team. Aggiungi, modifica o rimuovi i profili del personale.
+            </p>
+          </div>
+
+          {showTeamForm ? (
+            <TeamMemberForm />
+          ) : (
+            <>
+              <div className="grid gap-4">
+                {teamMembers.map((member) => (
+                  <Card key={member.id} className="p-4">
+                    <div className="flex items-center gap-4">
+                      <img 
+                        src={member.avatar} 
+                        alt={member.name}
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-semibold">{member.name}</h4>
+                        <p className="text-sm text-muted-foreground">{member.role}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedTeamMember(member);
+                            setNewTeamMember(member);
+                            setShowTeamForm(true);
+                          }}
+                        >
+                          Modifica
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            if (window.confirm('Sei sicuro di voler eliminare questo membro?')) {
+                              fetch(`/api/admin/team-members/${member.id}`, {
+                                method: 'DELETE',
+                                credentials: 'include',
+                              })
+                              .then(response => {
+                                if (!response.ok) throw new Error('Failed to delete team member');
+                                return response.json();
+                              })
+                              .then(() => {
+                                setTeamMembers(prev => prev.filter(m => m.id !== member.id));
+                                toast({
+                                  title: "Successo",
+                                  description: "Membro del team eliminato con successo",
+                                });
+                              })
+                              .catch(error => {
+                                toast({
+                                  title: "Errore",
+                                  description: error.message,
+                                  variant: "destructive",
+                                });
+                              });
+                            }
+                          }}
+                        >
+                          Elimina
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              <Button
+                onClick={() => {
+                  setSelectedTeamMember(null);
+                  setNewTeamMember({
+                    name: "",
+                    role: "",
+                    avatar: "",
+                    facebookUrl: "",
+                    twitterUrl: "",
+                    instagramUrl: ""
+                  });
+                  setShowTeamForm(true);
+                }}
+                variant="outline"
+                className="w-full mt-4"
+              >
+                Aggiungi Nuovo Membro
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        if (window.confirm('Sei sicuro di voler eliminare questo membro?')) {
+                          fetch(`/api/admin/team-members/${member.id}`, {
+                            method: 'DELETE',
+                            credentials: 'include',
+                          })
+                          .then(response => {
+                            if (!response.ok) throw new Error('Failed to delete team member');
+                            return response.json();
+                          })
+                          .then(() => {
+                            setTeamMembers(prev => prev.filter(m => m.id !== member.id));
+                            toast({
+                              title: "Successo",
+                              description: "Membro del team eliminato con successo",
+                            });
+                          })
+                          .catch(error => {
+                            toast({
+                              title: "Errore",
+                              description: error.message,
+                              variant: "destructive",
+                            });
+                          });
+                        }
+                      }}
+                    >
+                      Elimina
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+                    size="sm"
+                    onClick={() => setSelectedTeamMember(member)}
+                  >
+                    Modifica
+                  </Button>
+                </div>
+                <Button
+                  onClick={() => {
+                    if (window.confirm('Sei sicuro di voler eliminare questo membro?')) {
+                      fetch(`/api/admin/team-members/${member.id}`, {
+                        method: 'DELETE',
+                        credentials: 'include',
+                      })
+                      .then(response => {
+                        if (!response.ok) throw new Error('Failed to delete team member');
+                        return response.json();
+                      })
+                      .then(() => {
+                        setTeamMembers(prev => prev.filter(m => m.id !== member.id));
+                        toast({
+                          title: "Successo",
+                          description: "Membro del team eliminato con successo",
+                        });
+                      })
+                      .catch(error => {
+                        toast({
+                          title: "Errore",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      });
+                    }
+                  }}
+                  variant="destructive"
+                  size="sm"
+                >
+                  Elimina
+                </Button>
+              </div>
+              <div className="mt-4">
+                <Button
+                  onClick={() => setShowTeamForm(true)}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Aggiungi Nuovo Membro
+                </Button>
+              </div>
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      if (window.confirm('Sei sicuro di voler eliminare questo membro?')) {
+                        fetch(`/api/admin/team-members/${member.id}`, {
+                          method: 'DELETE',
+                          credentials: 'include',
+                        })
+                        .then(response => {
+                          if (!response.ok) throw new Error('Failed to delete team member');
+                          return response.json();
+                        })
+                        .then(() => {
+                          setTeamMembers(prev => prev.filter(m => m.id !== member.id));
+                          toast({
+                            title: "Successo",
+                            description: "Membro del team eliminato con successo",
+                          });
+                        })
+                        .catch(error => {
+                          toast({
+                            title: "Errore",
+                            description: error.message,
+                            variant: "destructive",
+                          });
+                        });
+                      }
+                    }}
+                  >
+                    Elimina
+                  </Button>
+                </div>
+                </div>
+            </Card>
+          ))}
+
+          <Button 
+            className="w-full"
+            onClick={() => setShowTeamForm(true)}
+          >
+            Aggiungi Membro
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   const RestauroImageSection = () => (
     <div className="border-2 border-primary/20 rounded-lg p-6 bg-secondary/5 mb-8">
       <div className="space-y-4">
@@ -487,12 +919,44 @@ const createTeamMember = useMutation({
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {newProject.gallery.map((image: string, index: number) => (
                 <div key={index} className="relative group">
-                  <img
-                    src={image}
-                    alt={`Preview ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg border border-border"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center space-x-2">
+                  <div className="relative aspect-square">
+                    <img
+                      src={image}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-full object-cover rounded-lg border border-border"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setNewProject(prev => ({
+                            ...prev,
+                            image: image
+                          }));
+                          toast({
+                            title: "Immagine Principale",
+                            description: "Impostata come immagine principale"
+                          });
+                        }}
+                      >
+                        Imposta come principale
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRemoveImage(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {image === newProject.image && (
+                      <span className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
+                        Principale
+                      </span>
+                    )}
+                  </div>
+                </div>
                     <Button
                       variant="destructive"
                       size="sm"
