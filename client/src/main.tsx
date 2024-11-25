@@ -1,4 +1,4 @@
-import { StrictMode, useEffect } from "react";
+import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Switch, Route, useLocation } from "wouter";
 import "./index.css";
