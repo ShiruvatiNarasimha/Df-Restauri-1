@@ -26,7 +26,7 @@ const handleAuthError = (error: { response?: { status: number }, message?: strin
   }
 };
 
-export function AdminRealizzazioni() {
+export default function AdminRealizzazioni(): JSX.Element {
   const [location, setLocation] = useLocation();
   const { logout } = useUser();
   const { toast } = useToast();
@@ -481,36 +481,358 @@ const createTeamMember = useMutation({
   };
 
   const TeamMemberForm = () => {
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      try {
-        if (selectedTeamMember) {
-          // Update existing member
-          const response = await fetch(`/api/admin/team-members/${selectedTeamMember.id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(newTeamMember),
-          });
+      
+      if (selectedTeamMember) {
+        // Update existing member
+        updateTeamMember.mutate({
+          id: selectedTeamMember.id,
+          ...newTeamMember
+        });
+      } else {
+        // Create new member
+        createTeamMember.mutate(newTeamMember);
+      }
+      
+      // Reset form state
+      setShowTeamForm(false);
+      setSelectedTeamMember(null);
+      setNewTeamMember({
+        name: "",
+        role: "",
+        avatar: "",
+        facebookUrl: "",
+        twitterUrl: "",
+        instagramUrl: ""
+      });
+    };
 
-          if (!response.ok) throw new Error("Failed to update team member");
-          const updated = await response.json();
-          
-          setTeamMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
-          toast({
-            title: "Successo",
-            description: "Membro del team aggiornato con successo",
-          });
-        } else {
-          // Create new member
-          const response = await fetch("/api/admin/team-members", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(newTeamMember),
-          });
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="name">Nome</label>
+            <Input
+              id="name"
+              value={newTeamMember.name}
+              onChange={(e) => setNewTeamMember(prev => ({ ...prev, name: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="role">Ruolo</label>
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
+          <LogOut className="h-4 w-4" />
+          Logout
+        </Button>
+      </div>
 
-          if (!response.ok) throw new Error("Failed to create team member");
+      {/* Team Members Management */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Gestione Team</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Button onClick={() => setShowTeamForm(true)}>
+              Aggiungi Nuovo Membro
+            </Button>
+            
+            {showTeamForm && <TeamMemberForm />}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {teamMembers.map((member) => (
+                <Card key={member.id} className="p-4">
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src={member.avatar}
+                      alt={member.name}
+                      className="h-12 w-12 rounded-full"
+                    />
+                    <div>
+                      <h3 className="font-semibold">{member.name}</h3>
+                      <p className="text-sm text-gray-500">{member.role}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Project Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Gestione Progetti</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <Button onClick={() => setShowNewProjectForm(true)}>
+              Aggiungi Nuovo Progetto
+            </Button>
+            
+            {showNewProjectForm && (
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                createProject.mutate(newProject);
+              }} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="title">Titolo</label>
+                    <Input
+                      id="title"
+                      value={newProject.title}
+                      onChange={(e) => setNewProject(prev => ({ ...prev, title: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="category">Categoria</label>
+                    <select
+                      id="category"
+                      value={newProject.category}
+                      onChange={(e) => setNewProject(prev => ({ ...prev, category: e.target.value as any }))}
+                      className="w-full p-2 border rounded"
+                      required
+                    >
+                      <option value="restauro">Restauro</option>
+                      <option value="costruzione">Costruzione</option>
+                      <option value="ristrutturazione">Ristrutturazione</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="description">Descrizione</label>
+                  <Textarea
+                    id="description"
+                    value={newProject.description}
+                    onChange={(e) => setNewProject(prev => ({ ...prev, description: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label>Immagini</label>
+                  <Dropzone
+                    onDrop={handleImageUpload}
+                    accept={{
+                      'image/*': ['.png', '.jpg', '.jpeg', '.webp']
+                    }}
+                    maxFiles={10}
+                  />
+                  {uploadProgress > 0 && (
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-primary h-2.5 rounded-full"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  )}
+                  {imagePreviews.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={preview}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-32 object-cover rounded"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(index)}
+                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvataggio...
+                    </>
+                  ) : (
+                    'Salva Progetto'
+                  )}
+                </Button>
+              </form>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+              {projects.map((project) => (
+                <Card key={project.id} className="overflow-hidden">
+                  {project.image && (
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">{project.title}</h3>
+                    <p className="text-sm text-gray-500 mb-4">{project.description}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">
+                        {project.category}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedProject(project);
+                          setNewProject(project);
+                        }}
+                      >
+                        Modifica
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+            <Input
+              id="role"
+              value={newTeamMember.role}
+              onChange={(e) => setNewTeamMember(prev => ({ ...prev, role: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="avatar">Avatar URL</label>
+            <Input
+              id="avatar"
+              value={newTeamMember.avatar}
+              onChange={(e) => setNewTeamMember(prev => ({ ...prev, avatar: e.target.value }))}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="facebookUrl">Facebook URL</label>
+            <Input
+              id="facebookUrl"
+              value={newTeamMember.facebookUrl}
+              onChange={(e) => setNewTeamMember(prev => ({ ...prev, facebookUrl: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="twitterUrl">Twitter URL</label>
+            <Input
+              id="twitterUrl"
+              value={newTeamMember.twitterUrl}
+              onChange={(e) => setNewTeamMember(prev => ({ ...prev, twitterUrl: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="instagramUrl">Instagram URL</label>
+            <Input
+              id="instagramUrl"
+              value={newTeamMember.instagramUrl}
+              onChange={(e) => setNewTeamMember(prev => ({ ...prev, instagramUrl: e.target.value }))}
+            />
+          </div>
+          <Button type="submit">
+            {selectedTeamMember ? 'Aggiorna Membro' : 'Aggiungi Membro'}
+          </Button>
+        </form>
+      </div>
+    );
+  };
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="avatar">URL Avatar</label>
+          <Input
+            id="avatar"
+            value={newTeamMember.avatar}
+            onChange={(e) => setNewTeamMember(prev => ({ ...prev, avatar: e.target.value }))}
+            required
+          />
+        </div>
+        <Button type="submit">
+          {selectedTeamMember ? "Aggiorna" : "Crea"} Membro
+        </Button>
+      </form>
+    </div>
+  );
+            onChange={(e) => setNewTeamMember(prev => ({ ...prev, role: e.target.value }))}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="avatar">Avatar URL</label>
+          <Input
+            id="avatar"
+            value={newTeamMember.avatar}
+            onChange={(e) => setNewTeamMember(prev => ({ ...prev, avatar: e.target.value }))}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="facebook">Facebook URL</label>
+          <Input
+            id="facebook"
+            value={newTeamMember.facebookUrl}
+            onChange={(e) => setNewTeamMember(prev => ({ ...prev, facebookUrl: e.target.value }))}
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="twitter">Twitter URL</label>
+          <Input
+            id="twitter"
+            value={newTeamMember.twitterUrl}
+            onChange={(e) => setNewTeamMember(prev => ({ ...prev, twitterUrl: e.target.value }))}
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="instagram">Instagram URL</label>
+          <Input
+            id="instagram"
+            value={newTeamMember.instagramUrl}
+            onChange={(e) => setNewTeamMember(prev => ({ ...prev, instagramUrl: e.target.value }))}
+          />
+        </div>
+        <div className="flex justify-end space-x-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setShowTeamForm(false);
+              setSelectedTeamMember(null);
+              setNewTeamMember({
+                name: "",
+                role: "",
+                avatar: "",
+                facebookUrl: "",
+                twitterUrl: "",
+                instagramUrl: ""
+              });
+            }}
+          >
+            Annulla
+          </Button>
+          <Button type="submit">
+            {selectedTeamMember ? 'Aggiorna' : 'Crea'}
+          </Button>
+        </div>
+      </form>
+    );
+  };
           const created = await response.json();
           
           setTeamMembers(prev => [...prev, created]);

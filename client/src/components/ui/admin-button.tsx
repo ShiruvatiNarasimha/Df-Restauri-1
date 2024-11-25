@@ -18,6 +18,8 @@ export function AdminButton() {
 
   const handleLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    
     try {
       const response = await fetch("/api/login", {
         method: "POST",
@@ -25,20 +27,22 @@ export function AdminButton() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
+        credentials: "include"
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
+        throw new Error(data.error || "Errore durante il login");
       }
 
-      const data = await response.json();
-      if (data.user.isAdmin) {
-        window.location.href = "/admin-realizzazioni";
-      } else {
-        setError("Accesso non autorizzato");
+      if (!data.user.isAdmin) {
+        throw new Error("Accesso non autorizzato");
       }
+
+      window.location.href = "/admin-realizzazioni";
     } catch (err) {
+      console.error('Login error:', err);
       setError(err instanceof Error ? err.message : "Errore durante il login");
     }
   }, [username, password]);

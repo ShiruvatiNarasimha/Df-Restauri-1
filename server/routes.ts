@@ -7,33 +7,14 @@ import { setupAuth } from "./auth";
 import { eq } from "drizzle-orm";
 
 // Authentication middleware with user verification
-const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
-  if (!req.session || !req.session.userId) {
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.isAuthenticated()) {
     return res.status(401).json({
       error: "Non sei autenticato",
       code: "NOT_AUTHENTICATED"
     });
   }
-  try {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, req.session.userId)
-    });
-    if (!user) {
-      req.session.destroy(() => {});
-      return res.status(401).json({
-        error: "Utente non trovato",
-        code: "USER_NOT_FOUND"
-      });
-    }
-    req.user = user;
-    next();
-  } catch (error) {
-    console.error('Auth middleware error:', error);
-    res.status(500).json({
-      error: "Errore di autenticazione",
-      code: "AUTH_ERROR"
-    });
-  }
+  next();
 };
 
 // Admin middleware

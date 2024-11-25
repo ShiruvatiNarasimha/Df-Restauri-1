@@ -39,20 +39,20 @@ export function setupAuth(app: Express) {
   const MemoryStore = createMemoryStore(session);
   const sessionSettings: session.SessionOptions = {
     secret: process.env.REPL_ID || "df-restauri-secret",
-    resave: false, // Only save session if changed
-    saveUninitialized: false, // Don't create session until something stored
-    rolling: true, // Reset maxAge on every response
-    name: 'sessionId', // Custom cookie name
+    resave: false,
+    saveUninitialized: false,
+    rolling: true,
+    name: 'sessionId',
     cookie: {
       secure: app.get("env") === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
       path: '/'
     },
     store: new MemoryStore({
-      checkPeriod: 86400000, // prune expired entries every 24h
-      ttl: 7 * 24 * 60 * 60, // 7 days
+      checkPeriod: 86400000,
+      ttl: 24 * 60 * 60 // 24 hours
     }),
   };
 
