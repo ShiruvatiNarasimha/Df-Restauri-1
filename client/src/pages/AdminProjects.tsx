@@ -63,7 +63,7 @@ export default function AdminProjects() {
     defaultValues: {
       title: "",
       description: "",
-      category: "",
+      category: "restauro",
       year: "",
       location: "",
     },
@@ -197,7 +197,14 @@ export default function AdminProjects() {
                     <FormItem>
                       <FormLabel>Categoria</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <select
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                          {...field}
+                        >
+                          <option value="restauro">Restauro</option>
+                          <option value="costruzione">Costruzione</option>
+                          <option value="ristrutturazione">Ristrutturazione</option>
+                        </select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -224,24 +231,6 @@ export default function AdminProjects() {
                       <FormLabel>Località</FormLabel>
                       <FormControl>
                         <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="image"
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem>
-                      <FormLabel>Immagine</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => onChange(e.target.files)}
-                          {...field}
-                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
