@@ -6,58 +6,35 @@ import { projects, caseHistories, teamMembers } from "../db/schema";
 import { setupAuth } from "./auth";
 import { eq } from "drizzle-orm";
 
-// Authentication middleware
-function requireAuth(req: Request, res: Response, next: NextFunction) {
-  try {
-    // 1. Check if session exists and is valid
-    if (!req.session || !req.session.id) {
-      console.error('Session not found or invalid');
-      return res.status(401).json({ 
-        error: "Sessione non valida. Per favore, effettua nuovamente il login.",
-        code: "SESSION_INVALID",
-        requiresLogin: true
-      });
-    }
-
-    // 2. Verify session expiration
-    if (req.session.cookie.expires && new Date() > req.session.cookie.expires) {
-      console.error('Session expired');
-      return res.status(401).json({ 
-        error: "La tua sessione è scaduta. Per favore, effettua nuovamente il login.",
-        code: "SESSION_EXPIRED",
-        requiresLogin: true
-      });
-    }
-
-    // 3. Check authentication
-    if (!req.isAuthenticated()) {
-      console.error('User not authenticated');
-      return res.status(401).json({ 
-        error: "Non sei autenticato. Per favore, effettua il login.",
-        code: "NOT_AUTHENTICATED",
-        requiresLogin: true
-      });
-    }
-
-    // 4. Session renewal
-    const SESSION_RENEWAL_THRESHOLD = 24 * 60 * 60 * 1000; // 24 hours
-    if (req.session.cookie.maxAge && req.session.cookie.maxAge < SESSION_RENEWAL_THRESHOLD) {
-      const NEW_SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
-      req.session.cookie.maxAge = NEW_SESSION_DURATION;
-      console.log('Session renewed for 7 days');
-    }
-
-    return next();
-  } catch (error) {
-    console.error('Authentication error:', error);
-    return res.status(500).json({ 
-      error: "Si è verificato un errore durante l'autenticazione. Per favore, riprova più tardi.",
-      code: "AUTH_ERROR",
-      message: error instanceof Error ? error.message : 'Errore sconosciuto',
-      requiresLogin: true
+// Authentication middleware with user verification
+const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({
+      error: "Non sei autenticato",
+      code: "NOT_AUTHENTICATED"
     });
   }
-}
+  try {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, req.session.userId)
+    });
+    if (!user) {
+      req.session.destroy(() => {});
+      return res.status(401).json({
+        error: "Utente non trovato",
+        code: "USER_NOT_FOUND"
+      });
+    }
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    res.status(500).json({
+      error: "Errore di autenticazione",
+      code: "AUTH_ERROR"
+    });
+  }
+};
 
 // Admin middleware
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
@@ -158,6 +135,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 export async function registerRoutes(app: Express) {
+  // API error handling middleware
+  app.use('/api', (err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('API Error:', err);
+    res.status(err.status || 500).json({
+      error: err.message || 'Internal Server Error',
+      code: err.code || 'SERVER_ERROR'
+    });
+  });
   // Ensure cache directory exists
   await ensureCacheDirectory();
 
