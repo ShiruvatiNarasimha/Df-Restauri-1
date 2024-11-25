@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/contexts/auth";
-import { jwtDecode } from "jwt-decode";
+import { validateAndDecodeToken, TokenValidationError } from "@/utils/jwt";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -82,40 +82,7 @@ export default function Login() {
       
       // Update the token validation
       try {
-        const decoded = jwtDecode(token);
-        
-        // Validate token structure
-        if (!decoded || typeof decoded !== 'object') {
-          throw new Error('Token malformato: payload non valido');
-        }
-
-        // Check required fields
-        const requiredFields = ['exp', 'id', 'role', 'username'] as const;
-        for (const field of requiredFields) {
-          if (!(field in decoded)) {
-            throw new Error(`Token malformato: campo ${field} mancante`);
-          }
-        }
-
-        // Type check specific fields
-        const payload = decoded as Record<string, unknown>;
-        if (typeof payload.exp !== 'number') {
-          throw new Error('Token malformato: campo exp non valido');
-        }
-        if (typeof payload.id !== 'number') {
-          throw new Error('Token malformato: campo id non valido');
-        }
-        if (typeof payload.role !== 'string') {
-          throw new Error('Token malformato: campo role non valido');
-        }
-        if (typeof payload.username !== 'string') {
-          throw new Error('Token malformato: campo username non valido');
-        }
-
-        // Check token expiration
-        if (payload.exp * 1000 < Date.now()) {
-          throw new Error('Token scaduto');
-        }
+        validateAndDecodeToken(token);
       } catch (error) {
         console.error('Token validation error:', error);
         form.setError("root", {

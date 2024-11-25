@@ -1,43 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { jwtDecode } from 'jwt-decode';
-
-// Type guard for JWT payload
-function isJWTPayload(decoded: unknown): decoded is JWTPayload {
-  if (typeof decoded !== 'object' || decoded === null) {
-    console.error('JWT payload is not an object');
-    return false;
-  }
-
-  const requiredFields = ['exp', 'id', 'role', 'username'] as const;
-  for (const field of requiredFields) {
-    if (!(field in decoded)) {
-      console.error(`JWT payload missing required field: ${field}`);
-      return false;
-    }
-  }
-
-  // Type checking for specific fields
-  const payload = decoded as Record<string, unknown>;
-  if (typeof payload.exp !== 'number') {
-    console.error('JWT exp claim is not a number');
-    return false;
-  }
-  if (typeof payload.id !== 'number') {
-    console.error('JWT id claim is not a number');
-    return false;
-  }
-  if (typeof payload.role !== 'string') {
-    console.error('JWT role claim is not a string');
-    return false;
-  }
-  if (typeof payload.username !== 'string') {
-    console.error('JWT username claim is not a string');
-    return false;
-  }
-
-  return true;
-}
+import { validateAndDecodeToken, TokenValidationError, type JWTPayload } from '@/utils/jwt';
 
 interface User {
   id: number;
@@ -53,13 +16,6 @@ interface AuthContextType {
   getToken: () => Promise<string | null>;
 }
 
-interface JWTPayload {
-  exp: number;
-  id: number;
-  role: string;
-  username: string;
-}
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
@@ -72,15 +28,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const isTokenExpired = (token: string): boolean => {
     try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      if (!isJWTPayload(decoded)) {
-        console.error('Invalid token format: missing required fields');
-        return true;
-      }
+      const decoded = validateAndDecodeToken(token);
       // Check if token is expired (considering a 30-second buffer)
       return decoded.exp * 1000 < Date.now() + 30000;
     } catch (error) {
-      console.error('Token validation error:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Token validation error:', error instanceof TokenValidationError ? error.message : 'Unknown error');
       return true;
     }
   };
