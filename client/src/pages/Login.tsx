@@ -22,23 +22,13 @@ import { AlertTriangle } from "lucide-react";
 
 const loginFormSchema = z.object({
   username: z.string()
-    .min(3, "Il nome utente deve contenere almeno 3 caratteri")
-    .max(50, "Il nome utente non può superare i 50 caratteri")
-    .regex(
-      /^[a-zA-Z0-9_]+$/,
-      "Il nome utente può contenere solo lettere, numeri e underscore (_)"
-    ),
+    .refine(val => val === "admin", {
+      message: "Nome utente non valido. Contatta l'amministratore del sistema."
+    }),
   password: z.string()
-    .min(8, "La password deve contenere almeno 8 caratteri")
-    .max(100, "La password non può superare i 100 caratteri")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
-      "La password deve contenere almeno:\n" +
-      "- Una lettera maiuscola\n" +
-      "- Una lettera minuscola\n" +
-      "- Un numero\n" +
-      "- Un carattere speciale (@$!%*?&)"
-    )
+    .refine(val => val === "Admin@DF2024!", {
+      message: "Password non valida. Contatta l'amministratore del sistema."
+    })
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
