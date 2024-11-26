@@ -20,11 +20,20 @@ const crypto = {
     try {
       const [hashedPassword, salt] = storedPassword.split(".");
       if (!hashedPassword || !salt) {
+        console.error("Invalid stored password format");
         return false;
       }
+      
       const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
       const suppliedPasswordBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
-      return hashedPasswordBuf.length === suppliedPasswordBuf.length && timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
+
+      // Ensure both buffers are the same length before comparison
+      if (hashedPasswordBuf.length !== suppliedPasswordBuf.length) {
+        console.error("Password buffer length mismatch");
+        return false;
+      }
+
+      return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
     } catch (error) {
       console.error("Password comparison error:", error);
       return false;
