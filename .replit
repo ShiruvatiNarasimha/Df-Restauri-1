@@ -39,6 +39,10 @@ author = "agent"
 task = "workflow.run"
 args = "Full Stack App"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Create Admin"
+
 [[workflows.workflow]]
 name = "Full Stack App"
 author = "agent"
@@ -51,5 +55,19 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "tsx watch --clear-screen=false server/index.ts"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Create Admin"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "tsx server/scripts/create_admin.ts"

@@ -4,7 +4,9 @@ import multer from "multer";
 import { eq } from "drizzle-orm";
 import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
 import { db } from "@db/index";
-import { projects, services, team } from "@db/schema";
+import { projects, services, team, users } from "@db/schema";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -34,8 +36,6 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
     next();
   }
 }
-
-import jwt from 'jsonwebtoken';
 
 // Authentication middleware
 interface AuthenticatedRequest extends Request {
@@ -348,5 +348,103 @@ export async function registerRoutes(app: Express) {
     const { name, email, phone, message } = req.body;
     console.log("Contact form submission:", { name, email, phone, message });
     res.json({ success: true });
+  });
+
+  // Add this new login route
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({
+          message: "Username e password sono obbligatori"
+        });
+      }
+
+      // Find user in database
+      try {
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.username, username))
+          .limit(1);
+
+        if (!user) {
+          console.log(`Login attempt failed: user not found - ${username}`);
+          return res.status(401).json({ 
+            message: "Nome utente o password non validi" 
+          });
+        }
+
+        // Verify password
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+          console.log(`Login attempt failed: invalid password for user - ${username}`);
+          return res.status(401).json({ 
+            message: "Nome utente o password non validi" 
+          });
+        }
+
+        if (user.role !== 'admin') {
+          console.log(`Login attempt failed: insufficient permissions - ${username}`);
+          return res.status(403).json({
+            message: "Accesso non autorizzato. Solo gli amministratori possono accedere."
+          });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+          {
+            id: user.id,
+            username: user.username,
+            role: user.role
+          },
+          process.env.JWT_SECRET!,
+          { expiresIn: '1h' }
+        );
+
+        console.log(`Successful login for user: ${username}`);
+        res.json({ token });
+      } catch (dbError) {
+        console.error('Database error during login:', dbError);
+        throw new Error('Database error during user lookup');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ 
+        message: "Si è verificato un errore durante l'accesso. Riprova più tardi." 
+      });
+    }
+  });
+
+  // Add refresh token route
+  app.post("/api/auth/refresh", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const [userData] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, user.id))
+        .limit(1);
+
+      const token = jwt.sign(
+        {
+          id: userData.id,
+          username: userData.username,
+          role: userData.role
+        },
+        process.env.JWT_SECRET!,
+        { expiresIn: '1h' }
+      );
+
+      res.json({ token });
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      res.status(500).json({ message: 'Error refreshing token' });
+    }
   });
 }
