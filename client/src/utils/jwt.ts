@@ -15,9 +15,12 @@ export class TokenValidationError extends Error {
 }
 
 export function validateTokenFormat(token: string): boolean {
-  // Basic JWT format validation (header.payload.signature)
-  const jwtRegex = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/;
-  return jwtRegex.test(token);
+  // Allow for more flexible JWT formats while maintaining basic structure
+  const jwtRegex = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$/;
+  if (!jwtRegex.test(token)) {
+    throw new TokenValidationError('Invalid token format');
+  }
+  return true;
 }
 
 export function isJWTPayload(decoded: unknown): decoded is JWTPayload {
@@ -57,20 +60,27 @@ export function isJWTPayload(decoded: unknown): decoded is JWTPayload {
 }
 
 export function validateAndDecodeToken(token: string): JWTPayload {
-  if (!validateTokenFormat(token)) {
-    throw new TokenValidationError('Formato token non valido');
-  }
-
   try {
+    validateTokenFormat(token);
     const decoded = jwtDecode(token);
+    
+    if (!decoded || typeof decoded !== 'object') {
+      throw new TokenValidationError('Invalid token payload');
+    }
+
     if (isJWTPayload(decoded)) {
       return decoded;
     }
-    throw new TokenValidationError('Struttura token non valida');
+    
+    throw new TokenValidationError('Invalid token structure');
   } catch (error) {
     if (error instanceof TokenValidationError) {
       throw error;
     }
-    throw new TokenValidationError('Errore durante la decodifica del token');
+    throw new TokenValidationError(
+      error instanceof Error 
+        ? `Token validation failed: ${error.message}`
+        : 'Token validation failed'
+    );
   }
 }
