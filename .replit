@@ -39,14 +39,6 @@ author = "agent"
 task = "workflow.run"
 args = "Full Stack App"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Create Admin"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Generate Placeholders"
-
 [[workflows.workflow]]
 name = "Full Stack App"
 author = "agent"
@@ -59,33 +51,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "tsx watch --clear-screen=false server/index.ts"
+args = "npm run dev"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Create Admin"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "tsx server/scripts/create_admin.ts"
-
-[[workflows.workflow]]
-name = "Generate Placeholders"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "tsx server/scripts/generate_placeholder.ts"

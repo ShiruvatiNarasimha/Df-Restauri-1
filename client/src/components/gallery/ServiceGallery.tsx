@@ -62,7 +62,7 @@ export function ServiceGallery({ images, category }: ServiceGalleryProps) {
         <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
           {images.map((image, index) => (
             <button
-              key={`thumb-${index}-${image}`}
+              key={image}
               onClick={() => setCurrentImageIndex(index)}
               className={`relative flex-shrink-0 ${
                 currentImageIndex === index

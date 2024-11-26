@@ -1,64 +1,53 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { fadeInUp, staggerChildren } from "@/lib/animations";
 import { Project } from "@/types/project";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { STOCK_PHOTOS } from "@/lib/constants";
+
+// Sample data - in a real app, this would come from an API
+const PROJECTS: Project[] = [
+  {
+    id: "1",
+    title: "Restauro Palazzo Storico Veneziano",
+    description: "Intervento di restauro conservativo su palazzo del XVI secolo",
+    category: "restauro",
+    image: STOCK_PHOTOS.restoration[0],
+    year: 2023,
+    location: "Venezia"
+  },
+  {
+    id: "2",
+    title: "Complesso Residenziale Moderno",
+    description: "Costruzione di complesso residenziale eco-sostenibile",
+    category: "costruzione",
+    image: STOCK_PHOTOS.construction[0],
+    year: 2023,
+    location: "Milano"
+  },
+  {
+    id: "3",
+    title: "Ristrutturazione Villa Liberty",
+    description: "Ristrutturazione completa con adeguamento energetico",
+    category: "ristrutturazione",
+    image: STOCK_PHOTOS.renovation[0],
+    year: 2022,
+    location: "Roma"
+  },
+  // Add more projects as needed
+];
 
 interface ProjectGalleryProps {
   onProjectClick: (project: Project) => void;
 }
 
 export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
-  const [projects, setProjects] = useState<Project[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Project['category'] | 'all'>('all');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await fetch('/api/projects');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch projects');
-      }
-
-      const data = await response.json();
-      setProjects(data);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch projects');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const filteredProjects = selectedCategory === 'all'
-    ? projects
-    : projects.filter(project => project.category === selectedCategory);
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center text-red-500 py-8">
-        {error}
-      </div>
-    );
-  }
+    ? PROJECTS
+    : PROJECTS.filter(project => project.category === selectedCategory);
 
   return (
     <motion.div
