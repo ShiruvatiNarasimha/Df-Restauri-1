@@ -31,6 +31,7 @@ import {
 import { Plus, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Service } from "@db/schema";
+import { useAuth } from "@/contexts/auth";
 
 const serviceFormSchema = z.object({
   name: z.string().min(1, "Il nome è obbligatorio"),
@@ -61,20 +62,47 @@ export default function AdminServices() {
     },
   });
 
+const handleAuthError = () => {
+  const currentPath = window.location.pathname;
+  window.location.href = `/login?redirectTo=${encodeURIComponent(currentPath)}`;
+};
   useEffect(() => {
     fetchServices();
   }, []);
 
+  const { getToken } = useAuth();
+  
   const fetchServices = async () => {
     try {
-      const response = await fetch("/api/services");
-      if (!response.ok) throw new Error("Failed to fetch services");
+      const token = await getToken();
+      if (!token) {
+        handleAuthError();
+        return;
+      }
+
+      const response = await fetch("/api/services", {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.status === 401) {
+        handleAuthError();
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch services");
+      }
+
       const data = await response.json();
       setServices(data);
     } catch (error) {
+      console.error('Service fetch error:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch services",
+        description: error instanceof Error ? error.message : "Failed to fetch services",
         variant: "destructive",
       });
     }
@@ -124,8 +152,17 @@ export default function AdminServices() {
         : "/api/services";
       const method = isEditing ? "PUT" : "POST";
 
+      const token = await getToken();
+      if (!token) {
+        handleAuthError();
+        return;
+      }
+
       const response = await fetch(url, {
         method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 
@@ -314,12 +351,19 @@ export default function AdminServices() {
                             }}
                             onChange={async (images) => {
                               try {
+                                const token = await getToken();
+                                if (!token) {
+                                  handleAuthError();
+                                  return;
+                                }
+
                                 const response = await fetch(
                                   `/api/services/${currentService.id}/image-order`,
                                   {
                                     method: "PUT",
                                     headers: {
                                       "Content-Type": "application/json",
+                                      "Authorization": `Bearer ${token}`
                                     },
                                     body: JSON.stringify({
                                       imageOrder: images

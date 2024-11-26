@@ -176,7 +176,7 @@ export default function AdminProjects() {
     }
 
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = await getToken();
       if (!token) {
         handleAuthError();
         return;

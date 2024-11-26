@@ -31,6 +31,7 @@ import {
 import { Plus, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TeamMember } from "@db/schema";
+import { useAuth } from "@/contexts/auth";
 
 const teamFormSchema = z.object({
   name: z.string().min(1, "Il nome è obbligatorio"),
@@ -61,17 +62,44 @@ export default function AdminTeam() {
   useEffect(() => {
     fetchTeamMembers();
   }, []);
+const handleAuthError = () => {
+  const currentPath = window.location.pathname;
+  window.location.href = `/login?redirectTo=${encodeURIComponent(currentPath)}`;
+};
+
+  const { getToken } = useAuth();
 
   const fetchTeamMembers = async () => {
     try {
-      const response = await fetch("/api/team");
-      if (!response.ok) throw new Error("Failed to fetch team members");
+      const token = await getToken();
+      if (!token) {
+        handleAuthError();
+        return;
+      }
+
+      const response = await fetch("/api/team", {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.status === 401) {
+        handleAuthError();
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch team members");
+      }
+
       const data = await response.json();
       setTeamMembers(data);
     } catch (error) {
+      console.error('Team fetch error:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch team members",
+        description: error instanceof Error ? error.message : "Failed to fetch team members",
         variant: "destructive",
       });
     }
@@ -96,8 +124,17 @@ export default function AdminTeam() {
         : "/api/team";
       const method = isEditing ? "PUT" : "POST";
 
+      const token = await getToken();
+      if (!token) {
+        handleAuthError();
+        return;
+      }
+
       const response = await fetch(url, {
         method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
       });
 

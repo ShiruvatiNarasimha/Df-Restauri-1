@@ -1,12 +1,15 @@
 import { motion } from "framer-motion";
 import { fadeInUp, staggerChildren } from "@/lib/animations";
-import { CaseHistory as CaseHistoryType } from "@/types/project";
+import { type Project } from "@/types/project";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServiceGallery } from "@/components/gallery/ServiceGallery";
-import { STOCK_PHOTOS } from "@/lib/constants";
+import { STOCK_PHOTOS } from "@/data/stockPhotos";
 
-// Sample data - in a real app, this would come from an API
-const CASE_HISTORIES: CaseHistoryType[] = [
+import { CaseHistory as CaseHistoryType } from "@/types/project";
+
+type CaseHistoryData = CaseHistoryType;
+
+const CASE_HISTORIES: CaseHistoryData[] = [
   {
     id: 1,
     title: "Restauro Palazzo Storico Veneziano",
@@ -23,7 +26,10 @@ const CASE_HISTORIES: CaseHistoryType[] = [
       "Miglioramento della classe energetica",
       "Riconoscimento per l'eccellenza nel restauro conservativo"
     ],
-    gallery: STOCK_PHOTOS.restoration
+    gallery: STOCK_PHOTOS.restoration,
+    imageOrder: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 ];
 
