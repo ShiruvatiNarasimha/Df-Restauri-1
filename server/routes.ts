@@ -1,6 +1,8 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import path from "path";
 import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
+import { setupAuth } from "./auth";
+import adminRouter from "./routes/admin";
 
 // Middleware to handle WebP conversion
 async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -22,7 +24,7 @@ const DYNAMIC_CONTENT = {
   about: {
     storia: {
       title: "La Nostra Storia",
-      content: "Da oltre vent'anni, DF Restauri è sinonimo di eccellenza nel mondo del restauro, delle pitture e delle decorazioni. Rappresenta la prosecuzione dell'attività nata nel 1992 in capo a De Faveri Luca. L'azienda ha saputo coniugare la maestria artigianale con le più moderne tecniche, offrendo soluzioni personalizzate per ogni esigenza dalle delicate operazioni di costruzione, ristrutturazione e restauro. DF è il partner ideale per chi desidera valorizzare i propri spazi con un tocco di esclusività. Grazie all'esperienza maturata nel corso degli anni, siamo in grado di garantire risultati impeccabili e duraturi, rispondendo alle richieste più esigenti del mercato dell'edilizia. Abbiamo saputo evolversi e adattarsi ai continui cambiamenti del mercato, mantenendo sempre al centro il cliente e la qualità dei lavori."
+      content: "Da oltre vent'anni, DF Restauri è sinonimo di eccellenza nel mondo del restauro, delle pitture e delle decorazioni..."
     },
     valori: {
       title: "Valori Aziendali",
@@ -36,11 +38,11 @@ const DYNAMIC_CONTENT = {
     },
     mission: {
       title: "Mission",
-      content: "Costruiamo il futuro, rispettando l'ambiente. Il nostro approccio all'edilizia è orientato alla sostenibilità e all'innovazione. Utilizziamo materiali eco-compatibili e tecnologie all'avanguardia per realizzare edifici efficienti dal punto di vista energetico e a basso impatto ambientale. Grazie ad una progettazione attenta e a una gestione efficiente delle risorse, siamo in grado di offrire soluzioni personalizzate e durature nel tempo."
+      content: "Costruiamo il futuro, rispettando l'ambiente..."
     },
     vision: {
       title: "Vision",
-      content: "Aspirare a diventare leader nel settore delle costruzioni sostenibili, creando un futuro dove l'eccellenza costruttiva si fonde con il rispetto per l'ambiente. Vogliamo essere riconosciuti come pionieri nell'innovazione edilizia sostenibile, mantenendo sempre vivo il legame con la tradizione e l'artigianato di qualità."
+      content: "Aspirare a diventare leader nel settore delle costruzioni sostenibili..."
     }
   },
   case_studies: [
@@ -63,8 +65,16 @@ export async function registerRoutes(app: Express) {
   // Ensure cache directory exists
   await ensureCacheDirectory();
   
+  // Set up authentication
+  setupAuth(app);
+  
   // Add WebP middleware
   app.use(webpMiddleware);
+
+  // Register admin routes
+  app.use('/api/admin', adminRouter);
+
+  // Content routes
   app.post("/api/contact", (req, res) => {
     const { name, email, phone, message } = req.body;
     console.log("Contact form submission:", { name, email, phone, message });
