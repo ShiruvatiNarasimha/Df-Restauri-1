@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { jwtDecode } from 'jwt-decode';
-import { validateAndDecodeToken, isJWTPayload, TokenValidationError, type JWTPayload } from '@/utils/jwt';
+import { validateAndDecodeToken, TokenValidationError, type JWTPayload } from '@/utils/jwt';
 
 interface User {
   id: number;
@@ -32,7 +31,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     try {
       const decoded = validateAndDecodeToken(token);
-      // Check if token is expired (considering a 60-second buffer)
       const expirationTime = decoded.exp * 1000;
       const currentTime = Date.now();
       const bufferTime = 60000; // 60 seconds buffer
@@ -122,7 +120,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     validateToken();
-  }, [setLocation]);
+  }, []);
 
   const login = (token: string) => {
     try {
@@ -148,8 +146,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setLocation('/login');
   };
 
+  const value = {
+    user,
+    isAuthenticated: !!user,
+    login,
+    logout,
+    getToken
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, getToken }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -157,7 +163,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

@@ -1,11 +1,11 @@
-import React, { StrictMode } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import "./index.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider, useAuth } from "@/contexts/auth";
+import { AuthProvider } from "@/contexts/auth";
 import { Home } from "./pages/Home";
 import { Sostenibilita } from "./pages/Sostenibilita";
 import { default as Certificazioni } from "./pages/Certificazioni";
@@ -18,30 +18,6 @@ import AdminTeam from "@/pages/AdminTeam";
 import AdminServices from "@/pages/AdminServices";
 import Login from "@/pages/Login";
 
-// Protected Route Component with TypeScript
-interface ProtectedRouteProps {
-  component: React.ComponentType<any>;
-  path?: string;
-}
-
-function ProtectedRoute({ component: Component, ...props }: ProtectedRouteProps) {
-  const [location, setLocation] = useLocation();
-  const { isAuthenticated } = useAuth();
-
-  React.useEffect(() => {
-    if (!isAuthenticated) {
-      const currentPath = window.location.pathname;
-      setLocation(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
-    }
-  }, [isAuthenticated, setLocation]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  return <Component {...props} />;
-}
-
 function Router() {
   return (
     <Switch>
@@ -51,16 +27,11 @@ function Router() {
       <Route path="/ci-presentiamo" component={CiPresentiamo} />
       <Route path="/servizi" component={Servizi} />
       <Route path="/realizzazioni" component={Realizzazioni} />
-      
-      {/* Auth Routes */}
       <Route path="/login" component={Login} />
-      
-      {/* Admin Routes */}
-      <Route path="/admin" component={(props) => <ProtectedRoute component={AdminDashboard} {...props} />} />
-      <Route path="/admin/projects" component={(props) => <ProtectedRoute component={AdminProjects} {...props} />} />
-      <Route path="/admin/team" component={(props) => <ProtectedRoute component={AdminTeam} {...props} />} />
-      <Route path="/admin/services" component={(props) => <ProtectedRoute component={AdminServices} {...props} />} />
-      
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/projects" component={AdminProjects} />
+      <Route path="/admin/team" component={AdminTeam} />
+      <Route path="/admin/services" component={AdminServices} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );
@@ -68,15 +39,21 @@ function Router() {
 
 function App() {
   return (
-    <StrictMode>
-      <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <Router />
-          <Toaster />
-        </QueryClientProvider>
-      </AuthProvider>
-    </StrictMode>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router />
+        <Toaster />
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+const rootElement = document.getElementById("root");
+if (!rootElement?.innerHTML) {
+  const root = createRoot(rootElement!);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}
