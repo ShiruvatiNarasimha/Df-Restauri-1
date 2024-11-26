@@ -12,6 +12,22 @@ import { CiPresentiamo } from "./pages/CiPresentiamo";
 import { Servizi } from "./pages/Servizi";
 import { Realizzazioni } from "./pages/Realizzazioni";
 import { Admin } from "./pages/Admin";
+import { Loader2 } from "lucide-react";
+import { useUser } from "./hooks/use-user";
+
+function ProtectedAdmin() {
+  const { user, isLoading } = useUser();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-border" />
+      </div>
+    );
+  }
+
+  return <Admin />;
+}
 
 function Router() {
   return (
@@ -22,17 +38,23 @@ function Router() {
       <Route path="/ci-presentiamo" component={CiPresentiamo} />
       <Route path="/servizi" component={Servizi} />
       <Route path="/realizzazioni" component={Realizzazioni} />
-      <Route path="/admin" component={Admin} />
+      <Route path="/admin" component={ProtectedAdmin} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );
 }
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
+function App() {
+  return (
     <QueryClientProvider client={queryClient}>
       <Router />
       <Toaster />
     </QueryClientProvider>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
   </StrictMode>,
 );
