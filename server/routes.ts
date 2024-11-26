@@ -21,18 +21,32 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+import { existsSync } from 'fs';
+
 // Middleware to handle WebP conversion
 async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
-  if (!req.path.startsWith('/images') || !isImagePath(req.path)) {
+  if (!req.path.startsWith('/images') && !req.path.startsWith('/uploads') || !isImagePath(req.path)) {
     return next();
   }
 
   try {
     const imagePath = path.join(process.cwd(), 'public', req.path);
+    
+    // Check if original image exists
+    if (!existsSync(imagePath)) {
+      console.warn(`Image not found: ${imagePath}`);
+      return next();
+    }
+
     const webpPath = await convertToWebP(imagePath);
-    res.redirect(webpPath);
+    if (webpPath) {
+      res.redirect(webpPath.replace(process.cwd() + '/public', ''));
+    } else {
+      next();
+    }
   } catch (error) {
     console.error('WebP conversion error:', error);
+    // Continue with original image if conversion fails
     next();
   }
 }
@@ -177,9 +191,29 @@ export async function registerRoutes(app: Express) {
   app.get("/api/team", async (_req, res) => {
     try {
       const allTeamMembers = await db.select().from(team);
-      res.json(allTeamMembers);
+      
+      // Transform team members to handle null socialLinks
+      const transformedTeamMembers = allTeamMembers.map(member => ({
+        ...member,
+        socialLinks: member.socialLinks || []
+      }));
+      
+      res.json(transformedTeamMembers);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching team members" });
+      console.error('Database error while fetching team members:', error);
+      
+      if (error instanceof Error) {
+        res.status(500).json({ 
+          message: "Error fetching team members",
+          error: error.message,
+          code: 'DB_FETCH_ERROR'
+        });
+      } else {
+        res.status(500).json({ 
+          message: "An unexpected error occurred",
+          code: 'UNKNOWN_ERROR'
+        });
+      }
     }
   });
 
@@ -233,9 +267,31 @@ export async function registerRoutes(app: Express) {
   app.get("/api/services", async (_req, res) => {
     try {
       const allServices = await db.select().from(services);
-      res.json(allServices);
+      
+      // Transform services to handle null features and gallery
+      const transformedServices = allServices.map(service => ({
+        ...service,
+        features: service.features || [],
+        gallery: service.gallery || [],
+        imageOrder: service.imageOrder || null
+      }));
+      
+      res.json(transformedServices);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching services" });
+      console.error('Database error while fetching services:', error);
+      
+      if (error instanceof Error) {
+        res.status(500).json({ 
+          message: "Error fetching services",
+          error: error.message,
+          code: 'DB_FETCH_ERROR'
+        });
+      } else {
+        res.status(500).json({ 
+          message: "An unexpected error occurred",
+          code: 'UNKNOWN_ERROR'
+        });
+      }
     }
   });
 
