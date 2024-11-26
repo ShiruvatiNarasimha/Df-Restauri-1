@@ -1,8 +1,9 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express, { type Request, type Response, type NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import { sql } from "drizzle-orm";
 import { createServer } from "http";
+import path from "path";
 
 function log(message: string, level: 'info' | 'error' | 'warn' = 'info') {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -154,12 +155,39 @@ async function startServer() {
       });
     });
 
-    if (app.get("env") === "development") {
-      await setupVite(app, server);
-    } else {
+    // Configure static file serving with proper MIME types
+    app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads'), {
+      setHeaders: (res, path) => {
+        if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
+          res.setHeader('Content-Type', 'image/jpeg');
+        } else if (path.endsWith('.png')) {
+          res.setHeader('Content-Type', 'image/png');
+        } else if (path.endsWith('.webp')) {
+          res.setHeader('Content-Type', 'image/webp');
+        }
+      }
+    }));
+    
+    app.use('/images', express.static(path.join(process.cwd(), 'public', 'images'), {
+      setHeaders: (res, path) => {
+        if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
+          res.setHeader('Content-Type', 'image/jpeg');
+        } else if (path.endsWith('.png')) {
+          res.setHeader('Content-Type', 'image/png');
+        } else if (path.endsWith('.webp')) {
+          res.setHeader('Content-Type', 'image/webp');
+        }
+      }
+    }));
+    
+    if (process.env.NODE_ENV === 'production') {
+      // Serve static files in production
       serveStatic(app);
+    } else {
+      // Use Vite in development
+      await setupVite(app, server);
     }
-
+    
     const PORT = 5000;
     server.listen(PORT, "0.0.0.0", () => {
       log(`Server started successfully on port ${PORT}`);
