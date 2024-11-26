@@ -11,6 +11,7 @@ import { default as Certificazioni } from "./pages/Certificazioni";
 import { CiPresentiamo } from "./pages/CiPresentiamo";
 import { Servizi } from "./pages/Servizi";
 import { Realizzazioni } from "./pages/Realizzazioni";
+import { Admin } from "./pages/Admin";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/ci-presentiamo" component={CiPresentiamo} />
       <Route path="/servizi" component={Servizi} />
       <Route path="/realizzazioni" component={Realizzazioni} />
+      <Route path="/admin" component={Admin} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );
