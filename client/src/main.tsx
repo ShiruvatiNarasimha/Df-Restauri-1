@@ -1,33 +1,22 @@
-import { StrictMode } from "react";
+import React from "react";
 import { createRoot } from "react-dom/client";
 import { Switch, Route } from "wouter";
 import "./index.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/contexts/auth";
 import { Home } from "./pages/Home";
 import { Sostenibilita } from "./pages/Sostenibilita";
 import { default as Certificazioni } from "./pages/Certificazioni";
 import { CiPresentiamo } from "./pages/CiPresentiamo";
 import { Servizi } from "./pages/Servizi";
 import { Realizzazioni } from "./pages/Realizzazioni";
-import { Admin } from "./pages/Admin";
-import { Loader2 } from "lucide-react";
-import { useUser } from "./hooks/use-user";
-
-function ProtectedAdmin() {
-  const { user, isLoading } = useUser();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-border" />
-      </div>
-    );
-  }
-
-  return <Admin />;
-}
+import AdminDashboard from "@/pages/AdminDashboard";
+import AdminProjects from "@/pages/AdminProjects";
+import AdminTeam from "@/pages/AdminTeam";
+import AdminServices from "@/pages/AdminServices";
+import Login from "@/pages/Login";
 
 function Router() {
   return (
@@ -38,7 +27,11 @@ function Router() {
       <Route path="/ci-presentiamo" component={CiPresentiamo} />
       <Route path="/servizi" component={Servizi} />
       <Route path="/realizzazioni" component={Realizzazioni} />
-      <Route path="/admin" component={ProtectedAdmin} />
+      <Route path="/login" component={Login} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/projects" component={AdminProjects} />
+      <Route path="/admin/team" component={AdminTeam} />
+      <Route path="/admin/services" component={AdminServices} />
       <Route>404 Page Not Found</Route>
     </Switch>
   );
@@ -46,15 +39,21 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router />
+        <Toaster />
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+const rootElement = document.getElementById("root");
+if (!rootElement?.innerHTML) {
+  const root = createRoot(rootElement!);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}

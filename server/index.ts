@@ -2,9 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import { createServer } from "http";
-import path from "path";
-import fs from "fs";
-import { setupAuth } from "./auth";
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -20,24 +17,6 @@ function log(message: string) {
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// Ensure uploads directory exists
-const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-const teamUploadsDir = path.join(uploadsDir, 'team');
-const projectsUploadsDir = path.join(uploadsDir, 'projects');
-
-// Create directories if they don't exist
-[uploadsDir, teamUploadsDir, projectsUploadsDir].forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-});
-
-// Serve uploaded files
-app.use('/uploads', express.static(uploadsDir));
-
-// Set up authentication
-setupAuth(app);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -70,7 +49,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  await registerRoutes(app);
+  registerRoutes(app);
   const server = createServer(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

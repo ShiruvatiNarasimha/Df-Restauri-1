@@ -1,11 +1,16 @@
+export type ProjectCategory = 'restauro' | 'costruzione' | 'ristrutturazione';
+
 export interface Project {
-  id: string;
+  id: number;
   title: string;
   description: string;
-  category: 'restauro' | 'costruzione' | 'ristrutturazione';
+  category: ProjectCategory;
   image: string;
   year: number;
   location: string;
+  imageOrder: { id: string; order: number }[] | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CaseHistory extends Project {

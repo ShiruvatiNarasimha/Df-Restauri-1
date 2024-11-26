@@ -1,8 +1,25 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import path from "path";
+import multer from "multer";
+import { eq } from "drizzle-orm";
 import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
-import { setupAuth } from "./auth";
-import adminRouter from "./routes/admin";
+import { db } from "@db/index";
+import { projects, services, team, users } from "@db/schema";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(process.cwd(), 'public', 'uploads'));
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
 
 // Middleware to handle WebP conversion
 async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -20,79 +37,414 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-const DYNAMIC_CONTENT = {
-  about: {
-    storia: {
-      title: "La Nostra Storia",
-      content: "Da oltre vent'anni, DF Restauri è sinonimo di eccellenza nel mondo del restauro, delle pitture e delle decorazioni..."
-    },
-    valori: {
-      title: "Valori Aziendali",
-      content: "Definizione dei principi e dei valori che guidano l'operato dell'azienda",
-      items: [
-        "Qualità senza compromessi",
-        "Innovazione sostenibile",
-        "Rispetto per la tradizione",
-        "Attenzione al cliente"
-      ]
-    },
-    mission: {
-      title: "Mission",
-      content: "Costruiamo il futuro, rispettando l'ambiente..."
-    },
-    vision: {
-      title: "Vision",
-      content: "Aspirare a diventare leader nel settore delle costruzioni sostenibili..."
+// Authentication middleware
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: number;
+    role: string;
+  };
+}
+
+function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  const token = authHeader.substring(7);
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: number; role: string };
+    req.user = decoded;
+    
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ message: 'Insufficient permissions' });
     }
-  },
-  case_studies: [
-    {
-      id: 1,
-      title: "Restauro Palazzo Storico",
-      description: "Recupero e valorizzazione di un edificio del XVIII secolo",
-      image: "/images/case-studies/palazzo.jpg"
-    },
-    {
-      id: 2,
-      title: "Edificio Sostenibile",
-      description: "Progetto di costruzione eco-compatibile",
-      image: "/images/case-studies/eco.jpg"
-    }
-  ]
-};
+    
+    next();
+  } catch (error) {
+    console.error('JWT verification error:', error);
+    return res.status(401).json({ message: 'Invalid or expired token' });
+  }
+}
 
 export async function registerRoutes(app: Express) {
   // Ensure cache directory exists
   await ensureCacheDirectory();
   
-  // Set up authentication
-  setupAuth(app);
-  
   // Add WebP middleware
   app.use(webpMiddleware);
 
-  // Register admin routes
-  app.use('/api/admin', adminRouter);
+  // Projects API Routes
+  app.get("/api/projects", async (_req, res) => {
+    try {
+      const allProjects = await db.select().from(projects);
+      
+      // Transform projects to handle null imageOrder
+      const transformedProjects = allProjects.map(project => ({
+        ...project,
+        imageOrder: project.imageOrder || null,
+      }));
+      
+      res.json(transformedProjects);
+    } catch (error) {
+      console.error('Database error while fetching projects:', error);
+      
+      // PostgreSQL specific error handling
+      if (error && typeof error === 'object' && 'code' in error) {
+        const pgError = error as { code: string; detail?: string; message: string };
+        
+        switch (pgError.code) {
+          case '42703': // undefined_column
+            res.status(500).json({
+              message: "Database schema error",
+              error: "Missing required column",
+              detail: pgError.detail || pgError.message,
+              code: 'SCHEMA_ERROR'
+            });
+            break;
+          default:
+            res.status(500).json({
+              message: "Database error",
+              error: pgError.message,
+              code: 'DB_ERROR',
+              detail: pgError.detail
+            });
+        }
+      } else if (error instanceof Error) {
+        res.status(500).json({ 
+          message: "Error fetching projects",
+          error: error.message,
+          code: 'DB_FETCH_ERROR'
+        });
+      } else {
+        res.status(500).json({ 
+          message: "An unexpected error occurred",
+          code: 'UNKNOWN_ERROR'
+        });
+      }
+    }
+  });
 
-  // Content routes
+  app.post("/api/projects", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { title, description, category, year, location } = req.body;
+      const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
+      
+      const newProject = await db.insert(projects).values({
+        title,
+        description,
+        category,
+        image: imagePath,
+        year: parseInt(year),
+        location
+      }).returning();
+
+      res.json(newProject[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating project" });
+    }
+  });
+
+  app.put("/api/projects/:id", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { title, description, category, year, location } = req.body;
+      const updateData: any = {
+        title,
+        description,
+        category,
+        year: parseInt(year),
+        location
+      };
+
+      if (req.file) {
+        updateData.image = `/uploads/${req.file.filename}`;
+      }
+
+      const updatedProject = await db
+        .update(projects)
+        .set(updateData)
+        .where(eq(projects.id, parseInt(id)))
+        .returning();
+
+      res.json(updatedProject[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating project" });
+    }
+  });
+
+  // Team API Routes
+  app.get("/api/team", async (_req, res) => {
+    try {
+      const allTeamMembers = await db.select().from(team);
+      res.json(allTeamMembers);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching team members" });
+    }
+  });
+
+  app.post("/api/team", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { name, role, bio, socialLinks } = req.body;
+      const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
+      
+      const newMember = await db.insert(team).values({
+        name,
+        role,
+        bio,
+        image: imagePath,
+        socialLinks: JSON.parse(socialLinks || '[]')
+      }).returning();
+
+      res.json(newMember[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating team member" });
+    }
+  });
+
+  app.put("/api/team/:id", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, role, bio, socialLinks } = req.body;
+      const updateData: any = {
+        name,
+        role,
+        bio,
+        socialLinks: JSON.parse(socialLinks || '[]')
+      };
+
+      if (req.file) {
+        updateData.image = `/uploads/${req.file.filename}`;
+      }
+
+      const updatedMember = await db
+        .update(team)
+        .set(updateData)
+        .where(eq(team.id, parseInt(id)))
+        .returning();
+
+      res.json(updatedMember[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating team member" });
+    }
+  });
+
+  // Services API Routes
+  app.get("/api/services", async (_req, res) => {
+    try {
+      const allServices = await db.select().from(services);
+      res.json(allServices);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching services" });
+    }
+  });
+
+  app.post("/api/services", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { name, description, category, features } = req.body;
+      const imagePath = req.file ? `/uploads/${req.file.filename}` : '';
+      
+      const newService = await db.insert(services).values({
+        name,
+        description,
+        category,
+        image: imagePath,
+        features: JSON.parse(features || '[]')
+      }).returning();
+
+      res.json(newService[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating service" });
+    }
+  });
+
+  app.put("/api/services/:id", requireAuth, upload.single('image'), async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, description, category, features } = req.body;
+      const updateData: any = {
+        name,
+        description,
+        category,
+        features: JSON.parse(features || '[]')
+      };
+
+      if (req.file) {
+        updateData.image = `/uploads/${req.file.filename}`;
+      }
+
+      const updatedService = await db
+        .update(services)
+        .set(updateData)
+        .where(eq(services.id, parseInt(id)))
+        .returning();
+
+      res.json(updatedService[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating service" });
+    }
+  });
+  // Image ordering routes
+  app.put("/api/projects/:id/image-order", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { imageOrder } = req.body as { imageOrder: { id: string; order: number }[] };
+      
+      if (!Array.isArray(imageOrder)) {
+        return res.status(400).json({ message: "Invalid image order format" });
+      }
+
+      if (!id || isNaN(parseInt(id))) {
+        return res.status(400).json({ message: "Invalid project ID" });
+      }
+
+      const updatedProject = await db
+        .update(projects)
+        .set({ imageOrder: imageOrder })
+        .where(eq(projects.id, parseInt(id)))
+        .returning();
+
+      if (!updatedProject.length) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      res.json(updatedProject[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating image order" });
+    }
+  });
+
+  app.put("/api/services/:id/image-order", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { imageOrder } = req.body as { imageOrder: { id: string; order: number }[] };
+      
+      if (!Array.isArray(imageOrder)) {
+        return res.status(400).json({ message: "Invalid image order format" });
+      }
+
+      if (!id || isNaN(parseInt(id))) {
+        return res.status(400).json({ message: "Invalid service ID" });
+      }
+
+      const updatedService = await db
+        .update(services)
+        .set({ imageOrder: imageOrder })
+        .where(eq(services.id, parseInt(id)))
+        .returning();
+
+      if (!updatedService.length) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+
+      res.json(updatedService[0]);
+    } catch (error) {
+      res.status(500).json({ message: "Error updating image order" });
+    }
+  });
+
+  // Contact form route (preserved from original)
   app.post("/api/contact", (req, res) => {
     const { name, email, phone, message } = req.body;
     console.log("Contact form submission:", { name, email, phone, message });
     res.json({ success: true });
   });
 
-  app.get("/api/content/:section", (req, res) => {
-    const { section } = req.params;
-    const content = DYNAMIC_CONTENT[section as keyof typeof DYNAMIC_CONTENT];
-    
-    if (!content) {
-      return res.status(404).json({ message: "Content not found" });
+  // Add this new login route
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({
+          message: "Username e password sono obbligatori"
+        });
+      }
+
+      // Find user in database
+      try {
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.username, username))
+          .limit(1);
+
+        if (!user) {
+          console.log(`Login attempt failed: user not found - ${username}`);
+          return res.status(401).json({ 
+            message: "Nome utente o password non validi" 
+          });
+        }
+
+        // Verify password
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+          console.log(`Login attempt failed: invalid password for user - ${username}`);
+          return res.status(401).json({ 
+            message: "Nome utente o password non validi" 
+          });
+        }
+
+        if (user.role !== 'admin') {
+          console.log(`Login attempt failed: insufficient permissions - ${username}`);
+          return res.status(403).json({
+            message: "Accesso non autorizzato. Solo gli amministratori possono accedere."
+          });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+          {
+            id: user.id,
+            username: user.username,
+            role: user.role
+          },
+          process.env.JWT_SECRET!,
+          { expiresIn: '1h' }
+        );
+
+        console.log(`Successful login for user: ${username}`);
+        res.json({ token });
+      } catch (dbError) {
+        console.error('Database error during login:', dbError);
+        throw new Error('Database error during user lookup');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ 
+        message: "Si è verificato un errore durante l'accesso. Riprova più tardi." 
+      });
     }
-    
-    res.json(content);
   });
 
-  app.get("/api/case-studies", (_req, res) => {
-    res.json(DYNAMIC_CONTENT.case_studies);
+  // Add refresh token route
+  app.post("/api/auth/refresh", requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+
+      const [userData] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, user.id))
+        .limit(1);
+
+      const token = jwt.sign(
+        {
+          id: userData.id,
+          username: userData.username,
+          role: userData.role
+        },
+        process.env.JWT_SECRET!,
+        { expiresIn: '1h' }
+      );
+
+      res.json({ token });
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      res.status(500).json({ message: 'Error refreshing token' });
+    }
   });
 }

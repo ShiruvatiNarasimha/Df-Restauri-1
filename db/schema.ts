@@ -1,50 +1,68 @@
-import { pgTable, text, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   username: text("username").unique().notNull(),
   password: text("password").notNull(),
-  isAdmin: boolean("is_admin").default(false).notNull(),
-});
-
-export const teamMembers = pgTable("team_members", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  name: text("name").notNull(),
-  role: text("role").notNull(),
-  avatar: text("avatar").notNull(),
-  socialFacebook: text("social_facebook"),
-  socialTwitter: text("social_twitter"),
-  socialInstagram: text("social_instagram"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  role: text("role").default("user").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const projects = pgTable("projects", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  category: text("category").notNull(), // restauro, costruzione, ristrutturazione
+  category: text("category").notNull(),
   image: text("image").notNull(),
   year: integer("year").notNull(),
   location: text("location").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  imageOrder: json("image_order").$type<{ id: string; order: number }[]>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Schema definitions
+export const team = pgTable("team", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: text("name").notNull(),
+  role: text("role").notNull(),
+  bio: text("bio").notNull(),
+  image: text("image").notNull(),
+  socialLinks: json("social_links").$type<{ platform: string; url: string }[]>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const services = pgTable("services", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  image: text("image").notNull(),
+  category: text("category").notNull(),
+  features: json("features").$type<string[]>(),
+  gallery: json("gallery").$type<string[]>(),
+  imageOrder: json("image_order").$type<{ id: string; order: number }[]>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Schema validators
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
-export const insertTeamMemberSchema = createInsertSchema(teamMembers);
-export const selectTeamMemberSchema = createSelectSchema(teamMembers);
 export const insertProjectSchema = createInsertSchema(projects);
 export const selectProjectSchema = createSelectSchema(projects);
+export const insertTeamSchema = createInsertSchema(team);
+export const selectTeamSchema = createSelectSchema(team);
+export const insertServiceSchema = createInsertSchema(services);
+export const selectServiceSchema = createSelectSchema(services);
 
 // Types
-export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = z.infer<typeof selectUserSchema>;
-export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
-export type TeamMember = z.infer<typeof selectTeamMemberSchema>;
-export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Project = z.infer<typeof selectProjectSchema>;
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type TeamMember = z.infer<typeof selectTeamSchema>;
+export type InsertTeamMember = z.infer<typeof insertTeamSchema>;
+export type Service = z.infer<typeof selectServiceSchema>;
+export type InsertService = z.infer<typeof insertServiceSchema>;
