@@ -28,12 +28,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [, setLocation] = useLocation();
 
   const isTokenExpired = (token: string): boolean => {
+    if (!token) return true;
+    
     try {
       const decoded = validateAndDecodeToken(token);
-      // Check if token is expired (considering a 30-second buffer)
-      return decoded.exp * 1000 < Date.now() + 30000;
+      // Check if token is expired (considering a 60-second buffer)
+      const expirationTime = decoded.exp * 1000;
+      const currentTime = Date.now();
+      const bufferTime = 60000; // 60 seconds buffer
+      
+      if (expirationTime < currentTime + bufferTime) {
+        console.warn('Token is expired or about to expire');
+        return true;
+      }
+      
+      return false;
     } catch (error) {
-      console.error('Token validation error:', error instanceof TokenValidationError ? error.message : 'Unknown error');
+      if (error instanceof TokenValidationError) {
+        console.error('Token validation failed:', error.message);
+      } else {
+        console.error('Unexpected token validation error:', error);
+      }
       return true;
     }
   };

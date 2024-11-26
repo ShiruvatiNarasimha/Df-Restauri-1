@@ -18,8 +18,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 
 const loginFormSchema = z.object({
-  username: z.string().min(1, "Il nome utente è obbligatorio"),
-  password: z.string().min(1, "La password è obbligatoria")
+  username: z.string()
+    .min(3, "Il nome utente deve contenere almeno 3 caratteri")
+    .max(50, "Il nome utente non può superare i 50 caratteri")
+    .regex(/^[a-zA-Z0-9_]+$/, "Il nome utente può contenere solo lettere, numeri e underscore"),
+  password: z.string()
+    .min(8, "La password deve contenere almeno 8 caratteri")
+    .max(100, "La password non può superare i 100 caratteri")
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/, 
+      "La password deve contenere almeno una lettera maiuscola, una minuscola, un numero e un carattere speciale")
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
@@ -61,21 +68,48 @@ export default function Login() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
         
-        if (response.status === 401) {
-          form.setError("root", {
-            message: "Nome utente o password non validi",
-          });
-          return;
+        switch (response.status) {
+          case 400:
+            // Validation error
+            form.setError("root", {
+              message: errorData.message || "Dati di accesso non validi. Verifica i requisiti di username e password.",
+            });
+            return;
+            
+          case 401:
+            // Authentication failed
+            form.setError("root", {
+              message: "Nome utente o password non validi",
+            });
+            return;
+            
+          case 429:
+            // Rate limiting
+            form.setError("root", {
+              message: "Troppi tentativi di accesso. Per favore riprova più tardi.",
+            });
+            return;
+            
+          case 403:
+            // Forbidden - not enough permissions
+            form.setError("root", {
+              message: "Non hai i permessi necessari per accedere all'area amministrativa.",
+            });
+            return;
+            
+          case 500:
+            // Server error
+            form.setError("root", {
+              message: "Si è verificato un errore del server. Per favore riprova più tardi.",
+            });
+            return;
+            
+          default:
+            form.setError("root", {
+              message: errorData.message || "Si è verificato un errore durante l'accesso. Per favore riprova.",
+            });
+            return;
         }
-        
-        if (response.status === 429) {
-          form.setError("root", {
-            message: "Troppi tentativi di accesso. Per favore riprova più tardi.",
-          });
-          return;
-        }
-        
-        throw new Error(errorData.message || 'Login failed');
       }
 
       const { token } = await response.json();
