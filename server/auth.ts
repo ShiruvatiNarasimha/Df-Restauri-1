@@ -23,16 +23,10 @@ const crypto = {
         console.error("Invalid stored password format");
         return false;
       }
-      
+
       const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
       const suppliedPasswordBuf = (await scryptAsync(suppliedPassword, salt, 64)) as Buffer;
-
-      // Ensure both buffers are the same length before comparison
-      if (hashedPasswordBuf.length !== suppliedPasswordBuf.length) {
-        console.error("Password buffer length mismatch");
-        return false;
-      }
-
+      
       return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
     } catch (error) {
       console.error("Password comparison error:", error);

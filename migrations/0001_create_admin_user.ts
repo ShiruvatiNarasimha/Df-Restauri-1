@@ -14,9 +14,9 @@ export async function up() {
   const hashedPassword = await hashPassword('DF_Restauri_2024!');
   
   return sql`
+    DELETE FROM users WHERE username = 'admin';
     INSERT INTO users (username, password, is_admin)
-    VALUES ('admin', ${hashedPassword}, true)
-    ON CONFLICT (username) DO NOTHING;
+    VALUES ('admin', ${hashedPassword}, true);
   `;
 }
 
