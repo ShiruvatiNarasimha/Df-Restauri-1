@@ -348,7 +348,7 @@ export async function registerRoutes(app: Express) {
         });
       }
 
-      // Validate image
+      // Validate and process image
       if (!req.file) {
         return res.status(400).json({
           message: "Image is required",
@@ -356,7 +356,46 @@ export async function registerRoutes(app: Express) {
         });
       }
 
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(req.file.mimetype)) {
+        try {
+          await fs.unlink(req.file.path);
+        } catch (unlinkError) {
+          logTeamError('Failed to delete invalid file', unlinkError);
+        }
+        return res.status(400).json({
+          message: "Invalid file type. Only JPEG, PNG and WebP are allowed",
+          code: 'VALIDATION_ERROR'
+        });
+      }
+
+      // Validate file size (5MB limit)
+      const maxSize = 5 * 1024 * 1024;
+      if (req.file.size > maxSize) {
+        try {
+          await fs.unlink(req.file.path);
+        } catch (unlinkError) {
+          logTeamError('Failed to delete oversized file', unlinkError);
+        }
+        return res.status(400).json({
+          message: "File too large. Maximum size is 5MB",
+          code: 'VALIDATION_ERROR'
+        });
+      }
+
       const imagePath = `/uploads/${req.file.filename}`;
+
+      // Verify file was actually saved
+      try {
+        await fs.access(path.join(process.cwd(), 'public', imagePath));
+      } catch (error) {
+        logTeamError('File access verification failed', error);
+        return res.status(500).json({
+          message: "Failed to save image file",
+          code: 'FILE_SYSTEM_ERROR'
+        });
+      }
       
       // Use transaction for data persistence
       const newMember = await db.transaction(async (tx) => {

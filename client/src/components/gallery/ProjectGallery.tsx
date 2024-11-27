@@ -1,61 +1,76 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import { fadeInUp, staggerChildren } from "@/lib/animations";
 import { Project } from "@/types/project";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { STOCK_PHOTOS } from "@/lib/constants";
-
-// Sample data - in a real app, this would come from an API
-const PROJECTS: Project[] = [
-  {
-    id: 1,
-    title: "Restauro Palazzo Storico Veneziano",
-    description: "Intervento di restauro conservativo su palazzo del XVI secolo",
-    category: "restauro",
-    image: STOCK_PHOTOS.restoration[0],
-    year: 2023,
-    location: "Venezia",
-    imageOrder: null,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: 2,
-    title: "Complesso Residenziale Moderno",
-    description: "Costruzione di complesso residenziale eco-sostenibile",
-    category: "costruzione",
-    image: STOCK_PHOTOS.construction[0],
-    year: 2023,
-    location: "Milano",
-    imageOrder: null,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: 3,
-    title: "Ristrutturazione Villa Liberty",
-    description: "Ristrutturazione completa con adeguamento energetico",
-    category: "ristrutturazione",
-    image: STOCK_PHOTOS.renovation[0],
-    year: 2022,
-    location: "Roma",
-    imageOrder: null,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-];
 
 interface ProjectGalleryProps {
-  onProjectClick: (project: Project) => void;
+  onProjectClick?: (project: Project) => void;
 }
 
 export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Project['category'] | 'all'>('all');
+  const [retryCount, setRetryCount] = useState(0);
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+  const [isFetchingRetry, setIsFetchingRetry] = useState(false);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        const response = await fetch("/api/projects", {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          }
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || "Failed to fetch projects");
+        }
+
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid data format received from server");
+        }
+
+        setProjects(data);
+        setError(null);
+        setRetryCount(0);
+      } catch (err) {
+        console.error("Project fetch error:", err);
+        setError(err instanceof Error ? err.message : "Error loading projects");
+        
+        // Implement exponential backoff for retries
+        if (retryCount < 3) {
+          const delay = Math.pow(2, retryCount) * 1000;
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+            fetchProjects();
+          }, delay);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [retryCount]);
 
   const filteredProjects = selectedCategory === 'all'
-    ? PROJECTS
-    : PROJECTS.filter(project => project.category === selectedCategory);
+    ? projects
+    : projects.filter(project => project.category === selectedCategory);
 
   return (
     <motion.div
@@ -94,11 +109,19 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProjects.map((project) => (
+        {isLoading ? (
+          <div className="col-span-3 flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : error ? (
+          <div className="col-span-3 text-center py-12 text-red-500">
+            {error}
+          </div>
+        ) : filteredProjects.map((project) => (
           <motion.div
             key={project.id}
             variants={fadeInUp}
-            onClick={() => onProjectClick(project)}
+            onClick={() => onProjectClick?.(project)}
           >
             <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
               <div className="aspect-video relative overflow-hidden">
@@ -106,6 +129,20 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
                   src={project.image}
                   alt={project.title}
                   className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                  loading="lazy"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = '/images/fallback/project-fallback.jpg';
+                    setImageErrors(prev => ({
+                      ...prev,
+                      [project.id]: true
+                    }));
+                    console.error(`Failed to load image for project ${project.id}`);
+                  }}
+                  className={`w-full h-full object-cover transition-transform duration-300 hover:scale-105 ${
+                    imageErrors[project.id] ? 'opacity-50' : ''
+                  }`}
                 />
               </div>
               <CardContent className="p-4">
@@ -120,6 +157,11 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
           </motion.div>
         ))}
       </div>
+      {!isLoading && !error && filteredProjects.length === 0 && (
+        <div className="text-center py-12 text-gray-500">
+          Nessun progetto trovato per questa categoria.
+        </div>
+      )}
     </motion.div>
   );
 }
