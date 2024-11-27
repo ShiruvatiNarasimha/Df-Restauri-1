@@ -13,7 +13,7 @@ export interface Project {
   updatedAt: Date;
 }
 
-export interface CaseHistory extends Project {
+export interface CaseHistory extends Omit<Project, 'imageOrder'> {
   challenge: string;
   solution: string;
   results: string[];

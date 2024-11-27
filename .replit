@@ -43,6 +43,14 @@ args = "Full Stack App"
 task = "workflow.run"
 args = "Create Admin"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Backend Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Client Dev Server"
+
 [[workflows.workflow]]
 name = "Full Stack App"
 author = "agent"
@@ -71,3 +79,33 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "tsx server/scripts/create_admin.ts"
+
+[[workflows.workflow]]
+name = "Backend Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "tsx watch --clear-screen=false server/index.ts"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Client Dev Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run dev"
+waitForPort = 3000
