@@ -23,14 +23,9 @@ export function About() {
               maestria artigianale con le più moderne tecniche, offrendo soluzioni personalizzate per ogni esigenza dalle delicate 
               operazioni di costruzione, ristrutturazione e restauro.
             </p>
-            <p className="text-gray-600 mb-8">
-              DF è il partner ideale per chi desidera valorizzare i propri spazi con un tocco di esclusività. 
-              Grazie all'esperienza maturata nel corso degli anni, siamo in grado di garantire risultati impeccabili e duraturi, 
-              rispondendo alle richieste più esigenti del mercato dell'edilizia. Abbiamo saputo evolversi e adattarsi ai continui 
-              cambiamenti del mercato, mantenendo sempre al centro il cliente e la qualità dei lavori.
-            </p>
+          
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {VALUES.map((value) => (
                 <div key={value} className="flex items-center gap-2">
                   <CheckCircle className="text-primary" />
