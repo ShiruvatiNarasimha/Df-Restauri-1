@@ -3,11 +3,16 @@ import path from "path";
 import multer from "multer";
 import { eq } from "drizzle-orm";
 import { convertToWebP, ensureCacheDirectory, isImagePath, getMimeType } from "./utils/imageProcessing";
+import { constants } from 'fs';
+import * as fs from 'fs/promises';
+
 import { db } from "@db/index";
 import { projects, services, team, users } from "@db/schema";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import * as fs from 'fs/promises';
+
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const FALLBACK_DIR = path.join(process.cwd(), 'public', 'images', 'fallback');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -29,28 +34,50 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  const logMiddlewareError = (context: string, error: unknown, additionalInfo: Record<string, unknown> = {}) => {
+    console.error(`[WebPMiddleware] ${context}:`, {
+      path: req.path,
+      userAgent: req.headers['user-agent'],
+      error: error instanceof Error ? {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      } : error,
+      timestamp: new Date().toISOString(),
+      ...additionalInfo
+    });
+  };
+
   try {
     const imagePath = path.join(process.cwd(), 'public', req.path);
-    const fallbackPath = path.join(process.cwd(), 'public', 'images', 'fallback', 'image-fallback.jpg');
-    
+    const fallbackPath = path.join(FALLBACK_DIR, 'image-fallback.jpg'); // Updated fallback path
+
     // Check if original image exists
     try {
-      await fs.access(imagePath);
+      await fs.access(imagePath, constants.R_OK);
+      const stats = await fs.stat(imagePath);
+      if (stats.size === 0) {
+        throw new Error('Image file is empty');
+      }
     } catch (error) {
-      console.error('Image access error:', {
-        path: imagePath,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        code: error instanceof Error && 'code' in error ? (error as any).code : undefined
-      });
+      logMiddlewareError('Image access', error, { imagePath });
 
       // Try to serve fallback image
       try {
-        await fs.access(fallbackPath);
+        await fs.access(fallbackPath, constants.R_OK);
+        const fallbackStats = await fs.stat(fallbackPath);
+        if (fallbackStats.size === 0) {
+          throw new Error('Fallback image is empty');
+        }
         res.setHeader('Content-Type', getMimeType(fallbackPath));
+        res.setHeader('X-Image-Fallback', 'true');
         return res.sendFile(fallbackPath);
       } catch (fallbackError) {
-        console.error('Fallback image not found:', fallbackError);
-        return res.status(404).json({ error: 'Image not found' });
+        logMiddlewareError('Fallback image access', fallbackError, { fallbackPath });
+        return res.status(404).json({ 
+          error: 'Image not found',
+          details: 'Both original and fallback images are inaccessible'
+        });
       }
     }
 
@@ -58,9 +85,10 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
     try {
       await ensureCacheDirectory();
     } catch (error) {
-      console.error('Cache directory error:', error);
+      logMiddlewareError('Cache directory', error);
       // If cache directory fails, serve original image
       res.setHeader('Content-Type', getMimeType(imagePath));
+      res.setHeader('X-Cache-Error', 'true');
       return res.sendFile(imagePath);
     }
 
@@ -68,35 +96,44 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
     const acceptHeader = req.headers.accept || '';
     const supportsWebP = acceptHeader.includes('image/webp');
 
+    // Get image MIME type
+    const mimeType = getMimeType(imagePath);
+    if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+      logMiddlewareError('Invalid MIME type', new Error(`Unsupported MIME type: ${mimeType}`), { mimeType });
+      res.setHeader('Content-Type', getMimeType(fallbackPath));
+      res.setHeader('X-Invalid-Type', 'true');
+      return res.sendFile(fallbackPath);
+    }
+
     if (!supportsWebP) {
       // Serve original image if WebP is not supported
-      res.setHeader('Content-Type', getMimeType(imagePath));
+      res.setHeader('Content-Type', mimeType);
+      res.setHeader('X-WebP-Support', 'false');
       return res.sendFile(imagePath);
     }
 
     // Try WebP conversion
     try {
       const webpPath = await convertToWebP(imagePath);
+      if (webpPath === imagePath) {
+        // Conversion failed and returned original path
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('X-WebP-Conversion', 'failed');
+        return res.sendFile(imagePath);
+      }
       res.setHeader('Content-Type', 'image/webp');
-      return res.redirect(webpPath);
+      res.setHeader('X-WebP-Conversion', 'success');
+      return res.sendFile(path.join(process.cwd(), 'public', webpPath));
     } catch (conversionError) {
-      console.error('WebP conversion failed:', {
-        path: imagePath,
-        error: conversionError instanceof Error ? conversionError.message : 'Unknown error',
-        stack: conversionError instanceof Error ? conversionError.stack : undefined
-      });
+      logMiddlewareError('WebP conversion', conversionError, { imagePath });
       
       // Fallback to original image if conversion fails
-      console.log(`Falling back to original image: ${req.path}`);
-      res.setHeader('Content-Type', getMimeType(imagePath));
+      res.setHeader('Content-Type', mimeType);
+      res.setHeader('X-WebP-Error', 'true');
       return res.sendFile(imagePath);
     }
   } catch (error) {
-    console.error('WebP middleware error:', {
-      path: req.path,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    });
+    logMiddlewareError('General error', error);
     next(error);
   }
 }

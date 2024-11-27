@@ -15,15 +15,15 @@ export const STOCK_PHOTOS = {
     getImagePath("/images/construction/construction-3.jpg")
   ],
   restoration: [
-    getImagePath("/images/chi-siamo/about-company.jpeg"),
     getImagePath("/images/restoration/restoration-1.jpg"),
-    getImagePath("/images/restoration/restoration-2.jpg")
+    getImagePath("/images/restoration/restoration-2.jpg"),
+    getImagePath("/images/restoration/restoration-3.jpg")
   ],
   renovation: [
     getImagePath("/images/renovation/renovation-1.jpg"),
     getImagePath("/images/renovation/renovation-2.jpg")
   ],
-  about: getImagePath("/images/chi-siamo/about-company.jpeg")
+  about: getImagePath("/images/chi-siamo/about-company.jpg")
 };
 
 export const NAVIGATION_ITEMS = [
