@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import path from "path";
 import multer from "multer";
 import { eq } from "drizzle-orm";
-import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
+import { convertToWebP, ensureCacheDirectory, isImagePath, getMimeType } from "./utils/imageProcessing";
 import { db } from "@db/index";
 import { projects, services, team, users } from "@db/schema";
 import bcrypt from "bcrypt";
@@ -24,27 +24,60 @@ const upload = multer({ storage: storage });
 
 // Middleware to handle WebP conversion
 async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
+  // Only process image requests
   if (!req.path.startsWith('/images') || !isImagePath(req.path)) {
     return next();
   }
 
   try {
     const imagePath = path.join(process.cwd(), 'public', req.path);
+    const fallbackPath = path.join(process.cwd(), 'public', 'images', 'fallback', 'image-fallback.jpg');
     
     // Check if original image exists
     try {
       await fs.access(imagePath);
     } catch (error) {
-      console.error(`Original image not found: ${imagePath}`, error);
-      return next();
+      console.error('Image access error:', {
+        path: imagePath,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        code: error instanceof Error && 'code' in error ? (error as any).code : undefined
+      });
+
+      // Try to serve fallback image
+      try {
+        await fs.access(fallbackPath);
+        res.setHeader('Content-Type', getMimeType(fallbackPath));
+        return res.sendFile(fallbackPath);
+      } catch (fallbackError) {
+        console.error('Fallback image not found:', fallbackError);
+        return res.status(404).json({ error: 'Image not found' });
+      }
     }
 
     // Ensure cache directory exists with proper permissions
-    await ensureCacheDirectory();
+    try {
+      await ensureCacheDirectory();
+    } catch (error) {
+      console.error('Cache directory error:', error);
+      // If cache directory fails, serve original image
+      res.setHeader('Content-Type', getMimeType(imagePath));
+      return res.sendFile(imagePath);
+    }
+
+    // Check if browser supports WebP
+    const acceptHeader = req.headers.accept || '';
+    const supportsWebP = acceptHeader.includes('image/webp');
+
+    if (!supportsWebP) {
+      // Serve original image if WebP is not supported
+      res.setHeader('Content-Type', getMimeType(imagePath));
+      return res.sendFile(imagePath);
+    }
 
     // Try WebP conversion
     try {
       const webpPath = await convertToWebP(imagePath);
+      res.setHeader('Content-Type', 'image/webp');
       return res.redirect(webpPath);
     } catch (conversionError) {
       console.error('WebP conversion failed:', {
@@ -55,6 +88,7 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
       
       // Fallback to original image if conversion fails
       console.log(`Falling back to original image: ${req.path}`);
+      res.setHeader('Content-Type', getMimeType(imagePath));
       return res.sendFile(imagePath);
     }
   } catch (error) {
@@ -63,7 +97,7 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
       error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
     });
-    next();
+    next(error);
   }
 }
 
