@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import * as React from "react";
 import { STOCK_PHOTOS } from "@/lib/constants";
+import { Link, useLocation } from "wouter";
 
 export function Hero() {
   return (
@@ -29,15 +30,23 @@ export function Hero() {
             Oltre 20 anni di esperienza nel restauro e nella ristrutturazione
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-            >
-              Scopri i nostri servizi
-            </Button>
+            <Link href="/servizi">
+              <Button 
+                size="lg" 
+                className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+              >
+                Scopri i nostri servizi
+              </Button>
+            </Link>
             <Button 
               size="lg" 
               className="bg-yellow-600 text-white hover:bg-yellow-500 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md border-2 border-yellow-500 hover:border-yellow-400"
+              onClick={() => {
+                const contactSection = document.getElementById('contatti');
+                if (contactSection) {
+                  contactSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
             >
               Contattaci
             </Button>
