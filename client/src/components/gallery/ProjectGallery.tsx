@@ -52,7 +52,6 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
         console.error("Project fetch error:", err);
         setError(err instanceof Error ? err.message : "Error loading projects");
         
-        // Implement exponential backoff for retries
         if (retryCount < 3) {
           const delay = Math.pow(2, retryCount) * 1000;
           setTimeout(() => {
@@ -128,8 +127,10 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
                 <img
                   src={project.image}
                   alt={project.title}
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                   loading="lazy"
+                  className={`w-full h-full object-cover transition-transform duration-300 hover:scale-105 ${
+                    imageErrors[project.id] ? 'opacity-50' : ''
+                  }`}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.onerror = null;
@@ -140,9 +141,6 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
                     }));
                     console.error(`Failed to load image for project ${project.id}`);
                   }}
-                  className={`w-full h-full object-cover transition-transform duration-300 hover:scale-105 ${
-                    imageErrors[project.id] ? 'opacity-50' : ''
-                  }`}
                 />
               </div>
               <CardContent className="p-4">

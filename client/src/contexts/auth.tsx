@@ -43,10 +43,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const decoded = validateAndDecodeToken(token);
       const currentTime = Math.floor(Date.now() / 1000);
+      const refreshThreshold = 5 * 60; // 5 minutes before expiry
       
       if (decoded.exp && decoded.exp <= currentTime) {
         handleAuthError();
         return null;
+      }
+
+      // Check if token needs refresh
+      if (decoded.exp && decoded.exp - currentTime <= refreshThreshold) {
+        try {
+          const response = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            const { token: newToken } = await response.json();
+            localStorage.setItem('adminToken', newToken);
+            return newToken;
+          }
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+        }
       }
       
       return token;
@@ -67,11 +89,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       try {
         const decoded = validateAndDecodeToken(token);
+        if (!decoded || typeof decoded !== 'object') {
+          throw new Error('Invalid token payload');
+        }
+        
         const userData = {
           id: decoded.id,
           username: decoded.username,
           role: decoded.role
         };
+
+        // Validate required user data fields
+        if (!userData.id || !userData.username || !userData.role) {
+          throw new Error('Missing required user data fields');
+        }
         
         setUser(userData);
         localStorage.setItem('userData', JSON.stringify(userData));

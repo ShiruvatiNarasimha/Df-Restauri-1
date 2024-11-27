@@ -478,11 +478,24 @@ export default function AdminTeam() {
     }
   };
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const currentPath = window.location.pathname;
+      window.location.href = `/login?redirectTo=${encodeURIComponent(currentPath)}`;
+      return;
+    }
+  }, [isAuthenticated]);
+
   if (!isAuthenticated) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p className="text-lg text-gray-600">Effettua il login per gestire il team</p>
+        <div className="flex flex-col items-center justify-center">
+          <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Accesso Richiesto</h2>
+          <p className="text-lg text-gray-600 mb-4">Effettua il login per gestire il team</p>
+          <div className="animate-spin">
+            <Loader2 className="h-6 w-6 text-primary" />
+          </div>
         </div>
       </div>
     );

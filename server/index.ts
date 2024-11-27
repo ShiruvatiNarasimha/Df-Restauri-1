@@ -4,6 +4,7 @@ import { setupVite, serveStatic } from "./vite";
 import { createServer } from "http";
 import path from "path";
 import * as fs from 'fs/promises';
+import { execSync } from 'child_process';
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -51,20 +52,20 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Register routes before setting up Vite
   registerRoutes(app);
   const server = createServer(app);
 
+  // Error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    console.error('Server error:', err);
     res.status(status).json({ message });
-    throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Setup Vite in development mode
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
@@ -97,21 +98,9 @@ app.use((req, res, next) => {
     throw new Error('Failed to setup required directories');
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client
+  // Server configuration
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
   const HOST = process.env.HOST || "0.0.0.0";
-
-  const startServer = () => {
-    try {
-      server.listen(PORT, HOST, () => {
-        log(`Server started successfully on ${HOST}:${PORT}`);
-      });
-    } catch (error) {
-      log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      process.exit(1);
-    }
-  };
 
   // Handle existing connections and start server
   if (process.env.NODE_ENV === 'development') {
@@ -137,10 +126,76 @@ app.use((req, res, next) => {
         }
       }
     } catch (err) {
-      // If the command fails, it likely means the port is not in use
       log(`Port ${PORT} is available`);
     }
   }
 
-  startServer();
+  // Handle process termination
+  const handleShutdown = (signal: string) => {
+    log(`Received ${signal}. Gracefully shutting down...`);
+    server.close(() => {
+      log('Server closed');
+      process.exit(0);
+    });
+
+    // Force close after 10 seconds
+    setTimeout(() => {
+      log('Could not close connections in time, forcefully shutting down');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+  process.on('SIGINT', () => handleShutdown('SIGINT'));
+  process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    handleShutdown('uncaughtException');
+  });
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    handleShutdown('unhandledRejection');
+  });
+
+  // Start the server with improved error handling
+  // Enhanced server startup with retries
+  const startServer = async (retries = 3) => {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const serverInstance = server.listen(PORT, HOST, () => {
+            log(`Server started successfully on ${HOST}:${PORT}`);
+            resolve();
+          });
+
+          serverInstance.on('error', (error: any) => {
+            if (error.code === 'EADDRINUSE') {
+              log(`Port ${PORT} is in use. Attempting cleanup...`);
+              serverInstance.close();
+              reject(new Error('PORT_IN_USE'));
+            } else {
+              console.error('Server error:', error);
+              reject(error);
+            }
+          });
+        });
+
+        // If we get here, server started successfully
+        return;
+      } catch (error) {
+        if (error.message === 'PORT_IN_USE' && attempt < retries - 1) {
+          log(`Retrying server start in 1 second... (Attempt ${attempt + 1}/${retries})`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+        throw error;
+      }
+    }
+  };
+
+  try {
+    await startServer();
+  } catch (error) {
+    console.error('Failed to start server after retries:', error);
+    process.exit(1);
+  }
 })();
