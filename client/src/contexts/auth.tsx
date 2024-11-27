@@ -26,55 +26,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [, setLocation] = useLocation();
 
-  const isTokenExpired = (token: string): boolean => {
-    if (!token) return true;
-    
-    try {
-      const decoded = validateAndDecodeToken(token);
-      const expirationTime = decoded.exp * 1000;
-      const currentTime = Date.now();
-      const bufferTime = 60000; // 60 seconds buffer
-      
-      if (expirationTime < currentTime + bufferTime) {
-        console.warn('Token is expired or about to expire');
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      if (error instanceof TokenValidationError) {
-        console.error('Token validation failed:', error.message);
-      } else {
-        console.error('Unexpected token validation error:', error);
-      }
-      return true;
-    }
-  };
-
-  const refreshToken = async (): Promise<string | null> => {
-    try {
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Token refresh failed');
-      }
-
-      const { token } = await response.json();
-      localStorage.setItem('adminToken', token);
-      return token;
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      handleAuthError();
-      return null;
-    }
-  };
-
   const handleAuthError = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('userData');
@@ -89,15 +40,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const token = localStorage.getItem('adminToken');
     if (!token) return null;
 
-    if (isTokenExpired(token)) {
-      return await refreshToken();
+    try {
+      const decoded = validateAndDecodeToken(token);
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      if (decoded.exp && decoded.exp <= currentTime) {
+        handleAuthError();
+        return null;
+      }
+      
+      return token;
+    } catch (error) {
+      handleAuthError();
+      return null;
     }
-
-    return token;
   };
 
   useEffect(() => {
     const validateToken = async () => {
+      // Clear existing tokens if invalid
       const token = await getToken();
       if (!token) {
         handleAuthError();
@@ -111,6 +72,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           username: decoded.username,
           role: decoded.role
         };
+        
         setUser(userData);
         localStorage.setItem('userData', JSON.stringify(userData));
       } catch (error) {
