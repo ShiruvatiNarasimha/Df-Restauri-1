@@ -444,6 +444,58 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Content API Routes
+  app.get("/api/content/about", async (_req, res) => {
+    try {
+      // Mock data structure matching the AboutContent interface
+      const aboutContent = {
+        storia: {
+          title: "La Nostra Storia",
+          content: "Dal 1990, DF Restauri si dedica con passione al restauro e alla conservazione del patrimonio architettonico italiano. La nostra esperienza pluriennale ci ha permesso di sviluppare competenze uniche nel settore.",
+          items: []
+        },
+        valori: {
+          title: "I Nostri Valori",
+          content: "I nostri valori guidano ogni aspetto del nostro lavoro, dalla pianificazione all'esecuzione.",
+          items: [
+            "Eccellenza professionale",
+            "Rispetto per la tradizione",
+            "Innovazione tecnologica",
+            "Sostenibilità ambientale"
+          ]
+        },
+        mission: {
+          title: "La Nostra Missione",
+          content: "Preservare e valorizzare il patrimonio architettonico italiano attraverso interventi di restauro di alta qualità.",
+          points: [
+            "Utilizzare tecniche tradizionali e innovative",
+            "Garantire la massima qualità in ogni progetto",
+            "Formare continuamente il nostro team",
+            "Rispettare l'ambiente e il territorio"
+          ]
+        },
+        vision: {
+          title: "La Nostra Visione",
+          content: "Diventare un punto di riferimento nel settore del restauro architettonico, combinando tradizione e innovazione.",
+          points: [
+            "Espandere la nostra presenza nel territorio nazionale",
+            "Investire in ricerca e sviluppo",
+            "Promuovere la sostenibilità nel settore edile",
+            "Valorizzare il patrimonio culturale italiano"
+          ]
+        }
+      };
+
+      res.json(aboutContent);
+    } catch (error) {
+      console.error('Error fetching about content:', error);
+      res.status(500).json({ 
+        message: "Si è verificato un errore durante il recupero dei contenuti",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Contact form route (preserved from original)
   app.post("/api/contact", (req, res) => {
     const { name, email, phone, message } = req.body;
