@@ -451,8 +451,13 @@ export async function registerRoutes(app: Express) {
       const aboutContent = {
         storia: {
           title: "La Nostra Storia",
-          content: "Dal 1990, DF Restauri si dedica con passione al restauro e alla conservazione del patrimonio architettonico italiano. La nostra esperienza pluriennale ci ha permesso di sviluppare competenze uniche nel settore.",
-          items: []
+          content: "Da oltre vent'anni, DF Restauri è sinonimo di eccellenza nel mondo del restauro, delle pitture e delle decorazioni. Rappresenta la prosecuzione dell'attività nata nel 1992 in capo a De Faveri Luca. L'azienda ha saputo coniugare la maestria artigianale con le più moderne tecniche, offrendo soluzioni personalizzate per ogni esigenza dalle delicate operazioni di costruzione, ristrutturazione e restauro. DF è il partner ideale per chi desidera valorizzare i propri spazi con un tocco di esclusività. Grazie all'esperienza maturata nel corso degli anni, siamo in grado di garantire risultati impeccabili e duraturi, rispondendo alle richieste più esigenti del mercato dell'edilizia. Abbiamo saputo evolversi e adattarsi ai continui cambiamenti del mercato, mantenendo sempre al centro il cliente e la qualità dei lavori.",
+          items: [
+            "Qualità senza compromessi",
+            "Innovazione sostenibile", 
+            "Rispetto per la tradizione",
+            "Attenzione al cliente"
+          ]
         },
         valori: {
           title: "I Nostri Valori",
