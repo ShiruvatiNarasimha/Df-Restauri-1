@@ -15,9 +15,9 @@ export const STOCK_PHOTOS = {
     getImagePath("/images/construction/construction-3.jpg")
   ],
   restoration: [
-    getImagePath("/images/restoration/restoration-1.jpg"),
-    getImagePath("/images/restoration/restoration-2.jpg"),
-    getImagePath("/images/restoration/restoration-3.jpg")
+    getImagePath("/images/restoration/CANTIERE-2.webp.jpeg"),
+    getImagePath("/images/restoration/02249074-f62f-4668-8f61-700e9807b7d6.JPG"),
+    getImagePath("/images/restoration/con-work-1-830x519.jpg")
   ],
   renovation: [
     getImagePath("/images/renovation/renovation-1.jpg"),
