@@ -7,6 +7,7 @@ import { db } from "@db/index";
 import { projects, services, team, users } from "@db/schema";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import * as fs from 'fs/promises';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -29,10 +30,39 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
 
   try {
     const imagePath = path.join(process.cwd(), 'public', req.path);
-    const webpPath = await convertToWebP(imagePath);
-    res.redirect(webpPath);
+    
+    // Check if original image exists
+    try {
+      await fs.access(imagePath);
+    } catch (error) {
+      console.error(`Original image not found: ${imagePath}`, error);
+      return next();
+    }
+
+    // Ensure cache directory exists with proper permissions
+    await ensureCacheDirectory();
+
+    // Try WebP conversion
+    try {
+      const webpPath = await convertToWebP(imagePath);
+      return res.redirect(webpPath);
+    } catch (conversionError) {
+      console.error('WebP conversion failed:', {
+        path: imagePath,
+        error: conversionError instanceof Error ? conversionError.message : 'Unknown error',
+        stack: conversionError instanceof Error ? conversionError.stack : undefined
+      });
+      
+      // Fallback to original image if conversion fails
+      console.log(`Falling back to original image: ${req.path}`);
+      return res.sendFile(imagePath);
+    }
   } catch (error) {
-    console.error('WebP conversion error:', error);
+    console.error('WebP middleware error:', {
+      path: req.path,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     next();
   }
 }
