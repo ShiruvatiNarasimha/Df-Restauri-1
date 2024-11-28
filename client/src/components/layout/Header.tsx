@@ -110,7 +110,11 @@ function HeaderContent() {
             </button>
           ) : (
             <nav className="flex items-center gap-8">
-              {NAVIGATION_ITEMS.map(item => renderNavItem(item, false))}
+              {NAVIGATION_ITEMS.map(item => (
+                <React.Fragment key={item.id}>
+                  {renderNavItem(item, false)}
+                </React.Fragment>
+              ))}
               <Button>
                 Richiedi Preventivo
               </Button>
