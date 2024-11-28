@@ -18,8 +18,15 @@ function log(message: string) {
 }
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Increase JSON payload limit and add timeout
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+// Add timeout middleware
+app.use((req, res, next) => {
+  req.setTimeout(30000); // 30 seconds timeout
+  res.setTimeout(30000);
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -98,37 +105,94 @@ app.use((req, res, next) => {
     throw new Error('Failed to setup required directories');
   }
 
-  // Server configuration
-  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+  // Server configuration with dynamic port allocation
+  const BASE_PORT = process.env.PORT ? parseInt(process.env.PORT) : 5001;
+  const MAX_PORT = BASE_PORT + 10; // Try up to 10 ports if base port is taken
   const HOST = process.env.HOST || "0.0.0.0";
 
-  // Handle existing connections and start server
-  if (process.env.NODE_ENV === 'development') {
-    const { execSync } = await import('child_process');
+  // Enhanced port checker with proper error handling
+  const checkPort = async (port: number): Promise<boolean> => {
     try {
-      // Check if port is in use
       const command = process.platform === 'win32'
-        ? `netstat -ano | findstr :${PORT}`
-        : `lsof -i :${PORT} -t`;
+        ? `netstat -ano | findstr :${port}`
+        : `lsof -i :${port} -t`;
+      const output = execSync(command).toString();
+      return !output; // Port is available if no output
+    } catch (err) {
+      // If command fails, it usually means port is available
+      return true;
+    }
+  };
+
+  // Enhanced process cleanup with safety checks
+  const cleanupPort = async (port: number): Promise<boolean> => {
+    try {
+      const command = process.platform === 'win32'
+        ? `netstat -ano | findstr :${port}`
+        : `lsof -i :${port} -t`;
       const output = execSync(command).toString();
       
-      if (output) {
-        // Port is in use, attempt to kill the process
-        const pid = process.platform === 'win32'
-          ? output.split('\n')[0].split(/\s+/)[5]
-          : output.trim();
+      if (!output) {
+        log(`No process found using port ${port}`);
+        return true;
+      }
 
-        if (pid) {
-          process.platform === 'win32'
-            ? execSync(`taskkill /F /PID ${pid}`)
-            : execSync(`kill -9 ${pid}`);
-          log(`Killed process ${pid} using port ${PORT}`);
+      const pids = output.split('\n')
+        .map(line => {
+          if (process.platform === 'win32') {
+            const parts = line.trim().split(/\s+/);
+            return parts[parts.length - 1];
+          }
+          return line.trim();
+        })
+        .filter(Boolean);
+
+      for (const pid of pids) {
+        try {
+          // Add safety check to prevent killing system processes
+          const isNodeProcess = process.platform === 'win32'
+            ? execSync(`tasklist /FI "PID eq ${pid}" /FO CSV`).toString().toLowerCase().includes('node')
+            : execSync(`ps -p ${pid} -o comm=`).toString().toLowerCase().includes('node');
+
+          if (isNodeProcess) {
+            process.platform === 'win32'
+              ? execSync(`taskkill /F /PID ${pid}`)
+              : execSync(`kill -15 ${pid}`); // Use SIGTERM first
+            log(`Successfully terminated process ${pid} using port ${port}`);
+            
+            // Wait a bit for the port to be released
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return await checkPort(port);
+          } else {
+            log(`Process ${pid} on port ${port} is not a Node.js process, skipping`);
+          }
+        } catch (err) {
+          log(`Failed to terminate process ${pid}: ${err instanceof Error ? err.message : 'Unknown error'}`);
         }
       }
     } catch (err) {
-      log(`Port ${PORT} is available`);
+      log(`Error during port cleanup: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
-  }
+    return false;
+  };
+
+  // Find available port with retry mechanism
+  const findAvailablePort = async (): Promise<number> => {
+    for (let port = BASE_PORT; port <= MAX_PORT; port++) {
+      log(`Checking port ${port}...`);
+      if (await checkPort(port)) {
+        return port;
+      }
+      
+      log(`Port ${port} is in use, attempting cleanup...`);
+      if (await cleanupPort(port)) {
+        return port;
+      }
+      
+      log(`Could not free port ${port}, trying next port...`);
+    }
+    throw new Error(`No available ports found in range ${BASE_PORT}-${MAX_PORT}`);
+  };
 
   // Handle process termination
   const handleShutdown = (signal: string) => {
@@ -156,38 +220,119 @@ app.use((req, res, next) => {
     handleShutdown('unhandledRejection');
   });
 
-  // Start the server with improved error handling
-  // Enhanced server startup with retries
+  // Enhanced server startup with better error handling and connection tracking
   const startServer = async (retries = 3) => {
+    const activeConnections = new Set();
+    let currentPort: number;
+    
+    // Enhanced connection tracking
+    const trackConnections = (serverInstance: any) => {
+      serverInstance.on('connection', (conn: any) => {
+        activeConnections.add(conn);
+        conn.on('close', () => activeConnections.delete(conn));
+        // Set reasonable timeouts
+        conn.setTimeout(30000); // 30 seconds timeout
+        conn.on('timeout', () => {
+          log(`Connection timed out, destroying...`);
+          conn.destroy();
+        });
+      });
+    };
+
+    // Improved cleanup with timeout and forced termination
+    const cleanup = async (serverInstance?: any) => {
+      return new Promise<void>((resolve) => {
+        const timeoutId = setTimeout(() => {
+          log('Cleanup timeout reached, forcing termination...');
+          activeConnections.forEach((conn: any) => conn.destroy());
+          if (serverInstance) serverInstance.close();
+          resolve();
+        }, 5000);
+
+        if (activeConnections.size === 0) {
+          clearTimeout(timeoutId);
+          resolve();
+          return;
+        }
+
+        log(`Cleaning up ${activeConnections.size} active connections...`);
+        const cleanupPromises = Array.from(activeConnections).map((conn: any) => 
+          new Promise<void>((resolveConn) => {
+            conn.end(() => {
+              conn.destroy();
+              resolveConn();
+            });
+          })
+        );
+
+        Promise.all(cleanupPromises).then(() => {
+          clearTimeout(timeoutId);
+          resolve();
+        });
+      });
+    };
+
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
+        // Find an available port
+        currentPort = await findAvailablePort();
+        
+        // Create new server instance for each attempt
+        const serverInstance = server.listen(currentPort, HOST);
+        trackConnections(serverInstance);
+
         await new Promise<void>((resolve, reject) => {
-          const serverInstance = server.listen(PORT, HOST, () => {
-            log(`Server started successfully on ${HOST}:${PORT}`);
+          serverInstance.once('listening', () => {
+            log(`Server started successfully on ${HOST}:${currentPort}`);
+            // Store the port in an environment variable for other services
+            process.env.SERVER_PORT = currentPort.toString();
             resolve();
           });
 
-          serverInstance.on('error', (error: any) => {
-            if (error.code === 'EADDRINUSE') {
-              log(`Port ${PORT} is in use. Attempting cleanup...`);
-              serverInstance.close();
-              reject(new Error('PORT_IN_USE'));
-            } else {
-              console.error('Server error:', error);
-              reject(error);
-            }
+          serverInstance.once('error', async (error: any) => {
+            log(`Server startup error on port ${currentPort}: ${error.message}`);
+            await cleanup(serverInstance);
+            serverInstance.close();
+            reject(error);
           });
+
+          // Set a timeout for the startup attempt
+          setTimeout(() => {
+            reject(new Error(`Server startup timed out on port ${currentPort}`));
+          }, 10000);
         });
 
-        // If we get here, server started successfully
-        return;
+        // Setup graceful shutdown
+        const shutdownHandler = async (signal: string) => {
+          log(`Received ${signal}. Initiating graceful shutdown...`);
+          await cleanup(serverInstance);
+          serverInstance.close(() => {
+            log('Server closed successfully');
+            process.exit(0);
+          });
+
+          // Force shutdown after 10 seconds
+          setTimeout(() => {
+            log('Forced shutdown after timeout');
+            process.exit(1);
+          }, 10000);
+        };
+
+        process.on('SIGTERM', () => shutdownHandler('SIGTERM'));
+        process.on('SIGINT', () => shutdownHandler('SIGINT'));
+
+        return; // Server started successfully
       } catch (error) {
-        if (error.message === 'PORT_IN_USE' && attempt < retries - 1) {
-          log(`Retrying server start in 1 second... (Attempt ${attempt + 1}/${retries})`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          continue;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        log(`Attempt ${attempt + 1}/${retries} failed: ${errorMessage}`);
+
+        if (attempt < retries - 1) {
+          const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+          log(`Retrying server start in ${delay/1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          throw new Error(`Failed to start server after ${retries} attempts: ${errorMessage}`);
         }
-        throw error;
       }
     }
   };

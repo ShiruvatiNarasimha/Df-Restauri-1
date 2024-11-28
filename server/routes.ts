@@ -116,11 +116,23 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
 }
 
 // CORS middleware
-function corsMiddleware(_req: Request, res: Response, next: NextFunction) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+function corsMiddleware(req: Request, res: Response, next: NextFunction) {
+  const allowedOrigins = ['http://localhost:3000', 'http://0.0.0.0:3000'];
+  const origin = req.headers.origin;
+  
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control');
   res.setHeader('Access-Control-Max-Age', '86400');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
   next();
 }
 
@@ -138,6 +150,7 @@ export function registerRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
+      console.error('Health check error:', error);
       res.status(503).json({
         status: "unhealthy",
         timestamp: new Date().toISOString(),
@@ -146,17 +159,31 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Team API Routes with enhanced error handling
+  // Team API Routes with enhanced error handling and retries
   app.get("/api/team", async (_req, res) => {
-    try {
-      const allTeamMembers = await db.select().from(team);
-      res.json(allTeamMembers);
-    } catch (error) {
-      logTeamError('Failed to fetch team members', error);
-      res.status(500).json({ 
-        message: "Error fetching team members",
-        code: 'DB_FETCH_ERROR'
-      });
+    let retryCount = 0;
+    const maxRetries = 3;
+
+    while (retryCount < maxRetries) {
+      try {
+        const allTeamMembers = await db.select().from(team);
+        return res.json(allTeamMembers);
+      } catch (error) {
+        logTeamError('Failed to fetch team members', error, { retryCount });
+        
+        if (retryCount === maxRetries - 1) {
+          return res.status(500).json({ 
+            message: "Error fetching team members",
+            code: 'DB_FETCH_ERROR',
+            details: error instanceof Error ? error.message : 'Unknown database error'
+          });
+        }
+
+        retryCount++;
+        // Add jitter to prevent thundering herd
+        const jitter = Math.random() * 1000;
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000 + jitter));
+      }
     }
   });
 

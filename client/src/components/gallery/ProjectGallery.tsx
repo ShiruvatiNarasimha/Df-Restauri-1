@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle, RefreshCw } from "lucide-react";
 import { fadeInUp, staggerChildren } from "@/lib/animations";
-import { Project } from "@/types/project";
+import type { Project } from "@/types/project";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
 interface ProjectGalleryProps {
   onProjectClick?: (project: Project) => void;
@@ -17,55 +19,92 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
   const [selectedCategory, setSelectedCategory] = useState<Project['category'] | 'all'>('all');
   const [retryCount, setRetryCount] = useState(0);
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
-  const [isFetchingRetry, setIsFetchingRetry] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const { toast } = useToast();
+
+  // Enhanced fetch with timeout and retry mechanism
+  const fetchProjectsWithRetry = useCallback(async () => {
+    try {
+      setIsRetrying(true);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch("/api/projects", {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        credentials: 'same-origin'
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error("Formato dati non valido");
+      }
+
+      // Sort projects by year in descending order
+      const sortedProjects = [...data].sort((a, b) => b.year - a.year);
+      setProjects(sortedProjects);
+      setError(null);
+      setRetryCount(0);
+    } catch (err) {
+      console.error("Errore caricamento progetti:", err);
+      const errorMessage = err instanceof Error ? err.message : "Errore caricamento progetti";
+      setError(errorMessage);
+      toast({
+        title: "Errore",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      if (retryCount < 3) {
+        const delay = Math.pow(2, retryCount) * 1000;
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          fetchProjectsWithRetry();
+        }, delay);
+      }
+    } finally {
+      setIsLoading(false);
+      setIsRetrying(false);
+    }
+  }, [retryCount, toast]);
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+    fetchProjectsWithRetry();
+  }, [fetchProjectsWithRetry]);
 
-        const response = await fetch("/api/projects", {
-          signal: controller.signal,
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache'
-          }
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || "Failed to fetch projects");
-        }
-
-        const data = await response.json();
-        if (!Array.isArray(data)) {
-          throw new Error("Invalid data format received from server");
-        }
-
-        setProjects(data);
-        setError(null);
-        setRetryCount(0);
-      } catch (err) {
-        console.error("Project fetch error:", err);
-        setError(err instanceof Error ? err.message : "Error loading projects");
-        
-        if (retryCount < 3) {
-          const delay = Math.pow(2, retryCount) * 1000;
-          setTimeout(() => {
-            setRetryCount(prev => prev + 1);
-            fetchProjects();
-          }, delay);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProjects();
-  }, [retryCount]);
+  // Image error handling with retry mechanism
+  const handleImageError = useCallback((projectId: number, e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement;
+    const retryCount = parseInt(target.dataset.retryCount || '0');
+    
+    if (retryCount < 2) {
+      // Retry loading with cache-busting
+      target.dataset.retryCount = (retryCount + 1).toString();
+      const timestamp = new Date().getTime();
+      target.src = `${target.src.split('?')[0]}?t=${timestamp}`;
+    } else {
+      // After retries, use fallback
+      target.onerror = null;
+      target.src = '/images/fallback/project-fallback.jpg';
+      setImageErrors(prev => ({
+        ...prev,
+        [projectId]: true
+      }));
+      console.error(`Failed to load image for project ${projectId}`);
+    }
+  }, []);
 
   const filteredProjects = selectedCategory === 'all'
     ? projects
@@ -106,15 +145,31 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
         </Button>
       </div>
 
+      {/* Error State with Retry */}
+      {error && (
+        <div className="flex flex-col items-center justify-center p-8 bg-red-50 rounded-lg">
+          <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
+          <p className="text-red-700 mb-4">{error}</p>
+          <Button
+            onClick={() => {
+              setRetryCount(0);
+              fetchProjectsWithRetry();
+            }}
+            disabled={isRetrying}
+            variant="outline"
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRetrying ? 'animate-spin' : ''}`} />
+            Riprova
+          </Button>
+        </div>
+      )}
+
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           <div className="col-span-3 flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : error ? (
-          <div className="col-span-3 text-center py-12 text-red-500">
-            {error}
           </div>
         ) : filteredProjects.map((project) => (
           <motion.div
@@ -124,23 +179,12 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
           >
             <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
               <div className="aspect-video relative overflow-hidden">
-                <img
+                <ImageWithFallback
                   src={project.image}
                   alt={project.title}
                   loading="lazy"
-                  className={`w-full h-full object-cover transition-transform duration-300 hover:scale-105 ${
-                    imageErrors[project.id] ? 'opacity-50' : ''
-                  }`}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.onerror = null;
-                    target.src = '/images/fallback/project-fallback.jpg';
-                    setImageErrors(prev => ({
-                      ...prev,
-                      [project.id]: true
-                    }));
-                    console.error(`Failed to load image for project ${project.id}`);
-                  }}
+                  category="project"
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                 />
               </div>
               <CardContent className="p-4">
@@ -155,6 +199,7 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
           </motion.div>
         ))}
       </div>
+
       {!isLoading && !error && filteredProjects.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           Nessun progetto trovato per questa categoria.
