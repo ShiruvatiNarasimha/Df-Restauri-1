@@ -32,7 +32,6 @@ import { Plus, Pencil, Trash2, Loader2, AlertTriangle, RefreshCw } from "lucide-
 import { useToast } from "@/hooks/use-toast";
 import type { TeamMember } from "@db/schema";
 import { useAuth } from "@/hooks/use-auth";
-import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 
 // Error boundary component
 const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
@@ -113,14 +112,9 @@ const teamFormSchema = z.object({
     .min(10, "La biografia deve contenere almeno 10 caratteri")
     .max(500, "La biografia non può superare i 500 caratteri"),
   image: z.any()
-    .optional()
-    .transform(files => files?.[0] || null)
+    .refine((files) => files?.[0]?.size <= 5000000, "L'immagine deve essere inferiore a 5MB")
     .refine(
-      file => !file || file.size <= 5000000,
-      "L'immagine deve essere inferiore a 5MB"
-    )
-    .refine(
-      file => !file || ['image/jpeg', 'image/png', 'image/webp'].includes(file.type),
+      (files) => ['image/jpeg', 'image/png', 'image/webp'].includes(files?.[0]?.type),
       "Formato non supportato. Usa JPEG, PNG o WebP"
     ),
   socialLinks: z.array(socialLinkSchema).min(1).max(4)
@@ -148,25 +142,25 @@ export default function AdminTeam() {
       role: "",
       bio: "",
       socialLinks: [
-        { platform: "facebook", url: "https://facebook.com/" },
-        { platform: "instagram", url: "https://instagram.com/" }
+        { platform: "facebook", url: "" },
+        { platform: "instagram", url: "" }
       ]
     },
-    mode: "onSubmit",
-    reValidateMode: "onChange"
   });
 
-  // Enhanced token validation with refresh mechanism and error handling
+  // Token validation with refresh mechanism
   const validateAndRefreshToken = useCallback(async () => {
+    if (!token || !isAuthenticated) {
+      logout();
+      toast({
+        title: "Sessione scaduta",
+        description: "Effettua nuovamente il login per continuare",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     try {
-      if (!token) {
-        throw new Error("Token mancante");
-      }
-
-      if (!isAuthenticated) {
-        throw new Error("Sessione non autenticata");
-      }
-
       const parts = token.split('.');
       if (parts.length !== 3) {
         throw new Error('Token non valido');
@@ -213,12 +207,6 @@ export default function AdminTeam() {
       return true;
     } catch (error) {
       console.error('Token validation error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Errore di validazione del token';
-      toast({
-        title: "Errore di autenticazione",
-        description: errorMessage,
-        variant: "destructive",
-      });
       logout();
       return false;
     }
@@ -383,90 +371,39 @@ export default function AdminTeam() {
     }
   };
 
-  // Image validation with enhanced error handling and retries
+  // Image validation with enhanced error handling
   const validateImage = async (file: File): Promise<boolean> => {
     try {
-      if (!file) {
+      if (!file) return false;
+
+      if (file.size > 5000000) {
         toast({
           title: "Errore",
-          description: "Nessun file selezionato",
+          description: "L'immagine deve essere inferiore a 5MB",
           variant: "destructive",
         });
         return false;
       }
 
-      // Check file size with more precise feedback
-      const fileSizeInMB = file.size / (1024 * 1024);
-      if (fileSizeInMB > 5) {
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
         toast({
           title: "Errore",
-          description: `L'immagine è troppo grande (${fileSizeInMB.toFixed(2)}MB). Deve essere inferiore a 5MB`,
+          description: "Formato non supportato. Usa JPEG, PNG o WebP",
           variant: "destructive",
         });
         return false;
       }
 
-      // Enhanced MIME type validation
-      const validTypes = {
-        'image/jpeg': 'JPEG',
-        'image/png': 'PNG',
-        'image/webp': 'WebP'
-      };
-      
-      if (!validTypes[file.type as keyof typeof validTypes]) {
-        toast({
-          title: "Errore",
-          description: `Formato non supportato (${file.type}). Usa ${Object.values(validTypes).join(', ')}`,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      // Create a temporary URL for the file
-      const objectUrl = URL.createObjectURL(file);
-      
       return new Promise((resolve) => {
         const img = new Image();
-        const timeoutId = setTimeout(() => {
-          URL.revokeObjectURL(objectUrl);
-          toast({
-            title: "Errore",
-            description: "Timeout durante il caricamento dell'immagine",
-            variant: "destructive",
-          });
-          resolve(false);
-        }, 10000);
-
+        const objectUrl = URL.createObjectURL(file);
+        
         img.onload = () => {
-          clearTimeout(timeoutId);
           URL.revokeObjectURL(objectUrl);
-          
-          // Validate dimensions
-          if (img.width < 100 || img.height < 100) {
-            toast({
-              title: "Errore",
-              description: "L'immagine è troppo piccola. Dimensione minima: 100x100px",
-              variant: "destructive",
-            });
-            resolve(false);
-            return;
-          }
-          
-          if (img.width > 4000 || img.height > 4000) {
-            toast({
-              title: "Errore",
-              description: "L'immagine è troppo grande. Dimensione massima: 4000x4000px",
-              variant: "destructive",
-            });
-            resolve(false);
-            return;
-          }
-          
           resolve(true);
         };
-
+        
         img.onerror = () => {
-          clearTimeout(timeoutId);
           URL.revokeObjectURL(objectUrl);
           toast({
             title: "Errore",
@@ -475,7 +412,7 @@ export default function AdminTeam() {
           });
           resolve(false);
         };
-
+        
         img.src = objectUrl;
       });
     } catch (error) {
@@ -541,68 +478,11 @@ export default function AdminTeam() {
     }
   };
 
-  const [isAuthChecking, setIsAuthChecking] = useState(true);
-  const [authError, setAuthError] = useState<string | null>(null);
-
-  // Enhanced authentication check with proper loading state
-  useEffect(() => {
-    const checkAuthentication = async () => {
-      try {
-        setIsAuthChecking(true);
-        const isValid = await validateAndRefreshToken();
-        
-        if (!isValid || !isAuthenticated) {
-          const currentPath = window.location.pathname;
-          const redirectUrl = `/login?redirectTo=${encodeURIComponent(currentPath)}`;
-          
-          // Use history API for smoother navigation
-          window.history.replaceState(null, '', redirectUrl);
-          window.location.href = redirectUrl;
-          return;
-        }
-      } catch (error) {
-        setAuthError(error instanceof Error ? error.message : 'Errore di autenticazione');
-        console.error('Authentication error:', error);
-      } finally {
-        setIsAuthChecking(false);
-      }
-    };
-
-    checkAuthentication();
-  }, [isAuthenticated, validateAndRefreshToken]);
-
-  // Show loading state during initial auth check
-  if (isAuthChecking) {
+  if (!isAuthenticated) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col items-center justify-center">
-          <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Verifica autenticazione...</h2>
-          <p className="text-lg text-gray-600">Attendere prego</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show auth error state
-  if (authError || !isAuthenticated) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col items-center justify-center">
-          <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Accesso Richiesto</h2>
-          <p className="text-lg text-gray-600 mb-4">
-            {authError || 'Effettua il login per gestire il team'}
-          </p>
-          <Button
-            variant="default"
-            onClick={() => {
-              const currentPath = window.location.pathname;
-              window.location.href = `/login?redirectTo=${encodeURIComponent(currentPath)}`;
-            }}
-          >
-            Vai al Login
-          </Button>
+        <div className="text-center">
+          <p className="text-lg text-gray-600">Effettua il login per gestire il team</p>
         </div>
       </div>
     );
