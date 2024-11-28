@@ -8,7 +8,7 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "cd client && npm run dev -- --port 3000 --host 0.0.0.0"]
+run = ["npm", "run", "start"]
 
 [[ports]]
 localPort = 5000
@@ -41,7 +41,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "React Dev Server"
+args = "Full Stack App"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
@@ -56,7 +56,7 @@ task = "workflow.run"
 args = "Client Dev Server"
 
 [[workflows.workflow]]
-name = "React Dev Server"
+name = "Full Stack App"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -67,8 +67,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm run dev -- --port 3000 --host 0.0.0.0"
-waitForPort = 3000
+args = "tsx watch --clear-screen=false server/index.ts"
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Create Admin"
@@ -97,7 +97,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd server && tsx watch --clear-screen=false index.ts"
-waitForPort = 5001
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Client Dev Server"

@@ -23,28 +23,51 @@ function logError(context: string, error: unknown, additionalInfo: Record<string
 
 export async function ensureCacheDirectory() {
   try {
-    // Create all parent directories with proper permissions
+    // Ensure parent directories exist with proper permissions
     await fs.mkdir(path.dirname(CACHE_DIR), { recursive: true, mode: 0o755 });
     
-    // Create or verify cache directory
-    await fs.mkdir(CACHE_DIR, { recursive: true, mode: 0o755 });
-    
-    // Verify directory exists and is accessible
-    const stats = await fs.stat(CACHE_DIR);
-    if (!stats.isDirectory()) {
-      throw new Error('Cache path exists but is not a directory');
+    // Check if cache directory exists and is accessible
+    try {
+      await fs.access(CACHE_DIR, constants.R_OK | constants.W_OK);
+      const stats = await fs.stat(CACHE_DIR);
+      
+      if (!stats.isDirectory()) {
+        logError('Cache directory validation', new Error('Path exists but is not a directory'), {
+          path: CACHE_DIR,
+          type: stats.isFile() ? 'file' : 'other'
+        });
+        throw new Error('Cache path exists but is not a directory');
+      }
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && (error as any).code === 'ENOENT') {
+        // Create cache directory if it doesn't exist
+        await fs.mkdir(CACHE_DIR, { recursive: true, mode: 0o755 });
+      } else {
+        logError('Cache directory access', error, { path: CACHE_DIR });
+        throw new Error('Failed to access cache directory');
+      }
     }
-
-    // Set proper permissions
-    await fs.chmod(CACHE_DIR, 0o755);
-
-    // If we reach here, everything is working
-    console.log('[ImageProcessing] Cache directory setup successful:', { path: CACHE_DIR });
-    return;
+    
+    // Always ensure proper permissions
+    try {
+      await fs.chmod(CACHE_DIR, 0o755);
+    } catch (error) {
+      logError('Cache directory permissions', error, { path: CACHE_DIR });
+      throw new Error('Failed to set cache directory permissions');
+    }
+    
+    // Verify we can write to the directory
+    const testFile = path.join(CACHE_DIR, '.write-test');
+    try {
+      await fs.writeFile(testFile, '');
+      await fs.unlink(testFile);
+    } catch (error) {
+      logError('Cache directory write test', error, { testFile });
+      throw new Error('Failed to write to cache directory');
+    }
   } catch (error) {
-    logError('Cache directory setup failed', error, { dir: CACHE_DIR });
-    // Don't throw error, just log it and continue
-    console.log('[ImageProcessing] Using fallback for cache operations');
+    logError('Cache directory setup', error, { dir: CACHE_DIR });
+    throw new Error('Failed to setup cache directory: ' + (error instanceof Error ? error.message : 'Unknown error'));
   }
 }
 

@@ -28,20 +28,18 @@ export const STOCK_PHOTOS = {
 
 export const NAVIGATION_ITEMS = [
   { 
-    id: "home",
     label: "Home",
     href: "/" 
   },
   {
-    id: "menu",
     label: "Menu",
     href: "#",
     items: [
-      { id: "ci-presentiamo", label: "Ci Presentiamo", href: "/ci-presentiamo" },
-      { id: "servizi", label: "Servizi", href: "/servizi" },
-      { id: "certificazioni", label: "Certificazioni", href: "#certificazioni" },
-      { id: "sostenibilita", label: "Sostenibilita", href: "/sostenibilita" },
-      { id: "realizzazioni", label: "Realizzazioni", href: "/realizzazioni" }
+      { label: "Ci Presentiamo", href: "/ci-presentiamo" },
+      { label: "Servizi", href: "/servizi" },
+      { label: "Certificazioni", href: "#certificazioni" },
+      { label: "Sostenibilita", href: "/sostenibilita" },
+      { label: "Realizzazioni", href: "/realizzazioni" }
     ]
   }
 ];

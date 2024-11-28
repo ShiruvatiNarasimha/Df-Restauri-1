@@ -1,6 +1,5 @@
 {pkgs}: {
   deps = [
-    pkgs.lsof
     pkgs.imagemagick
     pkgs.vips
     pkgs.google-cloud-sdk

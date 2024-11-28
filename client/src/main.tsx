@@ -18,7 +18,7 @@ import AdminTeam from "@/pages/AdminTeam";
 import AdminServices from "@/pages/AdminServices";
 import Login from "@/pages/Login";
 
-export function Router() {
+function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -37,7 +37,7 @@ export function Router() {
   );
 }
 
-export function App() {
+function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
