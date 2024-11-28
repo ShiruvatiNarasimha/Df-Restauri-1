@@ -48,7 +48,7 @@ export const TEAM_MEMBERS = [
   {
     name: "De Faveri Luca",
     role: "Amministratore",
-    avatar: getImagePath("/FOTO DE FAVERI.png"),
+    avatar: getImagePath("/images/team/de-faveri-luca.png"),
     bio: "Amministratore con vasta esperienza nel settore delle costruzioni e del restauro.",
     social: {
       linkedin: "https://www.linkedin.com/",
@@ -59,7 +59,7 @@ export const TEAM_MEMBERS = [
   {
     name: "Gianalberto Blasutig",
     role: "Direttore Tecnico",
-    avatar: getImagePath("/PHOTO-2024-11-28-07-54-131.jpg"),
+    avatar: getImagePath("/images/team/gianalberto-blasutig.jpg"),
     bio: "Direttore Tecnico specializzato nella gestione e supervisione di progetti di restauro e costruzione.",
     social: {
       linkedin: "https://www.linkedin.com/",
