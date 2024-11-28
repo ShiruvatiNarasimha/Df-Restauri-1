@@ -4,15 +4,23 @@ import { persist } from 'zustand/middleware';
 interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
+  user: {
+    id: number;
+    username: string;
+    role: string;
+  } | null;
   login: (token: string) => void;
   logout: () => void;
+  refreshToken: () => Promise<void>;
+  getToken: () => string | null;
 }
 
 export const useAuth = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       isAuthenticated: false,
+      user: null,
       login: (token: string) => {
         try {
           // Basic token validation
@@ -43,39 +51,62 @@ export const useAuth = create<AuthState>()(
             throw new Error('Missing required token claims');
           }
 
-          // Check token expiration with 5-minute buffer
-          const expirationTime = payload.exp * 1000; // Convert to milliseconds
-          const currentTime = Date.now();
-          const bufferTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+          // Store token and user data
+          set({
+            token,
+            isAuthenticated: true,
+            user: {
+              id: payload.id,
+              username: payload.username,
+              role: payload.role
+            }
+          });
 
-          if (currentTime >= expirationTime - bufferTime) {
-            throw new Error('Token has expired or is about to expire');
-          }
-
-          // Store token and authenticate
-          set({ token, isAuthenticated: true });
-
-          // Schedule token refresh if needed
-          const timeUntilExpiry = expirationTime - currentTime;
-          if (timeUntilExpiry < 24 * 60 * 60 * 1000) { // Less than 24 hours until expiry
-            setTimeout(() => {
-              console.log('Token refresh required');
-              set({ token: null, isAuthenticated: false });
-            }, timeUntilExpiry - bufferTime);
-          }
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Token validation failed';
-          console.error('Token validation error:', { name: 'TokenValidationError', message: errorMessage });
-          set({ token: null, isAuthenticated: false });
-          throw new Error(errorMessage);
+          console.error('Token validation error:', error);
+          get().logout();
+          throw error;
         }
       },
       logout: () => {
-        set({ token: null, isAuthenticated: false });
+        localStorage.removeItem('auth-storage');
+        set({ token: null, isAuthenticated: false, user: null });
       },
+      refreshToken: async () => {
+        const { token } = get();
+        if (!token) return;
+
+        try {
+          const response = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Token refresh failed');
+          }
+
+          const { token: newToken } = await response.json();
+          get().login(newToken);
+        } catch (error) {
+          console.error('Token refresh error:', error);
+          get().logout();
+        }
+      },
+      getToken: () => {
+        return get().token;
+      }
     }),
     {
       name: 'auth-storage',
+      partialize: (state) => ({
+        token: state.token,
+        user: state.user,
+        isAuthenticated: state.isAuthenticated
+      })
     }
   )
 );

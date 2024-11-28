@@ -1,146 +1,168 @@
-import { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { Link } from "wouter";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { NavigationItem } from "@/types/navigation";
+import { Menu, X, ChevronDown, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NAVIGATION_ITEMS } from "@/lib/constants";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/auth";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-export function Header() {
+function HeaderContent() {
   const [isOpen, setIsOpen] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState<string[]>([]);
   const isMobile = useIsMobile();
-  
-  const toggleMenu = useCallback(() => {
-    setIsOpen(!isOpen);
-  }, [isOpen]);
+  const { isAuthenticated, logout } = useAuth();
 
-  const toggleDropdown = useCallback((label: string) => {
+  const toggleMenu = useCallback(() => {
+    setIsOpen(prev => !prev);
+    setOpenDropdowns([]);
+  }, []);
+
+  const toggleDropdown = useCallback((itemId: string) => {
     setOpenDropdowns(prev => 
-      prev.includes(label)
-        ? prev.filter(item => item !== label)
-        : [...prev, label]
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
     );
   }, []);
 
+  // Clean up mobile menu state when switching to desktop
   useEffect(() => {
-    if (!isMobile && isOpen) {
+    if (!isMobile) {
       setIsOpen(false);
+      setOpenDropdowns([]);
     }
-    setOpenDropdowns([]);
-  }, [isMobile, isOpen]);
+  }, [isMobile]);
 
-  const renderNavItem = (item: typeof NAVIGATION_ITEMS[0], mobile = false) => {
-    const hasDropdown = 'items' in item;
-    const isDropdownOpen = openDropdowns.includes(item.label);
+  const renderNavItem = useCallback((item: NavigationItem, isMobileMenu: boolean) => {
+    const isDropdownOpen = openDropdowns.includes(item.id);
 
-    if (!hasDropdown) {
+    if (item.children) {
       return (
-        <a
-          key={item.href}
-          href={item.href}
-          className={`${
-            mobile
-              ? "block py-2 text-gray-600 hover:text-primary transition-colors"
-              : "text-gray-600 hover:text-primary transition-colors"
-          }`}
-          onClick={() => mobile && setIsOpen(false)}
-        >
-          {item.label}
-        </a>
+        <div key={item.id} className="relative group">
+          <button
+            onClick={() => toggleDropdown(item.id)}
+            className="flex items-center gap-1 px-4 py-2 text-gray-700 hover:text-gray-900"
+          >
+            {item.label}
+            <ChevronDown 
+              className={`h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
+            />
+          </button>
+          {isDropdownOpen && (
+            <div 
+              className={`${
+                isMobileMenu 
+                  ? 'pl-4' 
+                  : 'absolute left-0 top-full min-w-[200px] bg-white shadow-lg rounded-md py-2'
+              }`}
+            >
+              {item.children.map(child => (
+                <Link
+                  key={child.id}
+                  href={child.href}
+                  onClick={() => {
+                    setIsOpen(false);
+                    setOpenDropdowns([]);
+                  }}
+                  className="block px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                >
+                  {child.label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       );
     }
 
     return (
-      <div key={item.href} className={`${mobile ? "" : "relative group"}`}>
-        <button
-          onClick={() => mobile && toggleDropdown(item.label)}
-          className={`${
-            mobile
-              ? "w-full text-left py-2 flex items-center justify-between"
-              : "flex items-center gap-1 text-gray-600 hover:text-primary transition-colors"
-          }`}
-        >
-          {item.label}
-          <ChevronDown
-            className={`h-4 w-4 transition-transform ${
-              isDropdownOpen ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-        <div
-          className={`${
-            mobile
-              ? isDropdownOpen
-                ? "block pl-4"
-                : "hidden"
-              : "absolute left-0 top-full hidden group-hover:block min-w-[250px] bg-white shadow-lg rounded-md py-2"
-          }`}
-        >
-          {'items' in item && item.items?.map((subItem) => (
-            <a
-              key={subItem.href}
-              href={subItem.href}
-              className={`${
-                mobile
-                  ? "block py-2 text-gray-600 hover:text-primary transition-colors"
-                  : "block px-5 py-2.5 text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
-              }`}
-              onClick={() => mobile && setIsOpen(false)}
-            >
-              {subItem.label}
-            </a>
-          ))}
-        </div>
-      </div>
+      <Link
+        key={item.id}
+        href={item.href}
+        onClick={() => {
+          setIsOpen(false);
+          setOpenDropdowns([]);
+        }}
+        className="block px-4 py-2 text-gray-700 hover:text-gray-900"
+      >
+        {item.label}
+      </Link>
     );
-  };
+  }, [openDropdowns, toggleDropdown]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white shadow">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
-          <Link href="/">
-            <img 
-              src="/logorestauri.png"
-              alt="DF Restauri"
-              className="h-8 md:h-12 w-auto object-contain transition-transform hover:scale-105"
-              style={{ maxWidth: '150px' }}
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = '/fallback-logo.png';
-                console.error('Error loading logo image');
-              }}
-            />
+        <div className="flex h-16 items-center justify-between">
+          <Link href="/" className="flex items-center">
+            <span className="text-xl font-bold">DF Restauri</span>
           </Link>
 
           {isMobile ? (
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={toggleMenu}
-              aria-label="Toggle menu"
+              className="p-2 text-gray-600 hover:text-gray-900"
+              aria-label={isOpen ? "Close menu" : "Open menu"}
             >
-              {isOpen ? <X /> : <Menu />}
-            </Button>
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           ) : (
             <nav className="flex items-center gap-8">
-              {NAVIGATION_ITEMS.map((item) => renderNavItem(item))}
+              {NAVIGATION_ITEMS.map(item => renderNavItem(item, false))}
               <Button>
                 Richiedi Preventivo
               </Button>
+              {isAuthenticated && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => logout()}
+                  title="Logout"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              )}
             </nav>
           )}
         </div>
 
         {isMobile && isOpen && (
-          <nav className="py-4">
-            {NAVIGATION_ITEMS.map((item) => renderNavItem(item, true))}
-            <Button className="w-full mt-4">
-              Richiedi Preventivo
-            </Button>
-          </nav>
+          <div key="mobile-menu" className="absolute left-0 top-full w-full bg-white shadow-lg">
+            <nav className="flex flex-col py-4">
+              {NAVIGATION_ITEMS.map((item, index) => (
+                <React.Fragment key={item.id || `nav-${index}`}>
+                  {renderNavItem(item, true)}
+                </React.Fragment>
+              ))}
+              <div className="px-4 mt-4">
+                <Button className="w-full">
+                  Richiedi Preventivo
+                </Button>
+                {isAuthenticated && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => logout()}
+                    className="w-full mt-2"
+                  >
+                    <LogOut className="h-5 w-5 mr-2" />
+                    Logout
+                  </Button>
+                )}
+              </div>
+            </nav>
+          </div>
         )}
       </div>
     </header>
+  );
+}
+
+export function Header() {
+  return (
+    <ErrorBoundary>
+      <HeaderContent />
+    </ErrorBoundary>
   );
 }
