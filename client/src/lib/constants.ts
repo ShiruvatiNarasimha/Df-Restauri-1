@@ -46,9 +46,9 @@ export const NAVIGATION_ITEMS = [
 
 export const TEAM_MEMBERS = [
   {
-    name: "Marco Rossi",
+    name: "De Faveri Luca",
     role: "Direttore Tecnico",
-    avatar: "https://i.pravatar.cc/300?img=1",
+    avatar: "client/public/images/FOTO DE FAVERI.png",
     social: {
       facebook: "#",
       twitter: "#",
@@ -56,9 +56,9 @@ export const TEAM_MEMBERS = [
     }
   },
   {
-    name: "Laura Bianchi",
+    name: "Gianalberto Blasutig",
     role: "Architetto",
-    avatar: "https://i.pravatar.cc/300?img=2",
+    avatar: "client/public/images/PHOTO-2024-11-28-07-54-13.jpg",
     social: {
       facebook: "#",
       twitter: "#",
