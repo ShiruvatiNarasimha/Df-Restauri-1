@@ -46,9 +46,9 @@ export const NAVIGATION_ITEMS = [
 
 export const TEAM_MEMBERS = [
   {
-    name: "De Faveri Luca",
+    name: "Marco Rossi",
     role: "Direttore Tecnico",
-    avatar: "public/images/chi-siamo/FOTO DE FAVERI.png",
+    avatar: "https://i.pravatar.cc/300?img=1",
     social: {
       facebook: "#",
       twitter: "#",
@@ -56,9 +56,9 @@ export const TEAM_MEMBERS = [
     }
   },
   {
-    name: "Blasutig Gianalberto",
+    name: "Laura Bianchi",
     role: "Architetto",
-    avatar: "public/images/chi-siamo/PHOTO-2024-11-28-07-54-131.jpg",
+    avatar: "https://i.pravatar.cc/300?img=2",
     social: {
       facebook: "#",
       twitter: "#",
@@ -68,7 +68,7 @@ export const TEAM_MEMBERS = [
   {
     name: "Giuseppe Verdi",
     role: "Capo Cantiere",
-    avatar: "/home/runner/CostruzioniModerneWeb/PHOTO-2024-11-28-07-54-131.jpg",
+    avatar: "https://i.pravatar.cc/300?img=3",
     social: {
       facebook: "#",
       twitter: "#",
