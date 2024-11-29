@@ -48,7 +48,7 @@ export const TEAM_MEMBERS = [
   {
     name: "De Faveri Luca",
     role: "Direttore Tecnico",
-    avatar: "https://replit.com/t/immerzo/repls/CostruzioniModerneWeb#FOTO%20DE%20FAVERI.png",
+    avatar: "public/images/chi-siamo/FOTO DE FAVERI.png",
     social: {
       facebook: "#",
       twitter: "#",
@@ -58,7 +58,7 @@ export const TEAM_MEMBERS = [
   {
     name: "Blasutig Gianalberto",
     role: "Architetto",
-    avatar: "/home/runner/CostruzioniModerneWeb/PHOTO-2024-11-28-07-54-131.jpg",
+    avatar: "public/images/chi-siamo/PHOTO-2024-11-28-07-54-131.jpg",
     social: {
       facebook: "#",
       twitter: "#",

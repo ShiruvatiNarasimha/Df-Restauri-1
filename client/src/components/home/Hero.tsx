@@ -10,7 +10,7 @@ export function Hero() {
         className="absolute inset-0 transition-all duration-700 hover:scale-105 group"
       >
         <img
-          src="/images/hero-background-new.jpeg"
+          src="public/uploads/con-work-1-830x519.jpg"
           alt="Vista moderna di un cantiere di costruzione"
           width={1920}
           height={1080}
