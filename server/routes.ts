@@ -445,180 +445,58 @@ export async function registerRoutes(app: Express) {
   });
 
   // Content API Routes
-  app.get("/api/content/about", async (req, res) => {
-    const requestId = req.headers['x-request-id'] as string || Date.now().toString(36) + Math.random().toString(36).substr(2);
-    const retryCount = parseInt(req.headers['x-retry-count'] as string || '0');
-    const startTime = Date.now();
-    
-    const logRequest = (level: string, message: string, extra: Record<string, any> = {}) => {
-      const duration = Date.now() - startTime;
-      console.log(JSON.stringify({
-        timestamp: new Date().toISOString(),
-        level,
-        requestId,
-        path: '/api/content/about',
-        clientIP: req.ip,
-        userAgent: req.headers['user-agent'],
-        message,
-        duration,
-        ...extra
-      }));
-    };
-
+  app.get("/api/content/about", async (_req, res) => {
     try {
-      logRequest('info', 'Fetching about content');
-      
-      // Enhanced logging with request context
-      const requestContext = {
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV,
-        requestId,
-        retryCount,
-        clientInfo: {
-          ip: req.ip,
-          userAgent: req.headers['user-agent']
+      // Mock data structure matching the AboutContent interface
+      const aboutContent = {
+        storia: {
+          title: "La Nostra Storia",
+          content: "Da oltre vent'anni, DF Restauri è sinonimo di eccellenza nel mondo del restauro, delle pitture e delle decorazioni. Rappresenta la prosecuzione dell'attività nata nel 1992 in capo a De Faveri Luca. L'azienda ha saputo coniugare la maestria artigianale con le più moderne tecniche, offrendo soluzioni personalizzate per ogni esigenza dalle delicate operazioni di costruzione, ristrutturazione e restauro. DF è il partner ideale per chi desidera valorizzare i propri spazi con un tocco di esclusività. Grazie all'esperienza maturata nel corso degli anni, siamo in grado di garantire risultati impeccabili e duraturi, rispondendo alle richieste più esigenti del mercato dell'edilizia. Abbiamo saputo evolversi e adattarsi ai continui cambiamenti del mercato, mantenendo sempre al centro il cliente e la qualità dei lavori.",
+          items: [
+            "Qualità senza compromessi",
+            "Innovazione sostenibile", 
+            "Rispetto per la tradizione",
+            "Attenzione al cliente"
+          ]
         },
-        performance: {
-          startTime: Date.now()
+        valori: {
+          title: "I Nostri Valori",
+          content: "I nostri valori guidano ogni aspetto del nostro lavoro, dalla pianificazione all'esecuzione.",
+          items: [
+            "Eccellenza professionale",
+            "Rispetto per la tradizione",
+            "Innovazione tecnologica",
+            "Sostenibilità ambientale"
+          ]
+        },
+        mission: {
+          title: "La Nostra Missione",
+          content: "Preservare e valorizzare il patrimonio architettonico italiano attraverso interventi di restauro di alta qualità.",
+          points: [
+            "Utilizzare tecniche tradizionali e innovative",
+            "Garantire la massima qualità in ogni progetto",
+            "Formare continuamente il nostro team",
+            "Rispettare l'ambiente e il territorio"
+          ]
+        },
+        vision: {
+          title: "La Nostra Visione",
+          content: "Diventare un punto di riferimento nel settore del restauro architettonico, combinando tradizione e innovazione.",
+          points: [
+            "Espandere la nostra presenza nel territorio nazionale",
+            "Investire in ricerca e sviluppo",
+            "Promuovere la sostenibilità nel settore edile",
+            "Valorizzare il patrimonio culturale italiano"
+          ]
         }
       };
-      
-      logRequest('debug', 'Request context', requestContext);
-      
-      // Implement retry mechanism with exponential backoff
-      const maxRetries = 3;
-      const baseDelay = 1000; // 1 second
-      let currentTry = 0;
-      let lastError: Error | null = null;
 
-      while (currentTry < maxRetries) {
-        try {
-          if (currentTry > 0) {
-            const delay = baseDelay * Math.pow(2, currentTry - 1);
-            logRequest('info', `Retry attempt ${currentTry + 1}, waiting ${delay}ms`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-          }
-
-          // In development, use a consistent delay for testing
-          if (process.env.NODE_ENV === 'development') {
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
-
-          const aboutContent = {
-            storia: {
-              title: "La Nostra Storia",
-              content: "Da oltre vent'anni, DF Restauri è sinonimo di eccellenza nel mondo del restauro, delle pitture e delle decorazioni. Rappresenta la prosecuzione dell’attività nata nel 1992 in capo a De Faveri Luca. L'azienda ha saputo coniugare la maestria artigianale con le più moderne tecniche, offrendo soluzioni personalizzate per ogni esigenza dalle delicate operazioni di costruzione, ristrutturazione e restauro. DF è il partner ideale per chi desidera valorizzare i propri spazi con un tocco di esclusività. Grazie all'esperienza maturata nel corso degli anni, siamo in grado di garantire risultati impeccabili e duraturi, rispondendo alle richieste più esigenti del mercato dell'edilizia. Abbiamo saputo evolversi e adattarsi ai continui cambiamenti del mercato, mantenendo sempre al centro il cliente e la qualità dei lavori.",
-              items: [
-                "Tradizione dal 1992",
-                "Eccellenza artigianale",
-                "Innovazione continua",
-                "Risultati garantiti"
-              ],
-              
-            },
-            valori: {
-              title: "I Nostri Valori",
-              content: "I nostri valori guidano ogni aspetto del nostro lavoro, dalla pianificazione all'esecuzione.",
-              items: [
-                "Eccellenza professionale",
-                "Rispetto per la tradizione",
-                "Innovazione tecnologica",
-                "Sostenibilità ambientale"
-              ]
-            },
-            mission: {
-              title: "La Nostra Missione",
-              content: "Preservare e valorizzare il patrimonio architettonico italiano attraverso interventi di restauro di alta qualità.",
-              points: [
-                "Utilizzare tecniche tradizionali e innovative",
-                "Garantire la massima qualità in ogni progetto",
-                "Formare continuamente il nostro team",
-                "Rispettare l'ambiente e il territorio"
-              ]
-            },
-            vision: {
-              title: "La Nostra Visione",
-              content: "Diventare un punto di riferimento nel settore del restauro architettonico, combinando tradizione e innovazione.",
-              points: [
-                "Espandere la nostra presenza nel territorio nazionale",
-                "Investire in ricerca e sviluppo",
-                "Promuovere la sostenibilità nel settore edile",
-                "Valorizzare il patrimonio culturale italiano"
-              ]
-            }
-          };
-
-          // Add response metadata
-          const response = {
-            data: aboutContent,
-            meta: {
-              requestId,
-              timestamp: new Date().toISOString(),
-              version: '1.0',
-              cache: process.env.NODE_ENV === 'production' ? 'enabled' : 'disabled'
-            }
-          };
-
-          // Cache control headers
-          const maxAge = process.env.NODE_ENV === 'production' ? 300 : 0;
-          res.set('Cache-Control', `public, max-age=${maxAge}`);
-
-          logRequest('info', 'Successfully fetched about content', {
-            sections: Object.keys(aboutContent),
-            cacheStatus: response.meta.cache
-          });
-
-          return res.json(response);
-        } catch (error) {
-          lastError = error instanceof Error ? error : new Error('Unknown error occurred');
-          logRequest('error', `Attempt ${currentTry + 1} failed`, {
-            error: {
-              name: lastError.name,
-              message: lastError.message,
-              stack: lastError.stack
-            },
-            retryCount: currentTry
-          });
-          
-          currentTry++;
-          if (currentTry === maxRetries) {
-            throw lastError;
-          }
-        }
-      }
+      res.json(aboutContent);
     } catch (error) {
-      const errorResponse = {
-        status: 'error',
-        requestId,
-        timestamp: new Date().toISOString(),
-        retries: retryCount,
-        totalTime: Date.now() - startTime
-      };
-
-      logRequest('error', 'Error fetching about content', {
-        error: error instanceof Error ? {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        } : error
-      });
-
-      if (error instanceof Error) {
-        if (error.name === 'NotFoundError') {
-          return res.status(404).json({
-            ...errorResponse,
-            message: "Contenuto non trovato",
-            code: 'CONTENT_NOT_FOUND',
-            suggestion: "Verifica che il contenuto sia stato pubblicato correttamente"
-          });
-        }
-      }
-
-      return res.status(500).json({
-        ...errorResponse,
+      console.error('Error fetching about content:', error);
+      res.status(500).json({ 
         message: "Si è verificato un errore durante il recupero dei contenuti",
-        code: 'INTERNAL_SERVER_ERROR',
-        suggestion: "Riprova tra qualche minuto. Se il problema persiste, contatta il supporto tecnico"
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

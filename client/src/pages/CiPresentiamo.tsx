@@ -6,6 +6,8 @@ import { fadeInUp, staggerChildren, fadeIn, slideIn } from "@/lib/animations";
 import { useAboutContent } from "@/hooks/useContent";
 import { Team } from "@/components/home/Team";
 
+// Values are now loaded dynamically
+
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
@@ -16,7 +18,6 @@ export function CiPresentiamo() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="pt-20">
-        {/* Hero Section */}
         <motion.section 
           initial="initial"
           animate="animate"
@@ -41,47 +42,14 @@ export function CiPresentiamo() {
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
                 ) : error ? (
-                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                    <div className="text-red-500 text-lg font-semibold text-center">
-                      Si è verificato un errore nel caricamento del contenuto.
-                    </div>
-                    <div className="text-gray-600 text-sm text-center max-w-md">
-                      {error instanceof Error ? error.message : 'Errore sconosciuto. Riprova più tardi.'}
-                    </div>
-                    <button
-                      onClick={() => window.location.reload()}
-                      className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-                    >
-                      Riprova
-                    </button>
+                  <div className="text-red-500 text-center py-12">
+                    Si è verificato un errore nel caricamento del contenuto.
                   </div>
                 ) : aboutContent ? (
                   <>
-                    {aboutContent.storia && (
-                      <>
-                        <h2 className="text-3xl font-bold mb-6">{aboutContent.storia.title}</h2>
-                        <p className="text-gray-600 mb-8">{aboutContent.storia.content}</p>
-                        
-                        {/* History Timeline */}
-                        <div className="mb-12">
-                          <h3 className="text-2xl font-semibold mb-6">Il Nostro Percorso</h3>
-                          <div className="space-y-6">
-                            {aboutContent.storia.milestones?.map((milestone, index) => (
-                              <div key={index} className="flex items-start space-x-4">
-                                <div className="flex-shrink-0 w-24">
-                                  <span className="font-bold text-primary">{milestone.year}</span>
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-gray-700">{milestone.achievement}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <HistoryGallery />
-                      </>
-                    )}
+                    <h2 className="text-3xl font-bold mb-6">{aboutContent.storia.title}</h2>
+                    <p className="text-gray-600 mb-8">{aboutContent.storia.content}</p>
+                    <HistoryGallery />
                   </>
                 ) : null}
               </motion.div>
@@ -106,7 +74,7 @@ export function CiPresentiamo() {
                       height={600}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.onerror = null;
+                        target.onerror = null; // Prevent infinite loop
                         target.src = '/images/fallback/about-fallback.jpg';
                         console.error('Image failed to load:', STOCK_PHOTOS.about);
                       }}
@@ -171,9 +139,9 @@ export function CiPresentiamo() {
                   variants={staggerChildren}
                   className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
                 >
-                  {aboutContent.valori.items?.map((value: string, index: number) => (
+                  {aboutContent.valori.items?.map((value) => (
                     <motion.div
-                      key={index}
+                      key={value}
                       variants={fadeInUp}
                       className="bg-white p-6 rounded-lg shadow-sm"
                     >
@@ -220,7 +188,7 @@ export function CiPresentiamo() {
                     </motion.p>
                     {aboutContent.mission.points && aboutContent.mission.points.length > 0 && (
                       <ul className="space-y-3">
-                        {aboutContent.mission.points.map((point: string, index: number) => (
+                        {aboutContent.mission.points.map((point, index) => (
                           <motion.li
                             key={`mission-${index}`}
                             variants={fadeInUp}
@@ -250,7 +218,7 @@ export function CiPresentiamo() {
                     </motion.p>
                     {aboutContent.vision.points && aboutContent.vision.points.length > 0 && (
                       <ul className="space-y-3">
-                        {aboutContent.vision.points.map((point: string, index: number) => (
+                        {aboutContent.vision.points.map((point, index) => (
                           <motion.li
                             key={`vision-${index}`}
                             variants={fadeInUp}
