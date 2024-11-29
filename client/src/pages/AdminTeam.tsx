@@ -42,7 +42,7 @@ const teamFormSchema = z.object({
 
 type TeamFormValues = z.infer<typeof teamFormSchema>;
 
-function AdminTeam() {
+export default function AdminTeam() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentMember, setCurrentMember] = useState<TeamMember | null>(null);
@@ -259,4 +259,3 @@ function AdminTeam() {
     </div>
   );
 }
-export default AdminTeam;

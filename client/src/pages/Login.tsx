@@ -43,7 +43,7 @@ const loginFormSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-export const Login: React.FC = () => {
+export default function Login() {
   const [, setLocation] = useLocation();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);

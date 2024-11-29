@@ -45,7 +45,7 @@ type ServiceFormValues = z.infer<typeof serviceFormSchema>;
 
 import { ImageOrderList } from "@/components/admin/ImageOrderList";
 
-export default function AdminServices(): JSX.Element {
+export default function AdminServices() {
   const [services, setServices] = useState<Service[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentService, setCurrentService] = useState<Service | null>(null);

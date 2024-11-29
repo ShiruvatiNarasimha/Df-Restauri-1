@@ -37,7 +37,7 @@ const CERTIFICATIONS: Certification[] = [
   }
 ];
 
-export const Certificazioni: React.FC = () => {
+export default function Certificazioni() {
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8 text-center">Le Nostre Certificazioni</h1>

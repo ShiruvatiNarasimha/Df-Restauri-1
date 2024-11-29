@@ -46,25 +46,33 @@ export const NAVIGATION_ITEMS = [
 
 export const TEAM_MEMBERS = [
   {
-    name: "De Faveri Luca",
-    role: "Amministratore",
-    avatar: getImagePath("/images/team/de-faveri-luca.png"),
-    bio: "Amministratore con vasta esperienza nel settore delle costruzioni e del restauro.",
+    name: "Marco Rossi",
+    role: "Direttore Tecnico",
+    avatar: "https://i.pravatar.cc/300?img=1",
     social: {
-      linkedin: "https://www.linkedin.com/",
-      facebook: "https://www.facebook.com/",
-      instagram: "https://www.instagram.com/"
+      facebook: "#",
+      twitter: "#",
+      instagram: "#"
     }
   },
   {
-    name: "Gianalberto Blasutig",
-    role: "Direttore Tecnico",
-    avatar: getImagePath("/images/team/gianalberto-blasutig.jpg"),
-    bio: "Direttore Tecnico specializzato nella gestione e supervisione di progetti di restauro e costruzione.",
+    name: "Laura Bianchi",
+    role: "Architetto",
+    avatar: "https://i.pravatar.cc/300?img=2",
     social: {
-      linkedin: "https://www.linkedin.com/",
-      facebook: "https://www.facebook.com/",
-      instagram: "https://www.instagram.com/"
+      facebook: "#",
+      twitter: "#",
+      instagram: "#"
+    }
+  },
+  {
+    name: "Giuseppe Verdi",
+    role: "Capo Cantiere",
+    avatar: "https://i.pravatar.cc/300?img=3",
+    social: {
+      facebook: "#",
+      twitter: "#",
+      instagram: "#"
     }
   }
 ];

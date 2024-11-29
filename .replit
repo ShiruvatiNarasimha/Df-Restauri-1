@@ -55,10 +55,6 @@ args = "Backend Server"
 task = "workflow.run"
 args = "Client Dev Server"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Full Stack App"
-
 [[workflows.workflow]]
 name = "Full Stack App"
 author = "agent"
@@ -71,7 +67,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "tsx watch --clear-screen=false server/index.ts"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -100,8 +96,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && NODE_ENV=development tsx watch --clear-screen=false index.ts"
-waitForPort = 3000
+args = "cd server && tsx watch --clear-screen=false index.ts"
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Client Dev Server"

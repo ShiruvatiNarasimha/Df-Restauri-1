@@ -6,10 +6,9 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/contexts/auth";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Home } from "./pages/Home";
 import { Sostenibilita } from "./pages/Sostenibilita";
-import { Certificazioni } from "./pages/Certificazioni";
+import { default as Certificazioni } from "./pages/Certificazioni";
 import { CiPresentiamo } from "./pages/CiPresentiamo";
 import { Servizi } from "./pages/Servizi";
 import { Realizzazioni } from "./pages/Realizzazioni";
@@ -17,9 +16,9 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import AdminProjects from "@/pages/AdminProjects";
 import AdminTeam from "@/pages/AdminTeam";
 import AdminServices from "@/pages/AdminServices";
-import { Login } from "@/pages/Login";
+import Login from "@/pages/Login";
 
-const Router: React.FC = () => {
+function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
@@ -36,20 +35,18 @@ const Router: React.FC = () => {
       <Route>404 Page Not Found</Route>
     </Switch>
   );
-};
+}
 
-const App: React.FC = () => {
+function App() {
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <Router />
-          <Toaster />
-        </QueryClientProvider>
-      </AuthProvider>
-    </ErrorBoundary>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router />
+        <Toaster />
+      </QueryClientProvider>
+    </AuthProvider>
   );
-};
+}
 
 const rootElement = document.getElementById("root");
 if (!rootElement?.innerHTML) {
