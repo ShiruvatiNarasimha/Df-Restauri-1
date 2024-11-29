@@ -46,9 +46,9 @@ export const NAVIGATION_ITEMS = [
 
 export const TEAM_MEMBERS = [
   {
-    name: "Marco Rossi",
+    name: "De Faveri Luca",
     role: "Direttore Tecnico",
-    avatar: "https://i.pravatar.cc/300?img=1",
+    avatar: "https://replit.com/t/immerzo/repls/CostruzioniModerneWeb#FOTO%20DE%20FAVERI.png",
     social: {
       facebook: "#",
       twitter: "#",
@@ -56,9 +56,9 @@ export const TEAM_MEMBERS = [
     }
   },
   {
-    name: "Laura Bianchi",
+    name: "Blasutig Gianalberto",
     role: "Architetto",
-    avatar: "https://i.pravatar.cc/300?img=2",
+    avatar: "/home/runner/CostruzioniModerneWeb/PHOTO-2024-11-28-07-54-131.jpg",
     social: {
       facebook: "#",
       twitter: "#",
@@ -68,7 +68,7 @@ export const TEAM_MEMBERS = [
   {
     name: "Giuseppe Verdi",
     role: "Capo Cantiere",
-    avatar: "https://i.pravatar.cc/300?img=3",
+    avatar: "/home/runner/CostruzioniModerneWeb/PHOTO-2024-11-28-07-54-131.jpg",
     social: {
       facebook: "#",
       twitter: "#",
