@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { validateAndDecodeToken, TokenValidationError, type JWTPayload } from '@/utils/jwt';
+import { validateAndDecodeToken } from '@/utils/jwt';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface User {
   id: number;
@@ -10,26 +11,62 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  isLoading: boolean;
+  error: Error | null;
   isAuthenticated: boolean;
-  login: (token: string) => void;
-  logout: () => void;
+  login: (token: string) => Promise<void>;
+  logout: () => Promise<void>;
   getToken: () => Promise<string | null>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
+
+function AuthProvider({ children }: AuthProviderProps) {
+  const queryClient = useQueryClient();
+  const [isInitialized, setIsInitialized] = useState(false);
   const [, setLocation] = useLocation();
+  
+  const {
+    data: user,
+    isLoading,
+    error
+  } = useQuery<User | null, Error>({
+    queryKey: ['user'],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) return null;
+      try {
+        const decoded = validateAndDecodeToken(token);
+        return {
+          id: decoded.id,
+          username: decoded.username,
+          role: decoded.role
+        };
+      } catch (err) {
+        handleAuthError();
+        return null;
+      }
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: false
+  });
 
   const handleAuthError = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('userData');
-    setUser(null);
+    queryClient.setQueryData(['user'], null);
     const currentPath = window.location.pathname;
     if (currentPath.startsWith('/admin')) {
       setLocation(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
@@ -57,14 +94,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   useEffect(() => {
-    const validateToken = async () => {
-      // Clear existing tokens if invalid
-      const token = await getToken();
-      if (!token) {
-        handleAuthError();
-        return;
-      }
+    setIsInitialized(true);
+  }, []);
 
+  const loginMutation = useMutation({
+    mutationFn: async (token: string) => {
       try {
         const decoded = validateAndDecodeToken(token);
         const userData = {
@@ -72,61 +106,49 @@ export function AuthProvider({ children }: AuthProviderProps) {
           username: decoded.username,
           role: decoded.role
         };
-        
-        setUser(userData);
+        localStorage.setItem('adminToken', token);
         localStorage.setItem('userData', JSON.stringify(userData));
+        return userData;
       } catch (error) {
-        console.error('Error validating token:', error);
+        console.error('Error processing login:', error);
         handleAuthError();
+        throw error;
       }
-    };
-
-    validateToken();
-  }, []);
-
-  const login = (token: string) => {
-    try {
-      const decoded = validateAndDecodeToken(token);
-      const userData = {
-        id: decoded.id,
-        username: decoded.username,
-        role: decoded.role
-      };
-      localStorage.setItem('adminToken', token);
-      setUser(userData);
-      localStorage.setItem('userData', JSON.stringify(userData));
-    } catch (error) {
-      console.error('Error processing login:', error);
-      handleAuthError();
+    },
+    onSuccess: (userData) => {
+      queryClient.setQueryData(['user'], userData);
     }
-  };
+  });
 
-  const logout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('userData');
-    setUser(null);
-    setLocation('/login');
-  };
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('userData');
+      queryClient.setQueryData(['user'], null);
+      setLocation('/login');
+    }
+  });
 
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    login,
-    logout,
-    getToken
-  };
+  if (!isInitialized) {
+    return null;
+  }
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider 
+      value={{
+        user,
+        isLoading,
+        error,
+        isAuthenticated: !!user,
+        login: loginMutation.mutateAsync,
+        logout: logoutMutation.mutateAsync,
+        getToken
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+export { useAuth };
+export default AuthProvider;
