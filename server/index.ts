@@ -69,43 +69,10 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Serve the app on port 5000
+  // ALWAYS serve the app on port 5000
   // this serves both the API and the client
   const PORT = 5000;
-  
-  // Handle server errors and graceful shutdown
-  function handleServerError(error: Error & { code?: string }) {
-    if (error.code === 'EADDRINUSE') {
-      log(`Port ${PORT} is already in use. Please try a different port or stop the process using this port.`);
-      process.exit(1);
-    } else {
-      log(`Failed to start server: ${error.message}`);
-      throw error;
-    }
-  }
-
-  // Set up graceful shutdown
-  function shutdownGracefully() {
-    log('Shutting down gracefully...');
-    server.close(() => {
-      log('Server closed');
-      process.exit(0);
-    });
-
-    // Force shutdown after 10s if server hasn't closed
-    setTimeout(() => {
-      log('Could not close connections in time, forcefully shutting down');
-      process.exit(1);
-    }, 10000);
-  }
-
-  // Handle process termination
-  process.on('SIGTERM', shutdownGracefully);
-  process.on('SIGINT', shutdownGracefully);
-
-  server.listen(PORT, "0.0.0.0")
-    .on('listening', () => {
-      log(`serving on port ${PORT}`);
-    })
-    .on('error', handleServerError);
+  server.listen(PORT, "0.0.0.0", () => {
+    log(`serving on port ${PORT}`);
+  });
 })();
