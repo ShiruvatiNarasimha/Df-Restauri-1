@@ -4,7 +4,7 @@ import { STOCK_PHOTOS } from "@/lib/constants";
 import { motion } from "framer-motion";
 import { fadeInUp, staggerChildren, fadeIn, slideIn } from "@/lib/animations";
 import { useAboutContent } from "@/hooks/useContent";
-import { Team } from "@/components/home/Team";
+import { MissionVision } from "@/components/home/MissionVision";
 
 // Values are now loaded dynamically
 
@@ -79,14 +79,14 @@ export function CiPresentiamo() {
           </div>
         </motion.section>
 
-        {/* Team Section */}
+        {/* Mission and Vision Section */}
         <motion.section
           initial="initial"
           animate="animate"
           variants={staggerChildren}
           className="bg-white"
         >
-          <Team />
+          <MissionVision />
         </motion.section>
 
         {/* Valori Aziendali Section */}
