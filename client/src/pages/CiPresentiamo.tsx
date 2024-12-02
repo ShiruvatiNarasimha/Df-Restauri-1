@@ -47,8 +47,8 @@ export function CiPresentiamo() {
                   </div>
                 ) : aboutContent ? (
                   <>
-                    <h2 className="text-3xl font-bold mb-6">{aboutContent.storia.title}</h2>
-                    <p className="text-gray-600 mb-8">{aboutContent.storia.content}</p>
+                    <h2 className="text-3xl font-bold mb-6">I Nostri Punti di Forza</h2>
+                    <p className="text-gray-600 mb-8">Scopri i valori fondamentali che guidano il nostro lavoro e il nostro impegno verso l'eccellenza nel settore delle costruzioni e dei restauri.</p>
                     <HistoryGallery />
                   </>
                 ) : null}
@@ -59,7 +59,7 @@ export function CiPresentiamo() {
                 className="relative"
               >
                 <img
-                  src={STOCK_PHOTOS.about}
+                  src={STOCK_PHOTOS.construction[0]}
                   alt="La nostra storia - DF Restauri"
                   className="rounded-lg shadow-xl w-full h-full object-cover"
                   loading="eager"
