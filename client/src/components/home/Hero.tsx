@@ -38,14 +38,15 @@ export function Hero() {
                 Scopri i nostri servizi
               </Button>
             </Link>
-            <Link to="#contattaci">
-              <Button 
-                size="lg" 
-                className="bg-orange-500/80 hover:bg-orange-600/90 text-white text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-              >
-                Contattaci
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="bg-orange-500/80 hover:bg-orange-600/90 text-white text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+              onClick={() => {
+                document.querySelector('#contattaci')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              Contattaci
+            </Button>
           </div>
         </div>
       </div>
