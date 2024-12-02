@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import * as React from "react";
 import { STOCK_PHOTOS } from "@/lib/constants";
-import { useLocation } from "wouter";
 
 export function Hero() {
-  const [_, setLocation] = useLocation();
   return (
     <div className="relative h-[calc(100vh-5rem)] min-h-[600px] max-h-[900px] flex items-center overflow-hidden">
-      <div className="absolute inset-0 transition-all duration-700 hover:scale-105 group">
+      <div 
+        className="absolute inset-0 transition-all duration-700 hover:scale-105 group"
+      >
         <img
           src="/images/hero-background-new.jpeg"
           alt="Vista moderna di un cantiere di costruzione"
@@ -23,26 +23,25 @@ export function Hero() {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl animate-fade-in">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-xl">
-            DF Restauri: Mantieni viva la storia
+            Restauri: Mantieni viva la storia
           </h1>
           <p className="text-xl md:text-2xl text-gray-100 mb-10 max-w-2xl leading-relaxed drop-shadow-lg">
             Oltre 20 anni di esperienza nel restauro e nella ristrutturazione
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button
-              size="lg"
+            <Button 
+              size="lg" 
               className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-              onClick={() => setLocation('/servizi')}
             >
               Scopri i nostri servizi
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
+            <Button 
+              size="lg" 
+              variant="outline" 
               className="bg-orange-500/20 border-orange-500 text-orange-500 hover:bg-orange-500/30 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
               onClick={() => {
-                const contactSection = document.getElementById("contatti");
-                contactSection?.scrollIntoView({ behavior: "smooth" });
+                const contactSection = document.getElementById('contatti');
+                contactSection?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
               Contattaci
