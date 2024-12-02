@@ -125,12 +125,7 @@ export function Header() {
           ) : (
             <nav className="flex items-center gap-8">
               {NAVIGATION_ITEMS.map((item) => renderNavItem(item))}
-              <Button
-                onClick={() => {
-                  const contactSection = document.getElementById('contatti');
-                  contactSection?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
+              <Button>
                 Richiedi Preventivo
               </Button>
             </nav>
@@ -140,14 +135,7 @@ export function Header() {
         {isMobile && isOpen && (
           <nav className="py-4">
             {NAVIGATION_ITEMS.map((item) => renderNavItem(item, true))}
-            <Button 
-              className="w-full mt-4"
-              onClick={() => {
-                setIsOpen(false);
-                const contactSection = document.getElementById('contatti');
-                contactSection?.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
+            <Button className="w-full mt-4">
               Richiedi Preventivo
             </Button>
           </nav>

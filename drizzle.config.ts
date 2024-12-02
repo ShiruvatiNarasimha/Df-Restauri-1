@@ -1,18 +1,14 @@
 import { defineConfig } from "drizzle-kit";
 
-if (!process.env.DATABASE_URL && process.env.NODE_ENV === 'production') {
-  throw new Error("DATABASE_URL is required in production mode");
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL, ensure the database is provisioned");
 }
-
-const databaseUrl = process.env.DATABASE_URL;
 
 export default defineConfig({
   out: "./migrations",
   schema: "./db/schema.ts",
   dialect: "postgresql",
-  ...(databaseUrl ? {
-    dbCredentials: {
-      url: databaseUrl,
-    },
-  } : {}),
+  dbCredentials: {
+    url: process.env.DATABASE_URL,
+  },
 });
