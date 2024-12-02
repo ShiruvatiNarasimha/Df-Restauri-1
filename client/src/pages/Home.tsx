@@ -3,7 +3,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/home/Hero";
 import { Services } from "@/components/home/Services";
 import { About } from "@/components/home/About";
-import { Team } from "@/components/home/Team";
+import { VisionMission } from "@/components/home/VisionMission";
 import { Contact } from "@/components/home/Contact";
 
 export function Home() {
@@ -14,7 +14,7 @@ export function Home() {
         <Hero />
         <Services />
         <About />
-        <Team />
+        <VisionMission />
         <Contact />
       </main>
       <Footer />
