@@ -8,10 +8,10 @@ import { STOCK_PHOTOS } from "@/lib/constants";
 // Sample data - in a real app, this would come from an API
 const CASE_HISTORIES: CaseHistoryType[] = [
   {
-    id: 1,
+    id: "1",
     title: "Restauro Palazzo Storico Veneziano",
     description: "Restauro completo di un palazzo storico del XVI secolo nel cuore di Venezia",
-    category: "restauro" as const,
+    category: "restauro",
     image: STOCK_PHOTOS.restoration[0],
     year: 2023,
     location: "Venezia",
@@ -23,9 +23,7 @@ const CASE_HISTORIES: CaseHistoryType[] = [
       "Miglioramento della classe energetica",
       "Riconoscimento per l'eccellenza nel restauro conservativo"
     ],
-    gallery: STOCK_PHOTOS.restoration,
-    createdAt: new Date(),
-    updatedAt: new Date()
+    gallery: STOCK_PHOTOS.restoration
   }
 ];
 

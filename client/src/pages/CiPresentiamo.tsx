@@ -58,34 +58,15 @@ export function CiPresentiamo() {
                 variants={fadeIn}
                 className="relative"
               >
-                {isLoading ? (
-                  <div className="rounded-lg shadow-xl w-full h-[600px] bg-gray-100 animate-pulse flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <img
-                      src={STOCK_PHOTOS.about}
-                      alt="La nostra storia - DF Restauri"
-                      className="rounded-lg shadow-xl w-full h-full object-cover"
-                      loading="eager"
-                      decoding="async"
-                      width={800}
-                      height={600}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.onerror = null; // Prevent infinite loop
-                        target.src = '/images/fallback/about-fallback.jpg';
-                        console.error('Image failed to load:', STOCK_PHOTOS.about);
-                      }}
-                    />
-                    <div 
-                      className="absolute inset-0 bg-gray-100 animate-pulse"
-                      style={{ display: 'none' }}
-                      id="image-loading-placeholder"
-                    />
-                  </div>
-                )}
+                <img
+                  src={STOCK_PHOTOS.about}
+                  alt="La nostra storia - DF Restauri"
+                  className="rounded-lg shadow-xl w-full h-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                  width={800}
+                  height={600}
+                />
                 <motion.div
                   variants={slideIn}
                   className="absolute -bottom-6 -left-6 bg-primary text-white p-6 rounded-lg"
