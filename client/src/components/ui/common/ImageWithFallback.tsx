@@ -7,7 +7,7 @@ interface ImageWithFallbackProps extends Omit<React.ImgHTMLAttributes<HTMLImageE
 
 export function ImageWithFallback({
   src,
-  fallbackSrc = '/images/placeholders/placeholder.svg',
+  fallbackSrc = '/images/placeholder.svg',
   alt,
   onError,
   ...props
@@ -41,10 +41,13 @@ export function ImageWithFallback({
     // If already failed WebP or it's the fallback image, return as is
     if (isWebPFailed || url === fallbackSrc) return url;
     
-    // For local images, try WebP version first
+    // For local images in public directory, try WebP version
     if (url.startsWith('/')) {
-      if (!url.endsWith('.webp') && url.match(/\.(jpg|jpeg|png)$/i)) {
-        return `${url.replace(/\.(jpg|jpeg|png)$/i, '')}.webp`;
+      // Remove '/public' if present in the path and ensure proper path
+      const normalizedPath = url.replace('/public/', '/').replace(/\/+/g, '/');
+      if (!normalizedPath.endsWith('.webp') && normalizedPath.match(/\.(jpg|jpeg|png)$/i)) {
+        // Try WebP version first
+        return `${normalizedPath.replace(/\.(jpg|jpeg|png)$/i, '')}.webp`;
       }
     }
     return url;

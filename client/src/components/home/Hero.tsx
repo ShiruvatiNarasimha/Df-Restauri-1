@@ -34,7 +34,10 @@ export function Hero() {
             <Button 
               size="lg" 
               className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-              onClick={() => window.location.href = '/servizi'}
+              onClick={() => {
+    window.history.pushState({}, '', '/servizi');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }}
             >
               Scopri i nostri servizi
             </Button>
