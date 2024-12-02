@@ -137,7 +137,14 @@ export function Servizi() {
               Contattaci per una consulenza gratuita. Il nostro team di esperti è pronto
               ad ascoltare le tue esigenze e proporre le migliori soluzioni per il tuo progetto.
             </p>
-            <Button size="lg" className="text-lg px-8">
+            <Button 
+              size="lg" 
+              className="text-lg px-8 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+              onClick={() => {
+                const contactSection = document.getElementById('contatti');
+                contactSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Contattaci Ora
             </Button>
           </div>
