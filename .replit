@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web"]
+modules = ["nodejs-20", "web", "typescript"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
@@ -8,7 +8,7 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "cd client && npx vite"]
+run = ["sh", "-c", "npm run dev"]
 
 [[ports]]
 localPort = 5000
@@ -17,7 +17,18 @@ externalPort = 80
 [[ports]]
 localPort = 5173
 externalPort = 5173
-exposeLocalhost = true
+
+[[ports]]
+localPort = 5174
+externalPort = 3000
+
+[[ports]]
+localPort = 5175
+externalPort = 3001
+
+[[ports]]
+localPort = 5176
+externalPort = 3002
 
 [packager]
 language = "nodejs"
@@ -42,10 +53,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Client Dev"
+args = "Development Server"
 
 [[workflows.workflow]]
-name = "Client Dev"
+name = "Development Server"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -56,5 +67,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npx vite"
-waitForPort = 5173
+args = "npm run dev"
+waitForPort = 5000
