@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+nimport { useQuery } from "@tanstack/react-query";
 
 export interface ContentSection {
   title: string;
