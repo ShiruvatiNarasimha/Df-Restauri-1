@@ -9,7 +9,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <img 
-              src="/logorestauri.png"
+              src="/images/logo_dfrestauri_transparent.png"
               alt="DF Restauri"
               className="h-12 mb-4 brightness-0 invert"
             />
