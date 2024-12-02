@@ -9,7 +9,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <img 
-              src="/images/logo_dfrestauri_transparent.png"
+              src="/logorestauri.png"
               alt="DF Restauri"
               className="h-12 mb-4 brightness-0 invert"
             />
@@ -23,13 +23,13 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">Collegamenti Rapidi</h3>
             <nav className="flex flex-col gap-2">
               {NAVIGATION_ITEMS.map((item) => (
-                <Link
+                <a
                   key={item.href}
                   href={item.href}
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   {item.label}
-                </Link>
+                </a>
               ))}
             </nav>
           </div>

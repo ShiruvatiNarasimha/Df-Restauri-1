@@ -1,8 +1,6 @@
 import { Button } from "@/components/ui/button";
 import * as React from "react";
-import { Link } from "wouter";
 import { STOCK_PHOTOS } from "@/lib/constants";
-import { useLocation } from "wouter";
 
 export function Hero() {
   return (
@@ -11,7 +9,7 @@ export function Hero() {
         className="absolute inset-0 transition-all duration-700 hover:scale-105 group"
       >
         <img
-          src="/images/hero/hero-background.jpg"
+          src="/images/hero-background-new.jpeg"
           alt="Vista moderna di un cantiere di costruzione"
           width={1920}
           height={1080}
@@ -34,19 +32,13 @@ export function Hero() {
             <Button 
               size="lg" 
               className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-              onClick={() => {
-    window.history.pushState({}, '', '/servizi');
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  }}
             >
               Scopri i nostri servizi
             </Button>
             <Button 
               size="lg" 
-              className="bg-orange-500/80 hover:bg-orange-600/90 text-white text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-              onClick={() => {
-                document.querySelector('#contattaci')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              variant="outline" 
+              className="text-white border-white hover:bg-white/20 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
             >
               Contattaci
             </Button>
