@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import * as React from "react";
 import { Link } from "wouter";
 import { STOCK_PHOTOS } from "@/lib/constants";
+import { useLocation } from "wouter";
 
 export function Hero() {
   return (
@@ -30,14 +31,13 @@ export function Hero() {
             Oltre 20 anni di esperienza nel restauro e nella ristrutturazione
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/servizi">
-              <Button 
-                size="lg" 
-                className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-              >
-                Scopri i nostri servizi
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+              onClick={() => window.location.href = '/servizi'}
+            >
+              Scopri i nostri servizi
+            </Button>
             <Button 
               size="lg" 
               className="bg-orange-500/80 hover:bg-orange-600/90 text-white text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
