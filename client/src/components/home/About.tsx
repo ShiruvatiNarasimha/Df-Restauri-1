@@ -45,7 +45,7 @@ export function About() {
 
             <div className="relative">
               <ImageWithFallback
-                src="/images/chi-siamo/about-company.webp"
+                src="/images/chi-siamo/about-company.jpg"
                 alt="Chi Siamo - DF Restauri"
                 className="rounded-lg shadow-xl w-full h-full object-cover"
                 width={800}
