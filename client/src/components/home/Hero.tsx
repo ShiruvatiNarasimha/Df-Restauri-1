@@ -38,7 +38,7 @@ export function Hero() {
             <Button 
               size="lg" 
               variant="outline" 
-              className="text-white border-white hover:bg-white/20 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+              className="bg-orange-500/20 border-orange-500 text-orange-500 hover:bg-orange-500/30 text-lg px-8 py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
               onClick={() => {
                 const contactSection = document.getElementById('contatti');
                 contactSection?.scrollIntoView({ behavior: 'smooth' });
