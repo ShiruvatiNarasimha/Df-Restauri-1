@@ -20,25 +20,15 @@ export async function convertToWebP(imagePath: string): Promise<string> {
 
   try {
     // Check if WebP version already exists
-    try {
-      await fs.access(webpPath);
-      return `/cache/${webpFilename}`;
-    } catch {
-      // Ensure source image exists
-      await fs.access(imagePath);
-      
-      // Convert to WebP
-      await sharp(imagePath)
-        .webp({ quality: 80 })
-        .toFile(webpPath);
-      
-      return `/cache/${webpFilename}`;
-    }
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new Error(`Failed to process image ${imagePath}: ${error.message}`);
-    }
-    throw new Error(`Failed to process image ${imagePath}: Unknown error`);
+    await fs.access(webpPath);
+    return `/cache/${webpFilename}`;
+  } catch {
+    // Convert to WebP if it doesn't exist
+    await sharp(imagePath)
+      .webp({ quality: 80 })
+      .toFile(webpPath);
+    
+    return `/cache/${webpFilename}`;
   }
 }
 

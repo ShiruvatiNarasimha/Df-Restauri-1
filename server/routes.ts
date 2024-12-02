@@ -1,6 +1,5 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import path from "path";
-import fs from "fs/promises";
 import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
 
 // Middleware to handle WebP conversion
@@ -9,31 +8,13 @@ async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
-  const imagePath = path.join(process.cwd(), 'public', req.path);
-  
   try {
-    // Check if original image exists
-    try {
-      await fs.access(imagePath);
-    } catch {
-      console.warn(`Original image not found: ${imagePath}`);
-      return next();
-    }
-    
+    const imagePath = path.join(process.cwd(), 'public', req.path);
     const webpPath = await convertToWebP(imagePath);
     res.redirect(webpPath);
   } catch (error) {
     console.error('WebP conversion error:', error);
-    // On conversion error, serve original image
-    if (error instanceof Error) {
-      console.error('Error details:', error.message);
-    }
-    res.sendFile(imagePath, (err) => {
-      if (err) {
-        console.error('Error sending file:', err);
-        next(err);
-      }
-    });
+    next();
   }
 }
 
