@@ -17,7 +17,7 @@ export default function TeamMembersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const response = await fetch(`/api/team-members/${id}`, {
         method: 'DELETE',
       });

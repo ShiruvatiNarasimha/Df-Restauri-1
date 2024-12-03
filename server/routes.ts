@@ -152,10 +152,7 @@ export async function registerRoutes(app: Express) {
       const { db } = await import("@db/index");
       const { projects, insertProjectSchema } = await import("@db/schema");
       const validatedData = insertProjectSchema.parse(req.body);
-      const result = await db.insert(projects).values({
-        ...validatedData,
-        gallery: validatedData.gallery || [],
-      }).returning();
+      const result = await db.insert(projects).values(validatedData).returning();
       res.json(result[0]);
     } catch (error) {
       console.error("Error creating project:", error);
@@ -171,10 +168,7 @@ export async function registerRoutes(app: Express) {
       const validatedData = insertProjectSchema.partial().parse(req.body);
       const result = await db
         .update(projects)
-        .set({
-          ...validatedData,
-          gallery: validatedData.gallery || undefined,
-        })
+        .set(validatedData)
         .where(sql`${projects.id} = ${id}`)
         .returning();
       res.json(result[0]);

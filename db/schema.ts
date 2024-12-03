@@ -1,11 +1,11 @@
-import { pgTable, text, integer, timestamp, serial, varchar, json } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, varchar, json, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 // Users table for admin authentication
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   username: text("username").unique().notNull(),
   password: text("password").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -13,7 +13,7 @@ export const users = pgTable("users", {
 
 // Team members table
 export const teamMembers = pgTable("team_members", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text("name").notNull(),
   role: text("role").notNull(),
   bio: text("bio"),
@@ -26,7 +26,7 @@ export const teamMembers = pgTable("team_members", {
 
 // Projects table
 export const projects = pgTable("projects", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   title: text("title").notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(), // e.g., 'restauro', 'costruzione', 'ristrutturazione'
@@ -34,13 +34,18 @@ export const projects = pgTable("projects", {
   completionDate: timestamp("completion_date"),
   coverImage: text("cover_image"),
   gallery: json("gallery").$type<string[]>().default([]).notNull(), // Array of image URLs
+  client: text("client"),
+  duration: text("duration"),
+  techniques: json("techniques").$type<string[]>().default([]),
+  details: text("details"),
+  year: integer("year"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Service images table
 export const serviceImages = pgTable("service_images", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   serviceType: text("service_type").notNull(), // e.g., 'restauro', 'costruzione', 'ristrutturazione'
   imageUrl: text("image_url").notNull(),
   caption: text("caption"),
@@ -56,8 +61,16 @@ export const selectUserSchema = createSelectSchema(users);
 export const insertTeamMemberSchema = createInsertSchema(teamMembers);
 export const selectTeamMemberSchema = createSelectSchema(teamMembers);
 
-export const insertProjectSchema = createInsertSchema(projects);
-export const selectProjectSchema = createSelectSchema(projects);
+// Project schemas with custom gallery validation
+export const insertProjectSchema = createInsertSchema(projects, {
+  gallery: z.array(z.string()).default([]),
+  techniques: z.array(z.string()).optional(),
+});
+
+export const selectProjectSchema = createSelectSchema(projects, {
+  gallery: z.array(z.string()),
+  techniques: z.array(z.string()).optional(),
+});
 
 export const insertServiceImageSchema = createInsertSchema(serviceImages);
 export const selectServiceImageSchema = createSelectSchema(serviceImages);

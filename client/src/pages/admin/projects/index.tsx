@@ -18,7 +18,7 @@ export default function ProjectsPage() {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const response = await fetch(`/api/projects/${id}`, {
         method: 'DELETE',
       });
