@@ -5,12 +5,14 @@ export interface Project {
   category: 'restauro' | 'costruzione' | 'ristrutturazione';
   location: string;
   completionDate?: Date;
-  coverImage?: string;
-  gallery?: string[];
+  coverImage: string;
+  image?: string; // For backward compatibility
+  gallery: string[];
   client?: string;
   duration?: string;
   techniques?: string[];
   details?: string;
+  year?: number; // Added for ProjectGallery component
 }
 
 export interface CaseHistory {
@@ -21,6 +23,7 @@ export interface CaseHistory {
   solution: string;
   results: string[];
   images: string[];
+  gallery: string[]; // Made non-optional
   year: number;
   location: string;
   category: 'restauro' | 'costruzione' | 'ristrutturazione';

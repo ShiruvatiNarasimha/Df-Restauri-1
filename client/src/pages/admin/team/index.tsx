@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -14,10 +14,35 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { TeamMember } from "@db/schema";
 
 export default function TeamMembersPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/team-members/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete team member');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teamMembers'] });
+      toast({
+        title: "Success",
+        description: "Team member deleted successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete team member",
+        variant: "destructive",
+      });
+    },
+  });
 
-  // TODO: Replace with actual API call
-  const { data: teamMembers = [] } = useQuery<TeamMember[]>({
+  const { data: teamMembers = [], isLoading } = useQuery<TeamMember[]>({
     queryKey: ["teamMembers"],
     queryFn: async () => {
       const response = await fetch("/api/team-members");
@@ -67,7 +92,15 @@ export default function TeamMembersPage() {
                       <Button variant="ghost" size="icon">
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this team member?")) {
+                            deleteMutation.mutate(member.id);
+                          }
+                        }}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

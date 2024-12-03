@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -14,9 +14,35 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { ServiceImage } from "@/types/project";
 
 export default function ServiceImagesPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: serviceImages = [] } = useQuery<ServiceImage[]>({
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/service-images/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete service image');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['serviceImages'] });
+      toast({
+        title: "Success",
+        description: "Service image deleted successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete service image",
+        variant: "destructive",
+      });
+    },
+  });
+  const { data: serviceImages = [], isLoading } = useQuery<ServiceImage[]>({
     queryKey: ["serviceImages"],
     queryFn: async () => {
       const response = await fetch("/api/service-images");
@@ -72,7 +98,15 @@ export default function ServiceImagesPage() {
                       <Button variant="ghost" size="icon">
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this service image?")) {
+                            deleteMutation.mutate(image.id);
+                          }
+                        }}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

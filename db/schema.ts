@@ -33,7 +33,7 @@ export const projects = pgTable("projects", {
   location: text("location"),
   completionDate: timestamp("completion_date"),
   coverImage: text("cover_image"),
-  gallery: json("gallery").$type<string[]>(), // Array of image URLs
+  gallery: json("gallery").$type<string[]>().default([]).notNull(), // Array of image URLs
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -1,5 +1,6 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import path from "path";
+import { sql } from "drizzle-orm";
 import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
 
 // Middleware to handle WebP conversion
@@ -60,6 +61,9 @@ const DYNAMIC_CONTENT = {
 };
 
 export async function registerRoutes(app: Express) {
+  // Middleware for parsing JSON bodies
+  app.use(express.json());
+  
   // Ensure cache directory exists
   await ensureCacheDirectory();
   
@@ -86,7 +90,7 @@ export async function registerRoutes(app: Express) {
     res.json(DYNAMIC_CONTENT.case_studies);
   });
 
-  // Admin API routes
+  // Admin API routes - Team Members
   app.get("/api/team-members", async (_req, res) => {
     try {
       const { db } = await import("@db/index");
@@ -95,6 +99,37 @@ export async function registerRoutes(app: Express) {
       res.json(result);
     } catch (error) {
       console.error("Error fetching team members:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/team-members", async (req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { teamMembers, insertTeamMemberSchema } = await import("@db/schema");
+      const validatedData = insertTeamMemberSchema.parse(req.body);
+      const result = await db.insert(teamMembers).values(validatedData).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating team member:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/team-members/:id", async (req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { teamMembers, insertTeamMemberSchema } = await import("@db/schema");
+      const { id } = req.params;
+      const validatedData = insertTeamMemberSchema.partial().parse(req.body);
+      const result = await db
+        .update(teamMembers)
+        .set(validatedData)
+        .where(sql`${teamMembers.id} = ${id}`)
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating team member:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -112,6 +147,43 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  app.post("/api/projects", async (req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { projects, insertProjectSchema } = await import("@db/schema");
+      const validatedData = insertProjectSchema.parse(req.body);
+      const result = await db.insert(projects).values({
+        ...validatedData,
+        gallery: validatedData.gallery || [],
+      }).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating project:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/projects/:id", async (req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { projects, insertProjectSchema } = await import("@db/schema");
+      const { id } = req.params;
+      const validatedData = insertProjectSchema.partial().parse(req.body);
+      const result = await db
+        .update(projects)
+        .set({
+          ...validatedData,
+          gallery: validatedData.gallery || undefined,
+        })
+        .where(sql`${projects.id} = ${id}`)
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating project:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Service Images API endpoints
   app.get("/api/service-images", async (_req, res) => {
     try {
@@ -121,6 +193,86 @@ export async function registerRoutes(app: Express) {
       res.json(result);
     } catch (error) {
       console.error("Error fetching service images:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/service-images", async (req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { serviceImages, insertServiceImageSchema } = await import("@db/schema");
+      const validatedData = insertServiceImageSchema.parse(req.body);
+      const result = await db.insert(serviceImages).values(validatedData).returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error creating service image:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/service-images/:id", async (req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { serviceImages, insertServiceImageSchema } = await import("@db/schema");
+      const { id } = req.params;
+      const validatedData = insertServiceImageSchema.partial().parse(req.body);
+      const result = await db
+        .update(serviceImages)
+        .set(validatedData)
+        .where(sql`${serviceImages.id} = ${id}`)
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error updating service image:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Delete endpoints
+  app.delete("/api/team-members/:id", async (req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { teamMembers } = await import("@db/schema");
+      const { id } = req.params;
+      const result = await db
+        .delete(teamMembers)
+        .where(sql`${teamMembers.id} = ${id}`)
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error deleting team member:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/projects/:id", async (req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { projects } = await import("@db/schema");
+      const { id } = req.params;
+      const result = await db
+        .delete(projects)
+        .where(sql`${projects.id} = ${id}`)
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/service-images/:id", async (req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { serviceImages } = await import("@db/schema");
+      const { id } = req.params;
+      const result = await db
+        .delete(serviceImages)
+        .where(sql`${serviceImages.id} = ${id}`)
+        .returning();
+      res.json(result[0]);
+    } catch (error) {
+      console.error("Error deleting service image:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
