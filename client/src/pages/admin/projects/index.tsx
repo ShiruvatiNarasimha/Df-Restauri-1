@@ -1,5 +1,8 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { Modal } from "@/components/ui/modal";
+import { ProjectForm } from "@/components/forms/ProjectForm";
 import {
   Table,
   TableBody,
@@ -16,6 +19,8 @@ import { Project } from "@db/schema";
 export default function ProjectsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -53,6 +58,85 @@ export default function ProjectsPage() {
     },
   });
 
+  const createMutation = useMutation({
+    mutationFn: async (data: Partial<Project>) => {
+      const response = await fetch("/api/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to create project");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast({
+        title: "Success",
+        description: "Project created successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create project",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Project> }) => {
+      const response = await fetch(`/api/projects/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update project");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast({
+        title: "Success",
+        description: "Project updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update project",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = async (formData: Partial<Project>) => {
+    try {
+      const processedData = {
+        ...formData,
+        completionDate: formData.completionDate ? new Date(formData.completionDate) : null,
+      };
+
+      if (selectedProject) {
+        await updateMutation.mutateAsync({ id: selectedProject.id, data: processedData });
+      } else {
+        await createMutation.mutateAsync(processedData);
+      }
+      setIsModalOpen(false);
+      setSelectedProject(null);
+    } catch (error) {
+      console.error('Error submitting project:', error);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="container mx-auto p-6">
@@ -63,7 +147,10 @@ export default function ProjectsPage() {
               Manage project portfolio
             </p>
           </div>
-          <Button>
+          <Button onClick={() => {
+            setSelectedProject(null);
+            setIsModalOpen(true);
+          }}>
             <Plus className="w-4 h-4 mr-2" />
             Add Project
           </Button>
@@ -96,7 +183,14 @@ export default function ProjectsPage() {
                       <Button variant="ghost" size="icon">
                         <ImageIcon className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => {
+                          setSelectedProject(project);
+                          setIsModalOpen(true);
+                        }}
+                      >
                         <Pencil className="w-4 h-4" />
                       </Button>
                       <Button 
@@ -118,6 +212,24 @@ export default function ProjectsPage() {
           </Table>
         </div>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedProject(null);
+        }}
+        title={selectedProject ? "Edit Project" : "Add Project"}
+      >
+        <ProjectForm
+          initialData={selectedProject ?? undefined}
+          onSubmit={handleSubmit}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedProject(null);
+          }}
+        />
+      </Modal>
     </AdminLayout>
   );
 }

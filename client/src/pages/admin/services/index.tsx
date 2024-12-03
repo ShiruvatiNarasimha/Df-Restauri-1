@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -12,10 +13,14 @@ import { Button } from "@/components/ui/button";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { ServiceImage } from "@/types/project";
+import { Modal } from "@/components/ui/modal";
+import { ServiceImageForm } from "@/components/forms/ServiceImageForm";
 
 export default function ServiceImagesPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<ServiceImage | null>(null);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -38,8 +43,98 @@ export default function ServiceImagesPage() {
       toast({
         title: "Error",
         description: "Failed to delete service image",
+  const createMutation = useMutation({
+    mutationFn: async (data: Partial<ServiceImage>) => {
+      const response = await fetch("/api/service-images", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to create service image");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["serviceImages"] });
+      toast({
+        title: "Success",
+        description: "Service image created successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create service image",
         variant: "destructive",
       });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<ServiceImage> }) => {
+      const response = await fetch(`/api/service-images/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update service image");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["serviceImages"] });
+      toast({
+        title: "Success",
+        description: "Service image updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update service image",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = async (data: Partial<ServiceImage>) => {
+    try {
+      if (selectedImage) {
+        await updateMutation.mutateAsync({ id: selectedImage.id, data });
+      } else {
+        await createMutation.mutateAsync(data);
+      }
+      setIsModalOpen(false);
+      setSelectedImage(null);
+    } catch (error) {
+      console.error('Error submitting service image:', error);
+    }
+  };
+        variant: "destructive",
+      });
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedImage(null);
+        }}
+        title={selectedImage ? "Edit Service Image" : "Add Service Image"}
+      >
+        <ServiceImageForm
+          initialData={selectedImage ?? undefined}
+          onSubmit={handleSubmit}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedImage(null);
+          }}
+        />
+      </Modal>
     },
   });
   const { data: serviceImages = [], isLoading } = useQuery<ServiceImage[]>({
@@ -63,7 +158,10 @@ export default function ServiceImagesPage() {
               Manage service section images
             </p>
           </div>
-          <Button>
+          <Button onClick={() => {
+            setSelectedImage(null);
+            setIsModalOpen(true);
+          }}>
             <Plus className="w-4 h-4 mr-2" />
             Add Image
           </Button>
@@ -95,7 +193,14 @@ export default function ServiceImagesPage() {
                   <TableCell>{image.displayOrder}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="icon">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => {
+                          setSelectedImage(image);
+                          setIsModalOpen(true);
+                        }}
+                      >
                         <Pencil className="w-4 h-4" />
                       </Button>
                       <Button 
