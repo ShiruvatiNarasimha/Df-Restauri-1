@@ -95,7 +95,7 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
             <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
               <div className="aspect-video relative overflow-hidden">
                 <img
-                  src={project.image}
+                  src={project.coverImage}
                   alt={project.title}
                   className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                 />

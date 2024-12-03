@@ -6,13 +6,12 @@ export interface Project {
   location: string;
   completionDate?: Date;
   coverImage: string;
-  image?: string; // For backward compatibility
-  gallery: string[];
+  gallery: string[]; // Array of additional project images
   client?: string;
   duration?: string;
   techniques?: string[];
   details?: string;
-  year?: number; // Added for ProjectGallery component
+  year?: number;
 }
 
 export interface CaseHistory {
@@ -22,8 +21,7 @@ export interface CaseHistory {
   challenge: string;
   solution: string;
   results: string[];
-  images: string[];
-  gallery: string[]; // Made non-optional
+  images: string[]; // Main image array for the case history
   year: number;
   location: string;
   category: 'restauro' | 'costruzione' | 'ristrutturazione';
