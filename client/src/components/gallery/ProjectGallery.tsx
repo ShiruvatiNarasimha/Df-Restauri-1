@@ -13,8 +13,7 @@ const PROJECTS: Project[] = [
     title: "Restauro Palazzo Storico Veneziano",
     description: "Intervento di restauro conservativo su palazzo del XVI secolo",
     category: "restauro",
-    coverImage: STOCK_PHOTOS.restoration[0],
-    gallery: [STOCK_PHOTOS.restoration[0]],
+    image: STOCK_PHOTOS.restoration[0],
     year: 2023,
     location: "Venezia"
   },
@@ -23,8 +22,7 @@ const PROJECTS: Project[] = [
     title: "Complesso Residenziale Moderno",
     description: "Costruzione di complesso residenziale eco-sostenibile",
     category: "costruzione",
-    coverImage: STOCK_PHOTOS.construction[0],
-    gallery: [STOCK_PHOTOS.construction[0]],
+    image: STOCK_PHOTOS.construction[0],
     year: 2023,
     location: "Milano"
   },
@@ -33,8 +31,7 @@ const PROJECTS: Project[] = [
     title: "Ristrutturazione Villa Liberty",
     description: "Ristrutturazione completa con adeguamento energetico",
     category: "ristrutturazione",
-    coverImage: STOCK_PHOTOS.renovation[0],
-    gallery: [STOCK_PHOTOS.renovation[0]],
+    image: STOCK_PHOTOS.renovation[0],
     year: 2022,
     location: "Roma"
   },
@@ -98,7 +95,7 @@ export function ProjectGallery({ onProjectClick }: ProjectGalleryProps) {
             <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
               <div className="aspect-video relative overflow-hidden">
                 <img
-                  src={project.coverImage}
+                  src={project.image}
                   alt={project.title}
                   className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                 />

@@ -43,14 +43,6 @@ author = "agent"
 task = "workflow.run"
 args = "Client Dev"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "DB Migration"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Server"
-
 [[workflows.workflow]]
 name = "Client Dev"
 author = "agent"
@@ -64,31 +56,4 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd client && npm run dev -- --host 0.0.0.0 --port 5173"
-
-[[workflows.workflow]]
-name = "DB Migration"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx drizzle-kit push:pg"
-
-[[workflows.workflow]]
-name = "Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "PORT=3000 tsx watch server/index.ts"
+waitForPort = 5173

@@ -12,7 +12,7 @@ const CASE_HISTORIES: CaseHistoryType[] = [
     title: "Restauro Palazzo Storico Veneziano",
     description: "Restauro completo di un palazzo storico del XVI secolo nel cuore di Venezia",
     category: "restauro",
-    images: [STOCK_PHOTOS.restoration[0]],
+    image: STOCK_PHOTOS.restoration[0],
     year: 2023,
     location: "Venezia",
     challenge: "Il palazzo presentava gravi problemi strutturali e necessitava di un restauro conservativo che preservasse gli elementi storici originali.",
@@ -74,7 +74,7 @@ export function CaseHistory() {
               <div className="mt-6">
                 <h3 className="font-semibold mb-4">Galleria del Progetto</h3>
                 <ServiceGallery 
-                  images={caseHistory.images}
+                  images={caseHistory.gallery}
                   category={caseHistory.category}
                 />
               </div>
