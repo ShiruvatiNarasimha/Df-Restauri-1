@@ -34,7 +34,7 @@ export function ProjectDetail({ project, onClose }: ProjectDetailProps) {
             <X className="h-5 w-5" />
           </Button>
           <img
-            src={project.image}
+            src={project.coverImage}
             alt={project.title}
             className="w-full h-[300px] object-cover rounded-t-lg"
           />

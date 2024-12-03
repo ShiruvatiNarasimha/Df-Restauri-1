@@ -13,7 +13,8 @@ const PROJECTS: Project[] = [
     title: "Restauro Palazzo Storico Veneziano",
     description: "Intervento di restauro conservativo su palazzo del XVI secolo",
     category: "restauro",
-    image: STOCK_PHOTOS.restoration[0],
+    coverImage: STOCK_PHOTOS.restoration[0],
+    gallery: [STOCK_PHOTOS.restoration[0]],
     year: 2023,
     location: "Venezia"
   },
@@ -22,7 +23,8 @@ const PROJECTS: Project[] = [
     title: "Complesso Residenziale Moderno",
     description: "Costruzione di complesso residenziale eco-sostenibile",
     category: "costruzione",
-    image: STOCK_PHOTOS.construction[0],
+    coverImage: STOCK_PHOTOS.construction[0],
+    gallery: [STOCK_PHOTOS.construction[0]],
     year: 2023,
     location: "Milano"
   },
@@ -31,7 +33,8 @@ const PROJECTS: Project[] = [
     title: "Ristrutturazione Villa Liberty",
     description: "Ristrutturazione completa con adeguamento energetico",
     category: "ristrutturazione",
-    image: STOCK_PHOTOS.renovation[0],
+    coverImage: STOCK_PHOTOS.renovation[0],
+    gallery: [STOCK_PHOTOS.renovation[0]],
     year: 2022,
     location: "Roma"
   },

@@ -22,6 +22,7 @@ export interface CaseHistory {
   solution: string;
   results: string[];
   images: string[]; // Main image array for the case history
+  gallery?: string[]; // Additional gallery images
   year: number;
   location: string;
   category: 'restauro' | 'costruzione' | 'ristrutturazione';
