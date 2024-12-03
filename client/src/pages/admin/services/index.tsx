@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { ServiceImage } from "@/types/project";
+import { ServiceImage } from "@/types/schema";
 import { Modal } from "@/components/ui/modal";
 import { ServiceImageForm } from "@/components/forms/ServiceImageForm";
 
@@ -21,6 +21,17 @@ export default function ServiceImagesPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<ServiceImage | null>(null);
+
+  const { data: serviceImages = [], isLoading } = useQuery<ServiceImage[]>({
+    queryKey: ["serviceImages"],
+    queryFn: async () => {
+      const response = await fetch("/api/service-images");
+      if (!response.ok) {
+        throw new Error("Failed to fetch service images");
+      }
+      return response.json();
+    },
+  });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -43,6 +54,11 @@ export default function ServiceImagesPage() {
       toast({
         title: "Error",
         description: "Failed to delete service image",
+        variant: "destructive",
+      });
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: async (data: Partial<ServiceImage>) => {
       const response = await fetch("/api/service-images", {
@@ -103,12 +119,17 @@ export default function ServiceImagesPage() {
     },
   });
 
-  const handleSubmit = async (data: Partial<ServiceImage>) => {
+  const handleSubmit = async (formData: {
+    serviceType: "restauro" | "costruzione" | "ristrutturazione";
+    imageUrl: string;
+    caption: string | null;
+    displayOrder: number;
+  }) => {
     try {
       if (selectedImage) {
-        await updateMutation.mutateAsync({ id: selectedImage.id, data });
+        await updateMutation.mutateAsync({ id: selectedImage.id, data: formData });
       } else {
-        await createMutation.mutateAsync(data);
+        await createMutation.mutateAsync(formData);
       }
       setIsModalOpen(false);
       setSelectedImage(null);
@@ -116,37 +137,6 @@ export default function ServiceImagesPage() {
       console.error('Error submitting service image:', error);
     }
   };
-        variant: "destructive",
-      });
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedImage(null);
-        }}
-        title={selectedImage ? "Edit Service Image" : "Add Service Image"}
-      >
-        <ServiceImageForm
-          initialData={selectedImage ?? undefined}
-          onSubmit={handleSubmit}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedImage(null);
-          }}
-        />
-      </Modal>
-    },
-  });
-  const { data: serviceImages = [], isLoading } = useQuery<ServiceImage[]>({
-    queryKey: ["serviceImages"],
-    queryFn: async () => {
-      const response = await fetch("/api/service-images");
-      if (!response.ok) {
-        throw new Error("Failed to fetch service images");
-      }
-      return response.json();
-    },
-  });
 
   return (
     <AdminLayout>
@@ -222,6 +212,24 @@ export default function ServiceImagesPage() {
           </Table>
         </div>
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedImage(null);
+        }}
+        title={selectedImage ? "Edit Service Image" : "Add Service Image"}
+      >
+        <ServiceImageForm
+          initialData={selectedImage ?? undefined}
+          onSubmit={handleSubmit}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedImage(null);
+          }}
+        />
+      </Modal>
     </AdminLayout>
   );
 }

@@ -118,7 +118,20 @@ export default function ProjectsPage() {
     },
   });
 
-  const handleSubmit = async (formData: Partial<Project>) => {
+  const handleSubmit = async (formData: {
+    title: string;
+    description: string;
+    category: "restauro" | "costruzione" | "ristrutturazione";
+    location: string | null;
+    completionDate: string | null;
+    coverImage: string | null;
+    gallery: string[];
+    client: string | null;
+    duration: string | null;
+    techniques: string[];
+    details: string | null;
+    year: number | null;
+  }) => {
     try {
       const processedData = {
         ...formData,
