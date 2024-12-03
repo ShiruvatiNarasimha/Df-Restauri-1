@@ -85,4 +85,43 @@ export async function registerRoutes(app: Express) {
   app.get("/api/case-studies", (_req, res) => {
     res.json(DYNAMIC_CONTENT.case_studies);
   });
+
+  // Admin API routes
+  app.get("/api/team-members", async (_req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { teamMembers } = await import("@db/schema");
+      const result = await db.select().from(teamMembers);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Projects API endpoints
+  app.get("/api/projects", async (_req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { projects } = await import("@db/schema");
+      const result = await db.select().from(projects);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Service Images API endpoints
+  app.get("/api/service-images", async (_req, res) => {
+    try {
+      const { db } = await import("@db/index");
+      const { serviceImages } = await import("@db/schema");
+      const result = await db.select().from(serviceImages);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching service images:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 }
