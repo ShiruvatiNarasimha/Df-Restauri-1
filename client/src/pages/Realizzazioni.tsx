@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ProjectGallery } from "@/components/gallery/ProjectGallery";
-import { CaseHistory } from "@/components/realizzazioni/CaseHistory";
 import { Project } from "@/types/project";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { fadeInUp, staggerChildren } from "@/lib/animations";
+import { ProjectDetail } from "@/components/gallery/ProjectDetail";
 
 export function Realizzazioni() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -25,7 +25,7 @@ export function Realizzazioni() {
             <motion.div variants={fadeInUp} className="max-w-3xl">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">Le Nostre Realizzazioni</h1>
               <p className="text-xl text-gray-600">
-                Scopri i nostri progetti più significativi e le storie di successo che raccontano
+                Scopri i nostri progetti più significativi che raccontano
                 il nostro impegno nell'eccellenza costruttiva.
               </p>
             </motion.div>
@@ -40,13 +40,14 @@ export function Realizzazioni() {
           </div>
         </section>
 
-        {/* Case Histories Section */}
-        <section className="py-20 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-12 text-center">Case History</h2>
-            <CaseHistory />
-          </div>
-        </section>
+        <AnimatePresence>
+          {selectedProject && (
+            <ProjectDetail
+              project={selectedProject}
+              onClose={() => setSelectedProject(null)}
+            />
+          )}
+        </AnimatePresence>
       </main>
       <Footer />
     </div>

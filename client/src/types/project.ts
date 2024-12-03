@@ -6,11 +6,9 @@ export interface Project {
   image: string;
   year: number;
   location: string;
-}
-
-export interface CaseHistory extends Project {
-  challenge: string;
-  solution: string;
-  results: string[];
-  gallery: string[];
+  client?: string;
+  duration?: string;
+  techniques?: string[];
+  gallery?: string[];
+  details?: string;
 }
