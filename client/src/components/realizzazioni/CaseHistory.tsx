@@ -23,7 +23,8 @@ const CASE_HISTORIES: CaseHistoryType[] = [
       "Miglioramento della classe energetica",
       "Riconoscimento per l'eccellenza nel restauro conservativo"
     ],
-    gallery: STOCK_PHOTOS.restoration
+    gallery: STOCK_PHOTOS.restoration,
+    status: "completed"
   }
 ];
 
@@ -66,7 +67,7 @@ export function CaseHistory() {
                 <h3 className="font-semibold mb-2">Risultati</h3>
                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                   {caseHistory.results.map((result, index) => (
-                    <li key={index}>{result}</li>
+                    <li key={`result-${index}`}>{result}</li>
                   ))}
                 </ul>
               </div>
