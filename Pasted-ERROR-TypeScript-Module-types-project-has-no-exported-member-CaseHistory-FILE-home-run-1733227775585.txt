@@ -1,0 +1,67 @@
+ERROR(TypeScript)  Module '"@/types/project"' has no exported member 'CaseHistory'.
+ FILE  /home/runner/Df-Restauri/client/src/components/realizzazioni/CaseHistory.tsx:3:10
+
+    1 | import { motion } from "framer-motion";
+    2 | import { fadeInUp, staggerChildren } from "@/lib/animations";
+  > 3 | import { CaseHistory as CaseHistoryType } from "@/types/project";
+      |          ^^^^^^^^^^^
+    4 | import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+    5 | import { ServiceGallery } from "@/components/gallery/ServiceGallery";
+    6 | import { STOCK_PHOTOS } from "@/lib/constants";
+
+ ERROR(TypeScript)  Parameter 'result' implicitly has an 'any' type.
+ FILE  /home/runner/Df-Restauri/client/src/components/realizzazioni/CaseHistory.tsx:68:45
+
+    66 |                 <h3 className="font-semibold mb-2">Risultati</h3>
+    67 |                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+  > 68 |                   {caseHistory.results.map((result, index) => (
+       |                                             ^^^^^^
+    69 |                     <li key={index}>{result}</li>
+    70 |                   ))}
+    71 |                 </ul>
+
+ ERROR(TypeScript)  Parameter 'index' implicitly has an 'any' type.
+ FILE  /home/runner/Df-Restauri/client/src/components/realizzazioni/CaseHistory.tsx:68:53
+
+    66 |                 <h3 className="font-semibold mb-2">Risultati</h3>
+    67 |                 <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+  > 68 |                   {caseHistory.results.map((result, index) => (
+       |                                                     ^^^^^
+    69 |                     <li key={index}>{result}</li>
+    70 |                   ))}
+    71 |                 </ul>
+
+ ERROR(TypeScript)  Object literal may only specify known properties, but 'connection' does not exist in type 'NeonClient'. Did you mean to write 'connect'?
+ FILE  /home/runner/Df-Restauri/db/index.ts:12:3
+
+    10 |
+    11 | export const db = drizzle({
+  > 12 |   connection: process.env.DATABASE_URL,
+       |   ^^^^^^^^^^
+    13 |   schema,
+    14 |   ws: ws,
+    15 | });
+
+ ERROR(TypeScript)  Expected 1 arguments, but got 0.
+ FILE  /home/runner/Df-Restauri/db/schema.ts:6:7
+
+    4 |
+    5 | export const users = pgTable("users", {
+  > 6 |   id: integer().primaryKey().generatedAlwaysAsIdentity(),
+      |       ^^^^^^^
+    7 |   username: text("username").unique().notNull(),
+    8 |   password: text("password").notNull(),
+    9 | });
+
+ ERROR(TypeScript)  Property 'generatedAlwaysAsIdentity' does not exist on type 'NotNull<PgIntegerBuilderInitial<string>>'.
+ FILE  /home/runner/Df-Restauri/db/schema.ts:6:30
+
+    4 |
+    5 | export const users = pgTable("users", {
+  > 6 |   id: integer().primaryKey().generatedAlwaysAsIdentity(),
+      |                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    7 |   username: text("username").unique().notNull(),
+    8 |   password: text("password").notNull(),
+    9 | });
+
+[TypeScript] Found 6 errors. Watching for file changes.
