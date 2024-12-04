@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
+import type { User, NewUser } from "./schema";
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -9,9 +10,9 @@ if (!process.env.DATABASE_URL) {
 }
 
 const queryClient = postgres(process.env.DATABASE_URL, {
-  max: 10, // Max number of connections
-  idle_timeout: 20, // Max seconds a connection can be idle
-  connect_timeout: 10, // Max seconds to wait for a connection
+  max: 10,
+  ssl: process.env.NODE_ENV === 'production',
+  connect_timeout: 10,
 });
 
 // Test the connection by making a simple query
@@ -27,6 +28,8 @@ const testConnection = async () => {
 
 testConnection();
 
-export const db = drizzle(queryClient, {
-  schema,
-});
+export const db = drizzle(queryClient, { schema });
+
+// Export schema and types for use in other parts of the application
+export { schema };
+export type { User, NewUser };

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { fadeInUp, staggerChildren } from "@/lib/animations";
-import { CaseHistory as CaseHistoryType } from "@/types/project";
+import type { CaseHistory as CaseHistoryType } from "@/types/project";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServiceGallery } from "@/components/gallery/ServiceGallery";
 import { STOCK_PHOTOS } from "@/lib/constants";
