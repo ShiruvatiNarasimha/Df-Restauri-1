@@ -118,14 +118,5 @@ export function Contact() {
                       <FormLabel>Messaggio</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Scrivi il tuo messaggio"
-                          className="min-h-[120px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full">
+                          placeholder="Scrivi il tuo messa
           
