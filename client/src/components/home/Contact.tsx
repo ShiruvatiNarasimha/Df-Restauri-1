@@ -128,13 +128,4 @@ export function Contact() {
                   )}
                 />
                 <Button type="submit" className="w-full">
-                  Invia Messaggio
-                </Button>
-              </form>
-            </Form>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+          
