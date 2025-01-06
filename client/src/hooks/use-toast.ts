@@ -160,11 +160,3 @@ function toast({ ...props }: Toast) {
       },
     },
   })
-
-  return {
-    id: id,
-    dismiss,
-    update,
-  }
-}
-
