@@ -28,13 +28,6 @@ export function Contact() {
     <section id="contatti" className="py-20">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <div>
-            <h2 className="text-3xl font-bold mb-6">Contattaci</h2>
-            <p className="text-gray-600 mb-8">
-              Siamo qui per rispondere a tutte le tue domande. Compila il form
-              e ti ricontatteremo il prima possibile.
-            </p>
-
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold mb-2">Azienda</h3>
