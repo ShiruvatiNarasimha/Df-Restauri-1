@@ -19,18 +19,7 @@ const formSchema = z.object({
   phone: z.string().min(6, "Inserisci un numero di telefono valido"),
   message: z.string().min(10, "Il messaggio deve contenere almeno 10 caratteri"),
 });
-
 export function Contact() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      message: "",
-    },
-  });
-
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
   }
