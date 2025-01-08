@@ -99,13 +99,4 @@ export function Contact() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Messaggio</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Scrivi il tuo messa
-          
+                
