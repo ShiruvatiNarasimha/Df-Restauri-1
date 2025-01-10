@@ -134,8 +134,6 @@ export function Servizi() {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-6">Pronti a Iniziare il Tuo Progetto?</h2>
             <p className="text-gray-600 max-w-2xl mx-auto mb-8">
-              Contattaci per una consulenza gratuita. Il nostro team di esperti è pronto
-              
             </p>
           </div>
         </section>
