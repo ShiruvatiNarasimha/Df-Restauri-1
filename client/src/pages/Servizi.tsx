@@ -140,13 +140,7 @@ export function Servizi() {
             <Button 
               size="lg" 
               className="text-lg px-8 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-              onClick={() => {
-                const contactSection = document.getElementById('contatti');
-                contactSection?.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              Contattaci Ora
-            </Button>
+              onClick={() => 
           </div>
         </section>
       </main>
