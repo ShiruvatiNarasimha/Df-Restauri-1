@@ -13,7 +13,7 @@ const DETAILED_SERVICES = [
     id: "restauro",
     title: "Restauro",
     description: "Tecniche tradizionali e materiali di alta qualità per preservare il patrimonio storico.",
-    longDescription: "Specializzati nel restauro di edifici storici e monumenti, utilizziamo tecniche tradizionali combinate con tecnologie moderne per preservare l'integrità architettonica e il valore culturale delle strutture.",
+    longDescription: "Specializzati nel restauro di edifici storici  l'integrità architettonica e il valore culturale delle strutture.",
     icon: PaintBucket,
     features: [
       "Restauro conservativo di edifici storici",
