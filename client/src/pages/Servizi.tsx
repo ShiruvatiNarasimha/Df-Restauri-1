@@ -43,7 +43,7 @@ const DETAILED_SERVICES = [
     id: "ristrutturazione",
     title: "Ristrutturazione",
     description: "Trasformiamo i tuoi spazi con soluzioni moderne ed efficienti.",
-    longDescription: "Offriamo servizi completi di ristrutturazione per modernizzare e ottimizzare gli spazi esistenti, migliorando comfort ed efficienza energetica.",
+    longDescription: "Offriamo servizi completi di ristrutturazione per modernizzare .",
     icon: Hammer,
     features: [
       "Ristrutturazione completa di interni",
