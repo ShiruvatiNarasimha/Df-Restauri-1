@@ -5,5 +5,4 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey().notNull(),
-  username: varchar("username", { length: 255 }).unique().notNull(),
   
