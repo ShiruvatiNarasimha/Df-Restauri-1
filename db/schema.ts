@@ -14,4 +14,4 @@ export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
 
 // Export types for use in the application
-export type User = InferModel<typeof users>;
+
