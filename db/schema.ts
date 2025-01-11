@@ -11,4 +11,3 @@ export const users = pgTable("users", {
 
 // Create Zod schemas for type safety
 export const insertUserSchema = createInsertSchema(users);
-export const selectUserSchema = createSelectSchema(users);
