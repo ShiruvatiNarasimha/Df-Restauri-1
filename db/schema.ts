@@ -8,5 +8,3 @@ export const users = pgTable("users", {
   username: varchar("username", { length: 255 }).unique().notNull(),
   password: text("password").notNull(),
 });
-
-// Create Zod schemas for type safety
