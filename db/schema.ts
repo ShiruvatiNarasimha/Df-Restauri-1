@@ -15,4 +15,3 @@ export const selectUserSchema = createSelectSchema(users);
 
 // Export types for use in the application
 export type User = InferModel<typeof users>;
-export type NewUser = InferModel<typeof users, "insert">;
