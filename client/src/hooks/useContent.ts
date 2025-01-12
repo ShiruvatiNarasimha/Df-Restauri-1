@@ -27,6 +27,3 @@ export interface CaseStudy {
   description: string;
   image: string;
 }
-
-export function useCaseStudies() {
- 
