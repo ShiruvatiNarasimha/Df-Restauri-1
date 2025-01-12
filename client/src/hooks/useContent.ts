@@ -30,5 +30,4 @@ export interface CaseStudy {
 
 export function useCaseStudies() {
   return useQuery<CaseStudy[]>({
-    queryKey: ["/api/case-studies"],
     
