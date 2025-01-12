@@ -23,5 +23,4 @@ export function useAboutContent() {
 
 export interface CaseStudy {
   id: number;
-  title: string;
   
