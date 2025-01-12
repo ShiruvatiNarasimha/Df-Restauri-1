@@ -31,6 +31,4 @@ export interface CaseStudy {
 export function useCaseStudies() {
   return useQuery<CaseStudy[]>({
     queryKey: ["/api/case-studies"],
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-}
+    
