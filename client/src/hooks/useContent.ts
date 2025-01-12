@@ -29,5 +29,4 @@ export interface CaseStudy {
 }
 
 export function useCaseStudies() {
-  return useQuery<CaseStudy[]>({
-    
+ 
