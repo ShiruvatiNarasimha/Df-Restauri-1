@@ -21,5 +21,3 @@ export function useAboutContent() {
   });
 }
 
-export interface CaseStudy {
-  
