@@ -11,5 +11,3 @@ export interface AboutContent {
   storia: ContentSection;
   valori: ContentSection;
   mission: ContentSection;
-  vision: ContentSection;
-}
