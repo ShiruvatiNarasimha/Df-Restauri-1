@@ -7,5 +7,5 @@ export interface ContentSection {
   points?: string[];
 }
 
-export interface AboutContent {
+
 
