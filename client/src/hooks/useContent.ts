@@ -9,4 +9,4 @@ export interface ContentSection {
 
 export interface AboutContent {
   storia: ContentSection;
-  valori: ContentSection;
+
