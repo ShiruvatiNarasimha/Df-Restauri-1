@@ -16,6 +16,6 @@ export interface AboutContent {
 
 export function useAboutContent() {
   return useQuery<AboutContent>({
-    queryKey: ["/api/content/about"],
+
     
 
