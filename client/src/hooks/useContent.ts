@@ -13,6 +13,3 @@ export interface AboutContent {
   mission: ContentSection;
   vision: ContentSection;
 }
-
-export function useAboutContent() {
-  
