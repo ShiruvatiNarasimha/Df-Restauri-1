@@ -17,7 +17,5 @@ export interface AboutContent {
 export function useAboutContent() {
   return useQuery<AboutContent>({
     queryKey: ["/api/content/about"],
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-}
+    
 
