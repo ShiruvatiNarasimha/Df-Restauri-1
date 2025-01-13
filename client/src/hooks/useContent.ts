@@ -15,7 +15,4 @@ export interface AboutContent {
 }
 
 export function useAboutContent() {
-  return useQuery<AboutContent>({
-
-    
-
+  
