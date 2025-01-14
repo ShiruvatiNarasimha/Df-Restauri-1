@@ -43,7 +43,6 @@ export const NAVIGATION_ITEMS = [
   }
 ];
 
-export const TEAM_MEMBERS = [
  
    
     
