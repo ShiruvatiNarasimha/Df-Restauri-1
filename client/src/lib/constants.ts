@@ -57,5 +57,4 @@ export const TEAM_MEMBERS = [
   {
     name: "Blasutig Gianalberto",
     role: "Responsabile Operativo",
-    avatar: "/images/team/blasutig-gianalberto.jpg",
-   
+    
