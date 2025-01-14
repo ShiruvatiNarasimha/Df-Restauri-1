@@ -53,8 +53,5 @@ export const TEAM_MEMBERS = [
       twitter: "#",
       instagram: "#"
     }
-  },
-  {
-    
     
     
