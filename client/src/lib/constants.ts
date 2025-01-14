@@ -47,6 +47,5 @@ export const TEAM_MEMBERS = [
   {
     name: "De Faveri Luca",
     role: "Direttore Tecnico",
-    avatar: "/images/team/de-faveri-luca.png",
-    social: {
+    
      
