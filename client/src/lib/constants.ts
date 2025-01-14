@@ -56,5 +56,5 @@ export const TEAM_MEMBERS = [
   },
   {
     name: "Blasutig Gianalberto",
-    role: "Responsabile Operativo",
+    
     
