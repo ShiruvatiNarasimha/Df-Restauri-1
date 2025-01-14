@@ -51,7 +51,5 @@ export const TEAM_MEMBERS = [
     social: {
       facebook: "#",
       twitter: "#",
-      instagram: "#"
-    }
-    
+      
     
