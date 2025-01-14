@@ -55,6 +55,6 @@ export const TEAM_MEMBERS = [
     }
   },
   {
-    name: "Blasutig Gianalberto",
+    
     
     
