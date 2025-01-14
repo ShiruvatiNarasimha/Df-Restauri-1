@@ -44,8 +44,7 @@ export const NAVIGATION_ITEMS = [
 ];
 
 export const TEAM_MEMBERS = [
-  {
-    name: "De Faveri Luca",
+ 
    
     
      
