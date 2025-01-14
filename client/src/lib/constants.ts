@@ -60,8 +60,4 @@ export const TEAM_MEMBERS = [
     avatar: "/images/team/blasutig-gianalberto.jpg",
     social: {
       facebook: "#",
-      twitter: "#",
-      instagram: "#"
-    }
-  }
-];
+      
