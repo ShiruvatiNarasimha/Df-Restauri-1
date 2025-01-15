@@ -45,8 +45,6 @@ export function Realizzazioni() {
             <ProjectDetail
               project={selectedProject}
               onClose={() => setSelectedProject(null)}
-            />
-          )}
         
       </main>
       <Footer />
