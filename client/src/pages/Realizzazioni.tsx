@@ -40,7 +40,7 @@ export function Realizzazioni() {
           </div>
         </section>
 
-        <AnimatePresence>
+
           
             
               
