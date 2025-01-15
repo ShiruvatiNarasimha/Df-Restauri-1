@@ -47,7 +47,7 @@ export function Realizzazioni() {
               onClose={() => setSelectedProject(null)}
             />
           )}
-        </AnimatePresence>
+        
       </main>
       <Footer />
     </div>
