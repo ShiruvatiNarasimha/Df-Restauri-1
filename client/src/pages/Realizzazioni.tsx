@@ -42,7 +42,7 @@ export function Realizzazioni() {
 
         <AnimatePresence>
           {selectedProject && (
-            <ProjectDetail
+            
               
               
         
