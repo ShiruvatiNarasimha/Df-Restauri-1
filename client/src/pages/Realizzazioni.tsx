@@ -39,13 +39,6 @@ export function Realizzazioni() {
             <ProjectGallery onProjectClick={setSelectedProject} />
           </div>
         </section>
-
-
-          
-            
-              
-              
-        
       </main>
       <Footer />
     </div>
