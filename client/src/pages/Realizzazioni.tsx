@@ -43,7 +43,7 @@ export function Realizzazioni() {
         <AnimatePresence>
           {selectedProject && (
             <ProjectDetail
-              project={selectedProject}
+              
               
         
       </main>
