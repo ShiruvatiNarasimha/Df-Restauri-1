@@ -41,7 +41,7 @@ export function Realizzazioni() {
         </section>
 
         <AnimatePresence>
-          {selectedProject && (
+          
             
               
               
