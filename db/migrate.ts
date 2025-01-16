@@ -8,4 +8,3 @@ async function main() {
     });
     console.log("Migration completed");
   } catch (error) {
-    console.error("Migration failed:", error);
