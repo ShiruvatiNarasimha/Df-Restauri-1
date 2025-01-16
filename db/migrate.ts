@@ -7,4 +7,4 @@ async function main() {
       migrationsFolder: "drizzle",
     });
     console.log("Migration completed");
-  } catch (error) {
+
