@@ -11,5 +11,3 @@ async function main() {
     console.error("Migration failed:", error);
     process.exit(1);
   }
-  process.exit(0);
-}
