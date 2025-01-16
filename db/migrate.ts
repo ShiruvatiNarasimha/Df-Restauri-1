@@ -3,5 +3,3 @@ import { db } from "./index";
 
 async function main() {
   try {
-    await migrate(db, {
-
