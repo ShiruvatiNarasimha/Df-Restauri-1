@@ -36,10 +36,3 @@ export const fadeIn: Variants = {
     },
   },
 };
-
-export const slideIn: Variants = {
-  initial: {
-    x: -20,
-    opacity: 0,
-  },
- 
