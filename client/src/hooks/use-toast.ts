@@ -52,8 +52,7 @@ const addToRemoveQueue = (toastId: string) => {
       type: "REMOVE_TOAST",
       toastId: toastId,
     })
-  }, TOAST_REMOVE_DELAY)
-
+  
   
 
 export const reducer = (state: State, action: Action): State => {
