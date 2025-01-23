@@ -89,8 +89,6 @@ export const reducer = (state: State, action: Action): State => {
         ),
       }
     }
-    case "REMOVE_TOAST":
-      
 const listeners: Array<(state: State) => void> = []
 
 let memoryState: State = { toasts: [] }
