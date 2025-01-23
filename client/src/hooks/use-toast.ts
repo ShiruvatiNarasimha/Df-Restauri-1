@@ -90,7 +90,6 @@ export const reducer = (state: State, action: Action): State => {
       }
     }
     case "REMOVE_TOAST":
-      if (action.toastId === undefined) {
       
 const listeners: Array<(state: State) => void> = []
 
