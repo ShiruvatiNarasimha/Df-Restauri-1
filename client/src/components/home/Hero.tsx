@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+seeimport { Button } from "@/components/ui/button";
 import * as React from "react";
 import { STOCK_PHOTOS } from "@/lib/constants";
 
@@ -45,9 +45,7 @@ export function Hero() {
               }}
             >
               Contattaci
-            </Button>
-          </div>
-     
+            </Buttonl
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce-down">
         <div className="w-8 h-12 border-2 border-white/60 rounded-full flex items-start justify-center p-2">
