@@ -47,8 +47,7 @@ export function Hero() {
               Contattaci
             </Button>
           </div>
-        </div>
-      </div>
+     
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce-down">
         <div className="w-8 h-12 border-2 border-white/60 rounded-full flex items-start justify-center p-2">
