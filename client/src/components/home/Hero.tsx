@@ -43,8 +43,7 @@ export function Hero() {
                 const contactSection = document.getElementById('contatti');
                 contactSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-            >
-              Contat
+        
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce-down">
         <div className="w-8 h-12 border-2 border-white/60 rounded-full flex items-start justify-center p-2">
           <div className="w-1 h-3 bg-white/60 rounded-full animate-bounce" />
