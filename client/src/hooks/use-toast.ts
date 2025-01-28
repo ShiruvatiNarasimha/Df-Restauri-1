@@ -39,9 +39,7 @@ interface State {
   toasts: ToasterToast[]
 }
 
-const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
-
-const addToRemov
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>(
  
    
 
