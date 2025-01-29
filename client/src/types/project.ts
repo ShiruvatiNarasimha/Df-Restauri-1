@@ -16,4 +16,4 @@ export interface Project {
 export interface CaseHistory extends Project {
   challenge: string;
   solution: string;
-  results:
+ 
