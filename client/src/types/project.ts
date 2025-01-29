@@ -18,5 +18,4 @@ export interface CaseHistory extends Project {
   solution: string;
   results: string[];
   gallery: string[];
-  status?: 'completed' | 'in-progress';
-}
+  status?: 
