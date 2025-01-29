@@ -13,4 +13,4 @@ export interface Project {
   details?: string;
 }
 
-export interface CaseHistory 
+export interface 
