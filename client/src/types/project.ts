@@ -12,5 +12,3 @@ export interface Project {
   gallery?: string[];
   details?: string;
 }
-
-export 
