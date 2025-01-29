@@ -17,4 +17,3 @@ export interface CaseHistory extends Project {
   challenge: string;
   solution: string;
   results: string[];
-  gallery: string[];
