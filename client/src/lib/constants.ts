@@ -16,7 +16,6 @@ export const STOCK_PHOTOS = {
   ],
   restoration: [
     "/images/chi-siamo/about-company.jpeg",
-    "https://pixabay.com/get/g8927a4d229ca62e7b5a2970ad16bdfd5e94cc299537f980b5d5f5db3b2f9dec18000c0894b0e6614bc91a1b11dd9c66ab416aa7b9956222d2f8b3bee17ed19e3_1280.jpg",
     "https://pixabay.com/get/gb6f2845de6e8e9bb531cf4c4e3f2020259e195d0147d1a7f96902c20b38cf92080028b77a12c0b623320a3fe0eaf3ccf5e3c475c38ac00721f99a145426ee038_1280.jpg"
   ],
   renovation: [
