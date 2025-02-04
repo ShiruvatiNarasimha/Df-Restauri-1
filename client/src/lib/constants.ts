@@ -11,7 +11,6 @@ const getImagePath = (path: string) => {
 export const STOCK_PHOTOS = {
   construction: [
     getImagePath("/images/construction/construction-1.jpg"),
-    "https://pixabay.com/get/g3e39273f1c5e6778993f68a6ce37142a2d68eeaa35082c5f9806b27eccaad3c92f8a5b5b7be16e42dd55b68b92a023facdbbf1a22e2595f9c3f3b718c6487cc7_1280.jpg"
   ],
   restoration: [
     "/images/chi-siamo/about-company.jpeg",
