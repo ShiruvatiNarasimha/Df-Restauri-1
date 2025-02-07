@@ -30,7 +30,12 @@ export const fadeIn: Variants = {
   },
 
 
-  export const staggerChildren - {
+  export const staggerChildren = {
   animate: {
     transition: {
+      delayChildern: 0.4,
+      staggerChildren: 0.1,
+
+    }   
+      
       
