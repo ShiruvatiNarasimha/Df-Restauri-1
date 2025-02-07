@@ -28,3 +28,9 @@ export const fadeIn: Variants = {
   initial: {
     opacity: 0,
   },
+
+
+  export const staggerChildren - {
+  animate: {
+    transition: {
+      
