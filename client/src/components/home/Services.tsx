@@ -46,7 +46,7 @@ export function Services() {
               </CardHeader>
               <div className="p-6">
                 <Button className="w-full">
-                  Richiedi un preventivo
+                  Richi
                 </Button>
               </div>
             </Card>
