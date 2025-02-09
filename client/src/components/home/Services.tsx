@@ -30,7 +30,7 @@ export function Services() {
           <h2 className="text-3xl font-bold mb-4">I Nostri Servizi</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Offriamo soluzioni complete per ogni esigenza nel campo dell'edilizia,
-            dal restauro alla costruzione, sempre con un occhio alla sostenibilità.
+            dal restauro alla costruzione, sempre  un occhio alla sostenibilità.
           </p>
         </div>
 
