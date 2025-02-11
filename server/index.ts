@@ -60,7 +60,6 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
