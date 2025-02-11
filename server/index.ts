@@ -66,7 +66,6 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // this serves both the API and the client
   const PORT = 5000;
   server.listen(PORT, "0.0.0.0", () => {
     log(`serving on port ${PORT}`);
