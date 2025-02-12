@@ -2,7 +2,6 @@ import type { Express, Request, Response, NextFunction } from "express";
 import path from "path";
 import { convertToWebP, ensureCacheDirectory, isImagePath } from "./utils/imageProcessing";
 
-// Middleware to handle WebP conversion
 async function webpMiddleware(req: Request, res: Response, next: NextFunction) {
   if (!req.path.startsWith('/images') || !isImagePath(req.path)) {
     return next();
