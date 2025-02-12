@@ -11,7 +11,6 @@ function log(message: string) {
     hour12: true,
   });
 
-  console.log(`${formattedTime} [express] ${message}`);
 }
 
 const app = express();
