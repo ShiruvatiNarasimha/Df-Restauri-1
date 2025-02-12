@@ -19,7 +19,6 @@ export async function convertToWebP(imagePath: string): Promise<string> {
   const webpPath = path.join(CACHE_DIR, webpFilename);
 
   try {
-    // Check if WebP version already exists
     await fs.access(webpPath);
     return `/cache/${webpFilename}`;
   } catch {
