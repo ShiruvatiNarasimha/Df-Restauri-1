@@ -59,7 +59,6 @@ const DYNAMIC_CONTENT = {
 };
 
 export async function registerRoutes(app: Express) {
-  // Ensure cache directory exists
   await ensureCacheDirectory();
   
   // Add WebP middleware
