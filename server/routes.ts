@@ -61,7 +61,6 @@ const DYNAMIC_CONTENT = {
 export async function registerRoutes(app: Express) {
   await ensureCacheDirectory();
   
-  // Add WebP middleware
   app.use(webpMiddleware);
   app.post("/api/contact", (req, res) => {
     const { name, email, phone, message } = req.body;
