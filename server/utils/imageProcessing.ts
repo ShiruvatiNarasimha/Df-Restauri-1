@@ -22,7 +22,6 @@ export async function convertToWebP(imagePath: string): Promise<string> {
     await fs.access(webpPath);
     return `/cache/${webpFilename}`;
   } catch {
-    // Convert to WebP if it doesn't exist
     await sharp(imagePath)
       .webp({ quality: 80 })
       .toFile(webpPath);
