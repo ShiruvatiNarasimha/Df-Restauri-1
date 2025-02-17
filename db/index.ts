@@ -15,7 +15,6 @@ const queryClient = postgres(process.env.DATABASE_URL, {
   connect_timeout: 10,
 });
 
-// Test the connection by making a simple query
 const testConnection = async () => {
   try {
     await queryClient`SELECT 1`;
