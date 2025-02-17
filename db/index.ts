@@ -27,6 +27,5 @@ const testConnection = async () => {
 
 export const db = drizzle(queryClient, { schema });
 
-// Export schema and types for use in other parts of the application
 export { schema };
 export type { User, NewUser };
