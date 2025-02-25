@@ -12,7 +12,6 @@ if (!process.env.DATABASE_URL) {
 const queryClient = postgres(process.env.DATABASE_URL, {
   max: 10,
   ssl: process.env.NODE_ENV === 'production',
-  connect_timeout: 10,
 });
 
 const testConnection = async () => {
