@@ -18,7 +18,6 @@ const queryClient = postgres(process.env.DATABASE_URL, {
 const testConnection = async () => {
   try {
     await queryClient`SELECT 1`;
-    console.log("Database connection established successfully");
   } catch (error) {
     process.exit(1);
   }
