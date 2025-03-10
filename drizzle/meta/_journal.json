@@ -1,6 +1,5 @@
 {
   "version": "5",
-  "dialect": "pg",
   "entries": [
     {
       "idx": 0,
