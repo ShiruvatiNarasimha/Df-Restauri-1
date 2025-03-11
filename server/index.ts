@@ -65,5 +65,4 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  const PORT = 5000;
 })();
