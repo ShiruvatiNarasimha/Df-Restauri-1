@@ -65,4 +65,3 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-})();
